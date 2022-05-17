@@ -79,4 +79,41 @@ namespace Neo4j.Driver
         /// <exception cref="TransactionClosedException">>Thrown when used in a transaction that has previously been closed.</exception>
         Task<IResultCursor> RunAsync(Query query);
     }
+
+    public interface ITransactionQueryRunner : ITypelessTransactionQueryRunner, ITypedTransactionQueryRunner,
+        ITypedSummaryTransactionQueryRunner, ISummaryTransactionQueryRunner
+    {
+    }
+    public interface ITypelessTransactionQueryRunner
+    {
+        Task<IResultSummary> ApplyAsync(Query query, object parameters = null, AccessMode access = AccessMode.Write);
+        Task<object> ScalarAsync(Query query, object parameters = null, AccessMode access = AccessMode.Read);
+        Task<IRecord> SingleAsync(Query query, object parameters = null, AccessMode access = AccessMode.Read);
+        Task<IRecord[]> QueryAsync(Query query, object parameters = null, AccessMode access = AccessMode.Read);
+    }
+
+    public interface ITypedTransactionQueryRunner
+    {
+        Task<T> ScalarAsync<T>(Query query, object parameters = null, AccessMode access = AccessMode.Read, Func<object, T> converter = null);
+        Task<T> SingleAsync<T>(Query query, object parameters = null, AccessMode access = AccessMode.Read, Func<IRecord, T> converter = null) where T : new();
+        Task<T[]> QueryAsync<T>(Query query, object parameters = null, AccessMode access = AccessMode.Read, Func<IRecord, T> converter = null) where T : new();
+    }
+
+    public class SetResult<T>
+    {
+        public T Results { get; internal set; }
+        public IResultSummary Summary { get; internal set; }
+    }
+    public interface ITypedSummaryTransactionQueryRunner
+    {
+        Task<SetResult<T>> ScalarWithSummaryAsync<T>(Query query, object parameters = null, AccessMode access = AccessMode.Read, Func<object, T> converter = null);
+        Task<SetResult<T>> SingleWithSummaryAsync<T>(Query query, object parameters = null, AccessMode access = AccessMode.Read, Func<IRecord, T> converter = null) where T:new();
+        Task<SetResult<T[]>> QueryWithSummaryAsync<T>(Query query, object parameters = null, AccessMode access = AccessMode.Read, Func<IRecord, T> converter = null) where T : new();
+    }
+    public interface ISummaryTransactionQueryRunner
+    {
+        Task<SetResult<object>> ScalarWithSummaryAsync(Query query, object parameters = null, AccessMode access = AccessMode.Read);
+        Task<SetResult<IRecord>> SingleWithSummaryAsync(Query query, object parameters = null, AccessMode access = AccessMode.Read);
+        Task<SetResult<IRecord[]>> QueryWithSummaryAsync(Query query, object parameters = null, AccessMode access = AccessMode.Read);
+    }
 }
