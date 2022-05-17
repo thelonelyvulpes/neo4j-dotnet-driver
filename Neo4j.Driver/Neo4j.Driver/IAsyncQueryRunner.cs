@@ -81,7 +81,7 @@ namespace Neo4j.Driver
     }
 
     public interface ITransactionQueryRunner : ITypelessTransactionQueryRunner, ITypedTransactionQueryRunner,
-        ITypedSummaryTransactionQueryRunner, ISummaryTransactionQueryRunner
+        ITypedSummaryTransactionQueryRunner, ISummaryTransactionQueryRunner, IAsyncDisposable
     {
     }
     public interface ITypelessTransactionQueryRunner
@@ -90,6 +90,10 @@ namespace Neo4j.Driver
         Task<object> ScalarAsync(Query query, object parameters = null, AccessMode access = AccessMode.Read);
         Task<IRecord> SingleAsync(Query query, object parameters = null, AccessMode access = AccessMode.Read);
         Task<IRecord[]> QueryAsync(Query query, object parameters = null, AccessMode access = AccessMode.Read);
+        Task<IResultSummary> ApplyAsync(string query, object parameters = null, AccessMode access = AccessMode.Write);
+        Task<object> ScalarAsync(string query, object parameters = null, AccessMode access = AccessMode.Read);
+        Task<IRecord> SingleAsync(string query, object parameters = null, AccessMode access = AccessMode.Read);
+        Task<IRecord[]> QueryAsync(string query, object parameters = null, AccessMode access = AccessMode.Read);
     }
 
     public interface ITypedTransactionQueryRunner
@@ -97,6 +101,9 @@ namespace Neo4j.Driver
         Task<T> ScalarAsync<T>(Query query, object parameters = null, AccessMode access = AccessMode.Read, Func<object, T> converter = null);
         Task<T> SingleAsync<T>(Query query, object parameters = null, AccessMode access = AccessMode.Read, Func<IRecord, T> converter = null) where T : new();
         Task<T[]> QueryAsync<T>(Query query, object parameters = null, AccessMode access = AccessMode.Read, Func<IRecord, T> converter = null) where T : new();
+        Task<T> ScalarAsync<T>(string query, object parameters = null, AccessMode access = AccessMode.Read, Func<object, T> converter = null);
+        Task<T> SingleAsync<T>(string query, object parameters = null, AccessMode access = AccessMode.Read, Func<IRecord, T> converter = null) where T : new();
+        Task<T[]> QueryAsync<T>(string query, object parameters = null, AccessMode access = AccessMode.Read, Func<IRecord, T> converter = null) where T : new();
     }
 
     public class SetResult<T>
@@ -109,11 +116,17 @@ namespace Neo4j.Driver
         Task<SetResult<T>> ScalarWithSummaryAsync<T>(Query query, object parameters = null, AccessMode access = AccessMode.Read, Func<object, T> converter = null);
         Task<SetResult<T>> SingleWithSummaryAsync<T>(Query query, object parameters = null, AccessMode access = AccessMode.Read, Func<IRecord, T> converter = null) where T:new();
         Task<SetResult<T[]>> QueryWithSummaryAsync<T>(Query query, object parameters = null, AccessMode access = AccessMode.Read, Func<IRecord, T> converter = null) where T : new();
+        Task<SetResult<T>> ScalarWithSummaryAsync<T>(string query, object parameters = null, AccessMode access = AccessMode.Read, Func<object, T> converter = null);
+        Task<SetResult<T>> SingleWithSummaryAsync<T>(string query, object parameters = null, AccessMode access = AccessMode.Read, Func<IRecord, T> converter = null) where T : new();
+        Task<SetResult<T[]>> QueryWithSummaryAsync<T>(string query, object parameters = null, AccessMode access = AccessMode.Read, Func<IRecord, T> converter = null) where T : new();
     }
     public interface ISummaryTransactionQueryRunner
     {
         Task<SetResult<object>> ScalarWithSummaryAsync(Query query, object parameters = null, AccessMode access = AccessMode.Read);
         Task<SetResult<IRecord>> SingleWithSummaryAsync(Query query, object parameters = null, AccessMode access = AccessMode.Read);
         Task<SetResult<IRecord[]>> QueryWithSummaryAsync(Query query, object parameters = null, AccessMode access = AccessMode.Read);
+        Task<SetResult<object>> ScalarWithSummaryAsync(string query, object parameters = null, AccessMode access = AccessMode.Read);
+        Task<SetResult<IRecord>> SingleWithSummaryAsync(string query, object parameters = null, AccessMode access = AccessMode.Read);
+        Task<SetResult<IRecord[]>> QueryWithSummaryAsync(string query, object parameters = null, AccessMode access = AccessMode.Read);
     }
 }
