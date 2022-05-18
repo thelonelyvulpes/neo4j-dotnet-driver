@@ -284,117 +284,117 @@ namespace Neo4j.Driver.Internal
             return SessionConfig is not null ? SessionConfig.ImpersonatedUser : string.Empty;
         }
 
-        public Task<IResultSummary> ApplyAsync(Query query, object parameters = null, AccessMode access = AccessMode.Write)
+        public Task<IResultSummary> ApplyAsync(Query query, AccessMode access = AccessMode.Write)
         {
             return RunTransactionAsync(access, async t =>
             {
-                var cursor = await t.RunAsync(query.Text, parameters).ConfigureAwait(false);
+                var cursor = await t.RunAsync(query.Text, query.Parameters).ConfigureAwait(false);
                 return await cursor.ConsumeAsync().ConfigureAwait(false);
             }, null);
         }
 
-        public Task<object> ScalarAsync(Query query, object parameters = null, AccessMode access = AccessMode.Read)
+        public Task<object> ScalarAsync(Query query, AccessMode access = AccessMode.Read)
         {
             return RunTransactionAsync(access, async t =>
             {
-                var cursor = await t.RunAsync(query.Text, parameters).ConfigureAwait(false);
+                var cursor = await t.RunAsync(query.Text, query.Parameters).ConfigureAwait(false);
                 var result = await cursor.SingleAsync().ConfigureAwait(false);
                 return result.Values.Values.Single();
             }, null);
         }
 
-        public Task<IRecord> SingleAsync(Query query, object parameters = null, AccessMode access = AccessMode.Read)
+        public Task<IRecord> SingleAsync(Query query, AccessMode access = AccessMode.Read)
         {
             return RunTransactionAsync(access, async t =>
             {
-                var cursor = await t.RunAsync(query.Text, parameters).ConfigureAwait(false);
+                var cursor = await t.RunAsync(query.Text, query.Parameters).ConfigureAwait(false);
                 return await cursor.SingleAsync().ConfigureAwait(false);
             }, null);
         }
 
-        public Task<IRecord[]> QueryAsync(Query query, object parameters = null, AccessMode access = AccessMode.Read)
+        public Task<IRecord[]> QueryAsync(Query query,  AccessMode access = AccessMode.Read)
         {
             return RunTransactionAsync(access, async t =>
             {
-                var cursor = await t.RunAsync(query.Text, parameters).ConfigureAwait(false);
+                var cursor = await t.RunAsync(query.Text, query.Parameters).ConfigureAwait(false);
                 return (await cursor.ToListAsync().ConfigureAwait(false)).ToArray();
             }, null);
         }
 
         public Task<IResultSummary> ApplyAsync(string query, object parameters = null, AccessMode access = AccessMode.Write)
         {
-            return ApplyAsync(new Query(query), parameters, access);
+            return ApplyAsync(new Query(query, parameters), access);
         }
 
         public Task<object> ScalarAsync(string query, object parameters = null, AccessMode access = AccessMode.Read)
         {
-            return ScalarAsync(new Query(query), parameters, access);
+            return ScalarAsync(new Query(query, parameters), access);
         }
 
         public Task<IRecord> SingleAsync(string query, object parameters = null, AccessMode access = AccessMode.Read)
         {
-            return SingleAsync(new Query(query), parameters, access);
+            return SingleAsync(new Query(query, parameters), access);
         }
 
         public Task<IRecord[]> QueryAsync(string query, object parameters = null, AccessMode access = AccessMode.Read)
         {
-            return QueryAsync(new Query(query), parameters, access);
+            return QueryAsync(new Query(query, parameters), access);
         }
 
-        public Task<T> ScalarAsync<T>(Query query, object parameters = null, AccessMode access = AccessMode.Read, Func<object, T> converter = null)
+        public Task<T> ScalarAsync<T>(Query query, AccessMode access = AccessMode.Read, Func<object, T> converter = null)
         {
             var appliedConverter = converter ?? InferValueConverter<T>();
             return RunTransactionAsync(access, async t =>
             {
-                var cursor = await t.RunAsync(query.Text, parameters).ConfigureAwait(false);
+                var cursor = await t.RunAsync(query.Text, query.Parameters).ConfigureAwait(false);
                 var result = await cursor.SingleAsync().ConfigureAwait(false);
                 return appliedConverter(result.Values.Values.Single());
             }, null);
         }
 
-        public Task<T> SingleAsync<T>(Query query, object parameters = null, AccessMode access = AccessMode.Read, Func<IRecord, T> converter = null) where T : new()
+        public Task<T> SingleAsync<T>(Query query, AccessMode access = AccessMode.Read, Func<IRecord, T> converter = null) where T : new()
         {
             var appliedConverter = converter ?? InferRecordConverter<T>();
             return RunTransactionAsync(access, async t =>
             {
-                var cursor = await t.RunAsync(query.Text, parameters).ConfigureAwait(false);
+                var cursor = await t.RunAsync(query.Text, query.Parameters).ConfigureAwait(false);
                 var result = await cursor.SingleAsync().ConfigureAwait(false);
                 return appliedConverter(result);
             }, null);
         }
 
-        public Task<T[]> QueryAsync<T>(Query query, object parameters = null, AccessMode access = AccessMode.Read, Func<IRecord, T> converter = null) where T : new()
+        public Task<T[]> QueryAsync<T>(Query query, AccessMode access = AccessMode.Read, Func<IRecord, T> converter = null) where T : new()
         {
             var appliedConverter = converter ?? InferRecordConverter<T>();
             return RunTransactionAsync(access, async t =>
             {
-                var cursor = await t.RunAsync(query.Text, parameters).ConfigureAwait(false);
+                var cursor = await t.RunAsync(query.Text, query.Parameters).ConfigureAwait(false);
                 return (await cursor.ToListAsync().ConfigureAwait(false)).Select(x => appliedConverter(x)).ToArray();
             }, null);
         }
 
         public Task<T> ScalarAsync<T>(string query, object parameters = null, AccessMode access = AccessMode.Read, Func<object, T> converter = null)
         {
-            return ScalarAsync(new Query(query), parameters, access, converter);
+            return ScalarAsync(new Query(query, parameters), access, converter);
         }
 
         public Task<T> SingleAsync<T>(string query, object parameters = null, AccessMode access = AccessMode.Read, Func<IRecord, T> converter = null) where T : new()
         {
-            return SingleAsync(new Query(query), parameters, access, converter);
+            return SingleAsync(new Query(query, parameters), access, converter);
         }
 
         public Task<T[]> QueryAsync<T>(string query, object parameters = null, AccessMode access = AccessMode.Read, Func<IRecord, T> converter = null) where T : new()
         {
-            return QueryAsync(new Query(query), parameters, access, converter);
+            return QueryAsync(new Query(query, parameters), access, converter);
         }
 
-        public Task<SetResult<T>> ScalarWithSummaryAsync<T>(Query query, object parameters = null, AccessMode access = AccessMode.Read,
+        public Task<SetResult<T>> ScalarWithSummaryAsync<T>(Query query, AccessMode access = AccessMode.Read,
             Func<object, T> converter = null)
         {
             var appliedConverter = converter ?? InferValueConverter<T>();
             return RunTransactionAsync(access, async t =>
             {
-                var cursor = await t.RunAsync(query.Text, parameters).ConfigureAwait(false);
+                var cursor = await t.RunAsync(query.Text, query.Parameters).ConfigureAwait(false);
                 var result = await cursor.SingleAsync().ConfigureAwait(false);
                 var summary = await cursor.ConsumeAsync().ConfigureAwait(false);
                 return new SetResult<T>
@@ -405,13 +405,13 @@ namespace Neo4j.Driver.Internal
             }, null);
         }
 
-        public Task<SetResult<T>> SingleWithSummaryAsync<T>(Query query, object parameters = null, AccessMode access = AccessMode.Read,
+        public Task<SetResult<T>> SingleWithSummaryAsync<T>(Query query, AccessMode access = AccessMode.Read,
             Func<IRecord, T> converter = null) where T : new()
         {
             var appliedConverter = converter ?? InferRecordConverter<T>();
             return RunTransactionAsync(access, async t =>
             {
-                var cursor = await t.RunAsync(query.Text, parameters).ConfigureAwait(false);
+                var cursor = await t.RunAsync(query.Text, query.Parameters).ConfigureAwait(false);
                 var result = await cursor.SingleAsync().ConfigureAwait(false);
                 var summary = await cursor.ConsumeAsync().ConfigureAwait(false);
                 return new SetResult<T>
@@ -422,13 +422,13 @@ namespace Neo4j.Driver.Internal
             }, null);
         }
 
-        public Task<SetResult<T[]>> QueryWithSummaryAsync<T>(Query query, object parameters = null, AccessMode access = AccessMode.Read,
+        public Task<SetResult<T[]>> QueryWithSummaryAsync<T>(Query query, AccessMode access = AccessMode.Read,
             Func<IRecord, T> converter = null) where T : new()
         {
             var appliedConverter = converter ?? InferRecordConverter<T>();
             return RunTransactionAsync(access, async t =>
             {
-                var cursor = await t.RunAsync(query.Text, parameters).ConfigureAwait(false);
+                var cursor = await t.RunAsync(query.Text, query.Parameters).ConfigureAwait(false);
                 var result = (await cursor.ToListAsync().ConfigureAwait(false)).Select(x => appliedConverter(x)).ToArray();
                 var summary = await cursor.ConsumeAsync().ConfigureAwait(false);
                 return new SetResult<T[]>
@@ -442,26 +442,26 @@ namespace Neo4j.Driver.Internal
         public Task<SetResult<T>> ScalarWithSummaryAsync<T>(string query, object parameters = null, AccessMode access = AccessMode.Read,
             Func<object, T> converter = null)
         {
-            return ScalarWithSummaryAsync(new Query(query), parameters, access, converter);
+            return ScalarWithSummaryAsync(new Query(query, parameters), access, converter);
         }
 
         public Task<SetResult<T>> SingleWithSummaryAsync<T>(string query, object parameters = null, AccessMode access = AccessMode.Read,
             Func<IRecord, T> converter = null) where T : new()
         {
-            return SingleWithSummaryAsync(new Query(query), parameters, access, converter);
+            return SingleWithSummaryAsync(new Query(query, parameters), access, converter);
         }
 
         public Task<SetResult<T[]>> QueryWithSummaryAsync<T>(string query, object parameters = null, AccessMode access = AccessMode.Read,
             Func<IRecord, T> converter = null) where T : new()
         {
-            return QueryWithSummaryAsync(new Query(query), parameters, access, converter);
+            return QueryWithSummaryAsync(new Query(query, parameters), access, converter);
         }
 
-        public Task<SetResult<object>> ScalarWithSummaryAsync(Query query, object parameters = null, AccessMode access = AccessMode.Read)
+        public Task<SetResult<object>> ScalarWithSummaryAsync(Query query, AccessMode access = AccessMode.Read)
         {
             return RunTransactionAsync(access, async t =>
             {
-                var cursor = await t.RunAsync(query.Text, parameters).ConfigureAwait(false);
+                var cursor = await t.RunAsync(query.Text, query.Parameters).ConfigureAwait(false);
                 var result = await cursor.SingleAsync().ConfigureAwait(false);
                 var summary = await cursor.ConsumeAsync().ConfigureAwait(false);
                 return new SetResult<object>
@@ -472,11 +472,11 @@ namespace Neo4j.Driver.Internal
             }, null);
         }
 
-        public Task<SetResult<IRecord>> SingleWithSummaryAsync(Query query, object parameters = null, AccessMode access = AccessMode.Read)
+        public Task<SetResult<IRecord>> SingleWithSummaryAsync(Query query, AccessMode access = AccessMode.Read)
         {
             return RunTransactionAsync(access, async t =>
             {
-                var cursor = await t.RunAsync(query.Text, parameters).ConfigureAwait(false);
+                var cursor = await t.RunAsync(query.Text, query.Parameters).ConfigureAwait(false);
                 var result = await cursor.SingleAsync().ConfigureAwait(false);
                 var summary = await cursor.ConsumeAsync().ConfigureAwait(false);
                 return new SetResult<IRecord>
@@ -487,11 +487,11 @@ namespace Neo4j.Driver.Internal
             }, null);
         }
 
-        public Task<SetResult<IRecord[]>> QueryWithSummaryAsync(Query query, object parameters = null, AccessMode access = AccessMode.Read)
+        public Task<SetResult<IRecord[]>> QueryWithSummaryAsync(Query query, AccessMode access = AccessMode.Read)
         {
             return RunTransactionAsync(access, async t =>
             {
-                var cursor = await t.RunAsync(query.Text, parameters).ConfigureAwait(false);
+                var cursor = await t.RunAsync(query.Text, query.Parameters).ConfigureAwait(false);
                 var result = await cursor.ToListAsync().ConfigureAwait(false);
                 var summary = await cursor.ConsumeAsync().ConfigureAwait(false);
                 return new SetResult<IRecord[]>
@@ -504,26 +504,23 @@ namespace Neo4j.Driver.Internal
 
         public Task<SetResult<object>> ScalarWithSummaryAsync(string query, object parameters = null, AccessMode access = AccessMode.Read)
         {
-            return ScalarWithSummaryAsync(new Query(query), parameters, access);
+            return ScalarWithSummaryAsync(new Query(query, parameters), access);
         }
 
         public Task<SetResult<IRecord>> SingleWithSummaryAsync(string query, object parameters = null, AccessMode access = AccessMode.Read)
         {
-            return SingleWithSummaryAsync(new Query(query), parameters, access);
+            return SingleWithSummaryAsync(new Query(query, parameters), access);
         }
 
         public Task<SetResult<IRecord[]>> QueryWithSummaryAsync(string query, object parameters = null, AccessMode access = AccessMode.Read)
         {
-            return QueryWithSummaryAsync(new Query(query), parameters, access);
+            return QueryWithSummaryAsync(new Query(query, parameters), access);
         }
 
 
         private Func<object, T> InferValueConverter<T>()
         {
-            var code = Convert.GetTypeCode(typeof(T));
-            if (code is TypeCode.Empty or TypeCode.Object)
-                throw new InvalidOperationException();
-            return o => (T)Convert.ChangeType(o, code);
+            return o => (T)Convert.ChangeType(o, typeof(T));
         }
 
         private Func<IRecord, T> InferRecordConverter<T>() where T: new()
@@ -536,7 +533,7 @@ namespace Neo4j.Driver.Internal
                 foreach (var key in record.Keys)
                 {
                     if (!propsInfo.TryGetValue(key.ToLower(), out var propInfo))
-                        throw new ArgumentException("key does not exist");
+                        continue;
                     propInfo.SetValue(obj, coerceType(record[key], propInfo.PropertyType));
                 }
 
@@ -546,7 +543,17 @@ namespace Neo4j.Driver.Internal
 
         private object coerceType(object o, Type propInfoPropertyType)
         {
-            return Convert.ChangeType(o, Convert.GetTypeCode(propInfoPropertyType));
+            return Convert.ChangeType(o, propInfoPropertyType);
+        }
+
+        public Task<IResultCursor> RunInAutoCommitAsync(Query query)
+        {
+            return RunAsync(query);
+        }
+
+        public Task<IResultCursor> RunInAutoCommitAsync(string query, object parameters = null)
+        {
+            return RunAsync(query, parameters);
         }
     }
 }
