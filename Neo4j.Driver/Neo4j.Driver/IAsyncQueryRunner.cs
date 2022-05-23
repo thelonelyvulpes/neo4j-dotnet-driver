@@ -80,38 +80,21 @@ public interface IAsyncQueryRunner : IAsyncDisposable, IDisposable
     Task<IResultCursor> RunAsync(Query query);
 }
 
-public interface IAutoCommitQueryRunner
-{
-    Task<IResultCursor> RunInAutoCommitAsync(Query query);
-    Task<IResultCursor> RunInAutoCommitAsync(string query, object parameters = null);
-}
 
-public interface IReducedSessionQueryRunner : ITransactionalQueryRunner, IAutoCommitQueryRunner
+public interface ISummarySession : ISetQueryRunner, ISessionQueryRunner
 {
 }
 
-public interface ITransactionalQueryRunner :
-    IAsyncDisposable
+public interface ISessionQueryRunner : IResultQueryRunner, IAutoCommitQueryRunner, IAsyncDisposable
 {
-    Task<IResultSummary> ApplyAsync(Query query, AccessMode access = AccessMode.Write);
-    Task<object> ScalarAsync(Query query, AccessMode access = AccessMode.Read);
-    Task<IRecord> SingleAsync(Query query, AccessMode access = AccessMode.Read);
-    Task<IRecord[]> QueryAsync(Query query, AccessMode access = AccessMode.Read);
-    Task<IResultSummary> ApplyAsync(string query, object parameters = null, AccessMode access = AccessMode.Write);
-    Task<object> ScalarAsync(string query, object parameters = null, AccessMode access = AccessMode.Read);
-    Task<IRecord> SingleAsync(string query, object parameters = null, AccessMode access = AccessMode.Read);
-    Task<IRecord[]> QueryAsync(string query, object parameters = null, AccessMode access = AccessMode.Read);
-    Task<T> ScalarAsync<T>(Query query, AccessMode access = AccessMode.Read, Func<object, T> converter = null);
-    Task<T> SingleAsync<T>(Query query, AccessMode access = AccessMode.Read, Func<IRecord, T> converter = null)
-        where T : new();
-    Task<T[]> QueryAsync<T>(Query query, AccessMode access = AccessMode.Read, Func<IRecord, T> converter = null)
-        where T : new();
-    Task<T> ScalarAsync<T>(string query, object parameters = null, AccessMode access = AccessMode.Read,
-        Func<object, T> converter = null);
-    Task<T> SingleAsync<T>(string query, object parameters = null, AccessMode access = AccessMode.Read,
-        Func<IRecord, T> converter = null) where T : new();
-    Task<T[]> QueryAsync<T>(string query, object parameters = null, AccessMode access = AccessMode.Read,
-        Func<IRecord, T> converter = null) where T : new();
+}
+
+public interface ISetQueryRunner : ISummaryResultQueryRunner, IResultQueryRunner
+{
+}
+
+public interface ISummaryResultQueryRunner
+{
     Task<SetResult<T>> ScalarWithSummaryAsync<T>(Query query, AccessMode access = AccessMode.Read,
         Func<object, T> converter = null);
     Task<SetResult<T>> SingleWithSummaryAsync<T>(Query query, AccessMode access = AccessMode.Read,
@@ -135,47 +118,37 @@ public interface ITransactionalQueryRunner :
         AccessMode access = AccessMode.Read);
 }
 
+public interface IResultQueryRunner 
+{
+    Task<IResultSummary> ExecuteAsync(Query query, AccessMode access = AccessMode.Write);
+    Task<object> QueryScalarAsync(Query query, AccessMode access = AccessMode.Read);
+    Task<IRecord> QuerySingleAsync(Query query, AccessMode access = AccessMode.Read);
+    Task<IRecord[]> QueryAsync(Query query, AccessMode access = AccessMode.Read);
+    Task<IResultSummary> ExecuteAsync(string query, object parameters = null, AccessMode access = AccessMode.Write);
+    Task<object> QueryScalarAsync(string query, object parameters = null, AccessMode access = AccessMode.Read);
+    Task<IRecord> QuerySingleAsync(string query, object parameters = null, AccessMode access = AccessMode.Read);
+    Task<IRecord[]> QueryAsync(string query, object parameters = null, AccessMode access = AccessMode.Read);
+    Task<T> QueryScalarAsync<T>(Query query, AccessMode access = AccessMode.Read, Func<object, T> converter = null);
+    Task<T> QuerySingleAsync<T>(Query query, AccessMode access = AccessMode.Read, Func<IRecord, T> converter = null)
+        where T : new();
+    Task<T[]> QueryAsync<T>(Query query, AccessMode access = AccessMode.Read, Func<IRecord, T> converter = null)
+        where T : new();
+    Task<T> QueryScalarAsync<T>(string query, object parameters = null, AccessMode access = AccessMode.Read,
+        Func<object, T> converter = null);
+    Task<T> QuerySingleAsync<T>(string query, object parameters = null, AccessMode access = AccessMode.Read,
+        Func<IRecord, T> converter = null) where T : new();
+    Task<T[]> QueryAsync<T>(string query, object parameters = null, AccessMode access = AccessMode.Read,
+        Func<IRecord, T> converter = null) where T : new();
+}
+
+public interface IAutoCommitQueryRunner
+{
+    Task<IResultCursor> RunInAutoCommitAsync(Query query);
+    Task<IResultCursor> RunInAutoCommitAsync(string query, object parameters = null);
+}
+
 public class SetResult<T>
 {
     public T Results { get; internal set; }
     public IResultSummary Summary { get; internal set; }
-}
-
-public interface IResultProcessorQueryRunner
-{
-    Task<IResultSummary> ForEachAsync(Action<IRecord> action, Query query, AccessMode access = AccessMode.Read);
-
-    Task<IResultSummary> ForEachAsync(Action<IRecord> action, string query, object parameters = null,
-        AccessMode access = AccessMode.Read);
-
-    Task<IResultSummary> ForEachAsync<T>(Action<T> action, Query query,
-        AccessMode access = AccessMode.Read, Func<IRecord, T> converter = null) where T : new();
-
-    Task<IResultSummary> ForEachAsync<T>(Action<T> action, string query, object parameters = null,
-        AccessMode access = AccessMode.Read, Func<IRecord, T> converter = null) where T : new();
-
-    Task<T> ReduceAsync<T>(Func<IRecord, T, T> action, T startValue, Query query, AccessMode access = AccessMode.Read);
-
-    Task<T> ReduceAsync<T>(Func<IRecord, T, T> action, T startValue, string query, object parameters = null,
-        AccessMode access = AccessMode.Read);
-
-    Task<T2> ReduceAsync<T, T2>(Func<T, T2, T2> action, T2 startValue, Query query,
-        AccessMode access = AccessMode.Read, Func<IRecord, T> converter = null) where T : new();
-
-    Task<T2> ReduceAsync<T, T2>(Func<T, T2, T2> action, T2 startValue, string query,
-        object parameters = null, AccessMode access = AccessMode.Read, Func<IRecord, T> converter = null)
-        where T : new();
-
-    Task<SetResult<T2>> ReduceWithSummaryAsync<T, T2>(Func<T, T2, T2> action, T2 startValue, Query query,
-        AccessMode access = AccessMode.Read, Func<IRecord, T> converter = null) where T : new();
-
-    Task<SetResult<T2>> ReduceWithSummaryAsync<T, T2>(Func<T, T2, T2> action, T2 startValue, string query,
-        object parameters = null, AccessMode access = AccessMode.Read, Func<IRecord, T> converter = null)
-        where T : new();
-
-    Task<SetResult<T>> ReduceWithSummaryAsync<T>(Func<IRecord, T, T> action, T startValue, Query query,
-        AccessMode access = AccessMode.Read);
-
-    Task<SetResult<T>> ReduceWithSummaryAsync<T>(Func<IRecord, T, T> action, T startValue, string query,
-        object parameters = null, AccessMode access = AccessMode.Read);
 }

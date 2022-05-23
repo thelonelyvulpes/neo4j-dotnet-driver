@@ -284,7 +284,7 @@ namespace Neo4j.Driver.Internal
             return SessionConfig is not null ? SessionConfig.ImpersonatedUser : string.Empty;
         }
 
-        public Task<IResultSummary> ApplyAsync(Query query, AccessMode access = AccessMode.Write)
+        public Task<IResultSummary> ExecuteAsync(Query query, AccessMode access = AccessMode.Write)
         {
             return RunTransactionAsync(access, async t =>
             {
@@ -293,7 +293,7 @@ namespace Neo4j.Driver.Internal
             }, null);
         }
 
-        public Task<object> ScalarAsync(Query query, AccessMode access = AccessMode.Read)
+        public Task<object> QueryScalarAsync(Query query, AccessMode access = AccessMode.Read)
         {
             return RunTransactionAsync(access, async t =>
             {
@@ -303,7 +303,7 @@ namespace Neo4j.Driver.Internal
             }, null);
         }
 
-        public Task<IRecord> SingleAsync(Query query, AccessMode access = AccessMode.Read)
+        public Task<IRecord> QuerySingleAsync(Query query, AccessMode access = AccessMode.Read)
         {
             return RunTransactionAsync(access, async t =>
             {
@@ -321,19 +321,19 @@ namespace Neo4j.Driver.Internal
             }, null);
         }
 
-        public Task<IResultSummary> ApplyAsync(string query, object parameters = null, AccessMode access = AccessMode.Write)
+        public Task<IResultSummary> ExecuteAsync(string query, object parameters = null, AccessMode access = AccessMode.Write)
         {
-            return ApplyAsync(new Query(query, parameters), access);
+            return ExecuteAsync(new Query(query, parameters), access);
         }
 
-        public Task<object> ScalarAsync(string query, object parameters = null, AccessMode access = AccessMode.Read)
+        public Task<object> QueryScalarAsync(string query, object parameters = null, AccessMode access = AccessMode.Read)
         {
-            return ScalarAsync(new Query(query, parameters), access);
+            return QueryScalarAsync(new Query(query, parameters), access);
         }
 
-        public Task<IRecord> SingleAsync(string query, object parameters = null, AccessMode access = AccessMode.Read)
+        public Task<IRecord> QuerySingleAsync(string query, object parameters = null, AccessMode access = AccessMode.Read)
         {
-            return SingleAsync(new Query(query, parameters), access);
+            return QuerySingleAsync(new Query(query, parameters), access);
         }
 
         public Task<IRecord[]> QueryAsync(string query, object parameters = null, AccessMode access = AccessMode.Read)
@@ -341,7 +341,7 @@ namespace Neo4j.Driver.Internal
             return QueryAsync(new Query(query, parameters), access);
         }
 
-        public Task<T> ScalarAsync<T>(Query query, AccessMode access = AccessMode.Read, Func<object, T> converter = null)
+        public Task<T> QueryScalarAsync<T>(Query query, AccessMode access = AccessMode.Read, Func<object, T> converter = null)
         {
             var appliedConverter = converter ?? InferValueConverter<T>();
             return RunTransactionAsync(access, async t =>
@@ -352,7 +352,7 @@ namespace Neo4j.Driver.Internal
             }, null);
         }
 
-        public Task<T> SingleAsync<T>(Query query, AccessMode access = AccessMode.Read, Func<IRecord, T> converter = null) where T : new()
+        public Task<T> QuerySingleAsync<T>(Query query, AccessMode access = AccessMode.Read, Func<IRecord, T> converter = null) where T : new()
         {
             var appliedConverter = converter ?? InferRecordConverter<T>();
             return RunTransactionAsync(access, async t =>
@@ -373,14 +373,14 @@ namespace Neo4j.Driver.Internal
             }, null);
         }
 
-        public Task<T> ScalarAsync<T>(string query, object parameters = null, AccessMode access = AccessMode.Read, Func<object, T> converter = null)
+        public Task<T> QueryScalarAsync<T>(string query, object parameters = null, AccessMode access = AccessMode.Read, Func<object, T> converter = null)
         {
-            return ScalarAsync(new Query(query, parameters), access, converter);
+            return QueryScalarAsync(new Query(query, parameters), access, converter);
         }
 
-        public Task<T> SingleAsync<T>(string query, object parameters = null, AccessMode access = AccessMode.Read, Func<IRecord, T> converter = null) where T : new()
+        public Task<T> QuerySingleAsync<T>(string query, object parameters = null, AccessMode access = AccessMode.Read, Func<IRecord, T> converter = null) where T : new()
         {
-            return SingleAsync(new Query(query, parameters), access, converter);
+            return QuerySingleAsync(new Query(query, parameters), access, converter);
         }
 
         public Task<T[]> QueryAsync<T>(string query, object parameters = null, AccessMode access = AccessMode.Read, Func<IRecord, T> converter = null) where T : new()

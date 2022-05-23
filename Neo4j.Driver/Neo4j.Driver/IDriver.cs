@@ -91,6 +91,8 @@ namespace Neo4j.Driver
         /// </summary>
         bool Encrypted { get; }
 
-        IReducedSessionQueryRunner ReducedSession();
+        ISessionQueryRunner Session();
+
+        ISummarySession SummarySession();
     }
 }

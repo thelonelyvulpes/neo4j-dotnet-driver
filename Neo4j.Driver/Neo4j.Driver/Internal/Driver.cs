@@ -40,7 +40,12 @@ namespace Neo4j.Driver.Internal
         public Uri Uri { get; }
         public bool Encrypted { get; }
 
-        public IReducedSessionQueryRunner ReducedSession()
+        public ISessionQueryRunner Session()
+        {
+            return AsyncSession(null);
+        }
+
+        public ISummarySession SummarySession()
         {
             return AsyncSession(null);
         }
