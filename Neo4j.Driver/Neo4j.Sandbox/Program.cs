@@ -1,18 +1,18 @@
 ﻿using Neo4j.Driver;
 
-class program
+namespace Neo4j.Sandbox;
+
+class Program
 {
     static async Task Main()
     {
         var driver = GraphDatabase.Driver("bolt://localhost:7687", AuthTokens.Basic("neo4j", "pass"));
 
-        await using var session = driver.Session();
-
-        var write = await session.ExecuteAsync(@"CREATE (n: Example { field: 'example', found: false }) return n.field");
-
-        var theRest = await session.QueryAsync<Example>("MATCH (n: Example {field: $field}) RETURN properties(n) SKIP 1", new { field = "example" });
-
-        Console.WriteLine(string.Join(", ", theRest.Select(x => x.Field)));
+        var write = await driver.WriteAsync(@"CREATE (n: Example { field: 'example', found: false }) return n.field");
+        var theRest = await driver.ReadAsync<Example>(@"
+            MATCH (n: Example {field: $field}) 
+            RETURN n.field as field, n.found as found SKIP 1",
+            new { field = "example" });
     }
 }
 
