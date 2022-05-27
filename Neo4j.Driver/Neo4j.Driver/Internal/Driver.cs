@@ -16,10 +16,7 @@
 // limitations under the License.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
-using Neo4j.Driver;
 using System.Threading.Tasks;
 using Neo4j.Driver.Internal.Metrics;
 using Neo4j.Driver.Internal.Util;
@@ -29,7 +26,7 @@ namespace Neo4j.Driver.Internal
 {
     internal class Driver : IInternalDriver
     {
-        private int _closedMarker = 0;
+        private int _closedMarker;
 
         private readonly IConnectionProvider _connectionProvider;
         private readonly IAsyncRetryLogic _retryLogic;
@@ -39,16 +36,6 @@ namespace Neo4j.Driver.Internal
 
         public Uri Uri { get; }
         public bool Encrypted { get; }
-
-        public ISessionQueryRunner Session()
-        {
-            return AsyncSession(null);
-        }
-
-        public ISummarySession SummarySession()
-        {
-            return AsyncSession(null);
-        }
 
         internal Driver(Uri uri,
             bool encrypted,
@@ -115,21 +102,14 @@ namespace Neo4j.Driver.Internal
 
         private void Close()
         {
-            Task.Factory
-                .StartNew(CloseAsync, TaskCreationOptions.None)
-                .Unwrap()
-                .GetAwaiter()
-                .GetResult();
+            CloseAsync().GetAwaiter().GetResult();
         }
 
         public Task CloseAsync()
         {
-            if (Interlocked.CompareExchange(ref _closedMarker, 1, 0) == 0)
-            {
-                return _connectionProvider.CloseAsync();
-            }
-
-            return Task.CompletedTask;
+            return Interlocked.CompareExchange(ref _closedMarker, 1, 0) == 0 
+                ? _connectionProvider.CloseAsync() 
+                : Task.CompletedTask;
         }
 
         public Task<IServerInfo> GetServerInfoAsync() =>
@@ -142,16 +122,23 @@ namespace Neo4j.Driver.Internal
             return _connectionProvider.SupportsMultiDbAsync();
         }
 
-		//Non public facing api. Used for testing with testkit only
-		public IRoutingTable GetRoutingTable(string database)
-		{
-			return _connectionProvider.GetRoutingTable(database);		
-		}
+        //Non public facing api. Used for testing with testkit only
+        public IRoutingTable GetRoutingTable(string database)
+        {
+            return _connectionProvider.GetRoutingTable(database);		
+        }
 
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            if (IsClosed)
+                return;
+            await CloseAsync().ConfigureAwait(false);
         }
 
         protected virtual void Dispose(bool disposing)
@@ -180,6 +167,90 @@ namespace Neo4j.Driver.Internal
             }
 
             return _metrics;
+        }
+
+        public async Task<IRecordSetResult<T>> ReadAsync<T>(Query query, Func<IRecord, T> converter = null) where T : new()
+        {
+            var session = Session(null, false);
+            await using var _ = session.ConfigureAwait(false);
+            return await session.ReadAsync(query, converter).ConfigureAwait(false);
+        }
+
+        public async Task<IRecordSetResult<T>> ReadAsync<T>(string query, object parameters = null, Func<IRecord, T> converter = null) where T : new()
+        {
+            var session = Session(null, false);
+            await using var _ = session.ConfigureAwait(false);
+            return await session.ReadAsync(query, parameters, converter).ConfigureAwait(false);
+        }
+
+        public async Task<IRecordSetResult<T>> WriteAsync<T>(Query query, Func<IRecord, T> converter = null) where T : new()
+        {
+            var session = Session(null, false);
+            await using var _ = session.ConfigureAwait(false);
+            return await session.WriteAsync(query, converter).ConfigureAwait(false);
+        }
+
+        public async Task<IRecordSetResult<T>> WriteAsync<T>(string query, object parameters = null, Func<IRecord, T> converter = null) where T : new()
+        {
+            var session = Session(null, false);
+            await using var _ = session.ConfigureAwait(false);
+            return await session.WriteAsync(query, parameters, converter).ConfigureAwait(false);
+        }
+
+        public async Task<IRecordSetResult> ReadAsync(Query query)
+        {
+            var session = Session(null, false);
+            await using var _ = session.ConfigureAwait(false);
+            return await session.ReadAsync(query).ConfigureAwait(false);
+        }
+
+        public async Task<IRecordSetResult> ReadAsync(string query, object parameters = null)
+        {
+            var session = Session(null, false);
+            await using var _ = session.ConfigureAwait(false);
+            return await session.ReadAsync(query, parameters).ConfigureAwait(false);
+        }
+
+        public async Task<IRecordSetResult> WriteAsync(Query query)
+        {
+            var session = Session(null, false);
+            await using var _ = session.ConfigureAwait(false);
+            return await session.WriteAsync(query).ConfigureAwait(false);
+        }
+
+        public async Task<IRecordSetResult> WriteAsync(string query, object parameters = null)
+        {
+            var session = Session(null, false);
+            await using var _ = session.ConfigureAwait(false);
+            return await session.WriteAsync(query, parameters).ConfigureAwait(false);
+        }
+
+        public async Task<T> ReadAsync<T>(Func<IQueryContext, Task<T>> work, Action<TransactionConfigBuilder> action = null)
+        {
+            var session = Session(null, false);
+            await using var _ = session.ConfigureAwait(false);
+            return await session.ReadAsync(work, action).ConfigureAwait(false);
+        }
+
+        public async Task<T> WriteAsync<T>(Func<IQueryContext, Task<T>> work, Action<TransactionConfigBuilder> action = null)
+        {
+            var session = Session(null, false);
+            await using var _ = session.ConfigureAwait(false);
+            return await session.WriteAsync(work, action).ConfigureAwait(false);
+        }
+
+        public async Task ReadAsync(Func<IQueryContext, Task> work, Action<TransactionConfigBuilder> action = null)
+        {
+            var session = Session(null, false);
+            await using var _ = session.ConfigureAwait(false);
+            await session.ReadAsync(work, action).ConfigureAwait(false);
+        }
+
+        public async Task WriteAsync(Func<IQueryContext, Task> work, Action<TransactionConfigBuilder> action = null)
+        {
+            var session = Session(null, false);
+            await using var _ = session.ConfigureAwait(false);
+            await session.WriteAsync(work, action).ConfigureAwait(false);
         }
     }
 }

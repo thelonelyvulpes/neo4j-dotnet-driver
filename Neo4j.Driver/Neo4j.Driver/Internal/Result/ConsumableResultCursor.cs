@@ -15,6 +15,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Threading.Tasks;
 
 namespace Neo4j.Driver.Internal.Result
@@ -62,6 +63,15 @@ namespace Neo4j.Driver.Internal.Result
         }
 
         public bool IsOpen => !_isConsumed;
+        public Task<IRecordSetResult> ToResultAsync()
+        {
+            return _cursor.ToResultAsync();
+        }
+
+        public Task<IRecordSetResult<T>> ToResultAsync<T>(Func<IRecord, T> converter = null)
+        {
+            return _cursor.ToResultAsync(converter);
+        }
 
         public void Cancel()
         {
@@ -75,5 +85,19 @@ namespace Neo4j.Driver.Internal.Result
                 throw ErrorExtensions.NewResultConsumedException();
             }
         }
+    }
+
+    internal class InternalRecordSetResult : IRecordSetResult
+    {
+        public IRecord[] Results { get; internal set; }
+        public IResultSummary Summary { get; internal set; }
+        public string[] Keys { get; internal set; }
+    }
+
+    internal class InternalRecordSetResult<T> : IRecordSetResult<T>
+    {
+        public T[] Results { get; internal set; }
+        public IResultSummary Summary { get; internal set; }
+        public string[] Keys { get; internal set; }
     }
 }

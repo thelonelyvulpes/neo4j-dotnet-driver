@@ -30,7 +30,7 @@ namespace Neo4j.Driver
     /// Session objects are not thread safe, if you want to run concurrent operations against the database,
     /// simply create multiple session objects.
     /// </summary>
-    public interface IAsyncSession : IAsyncQueryRunner
+    public interface IAsyncSession : IAsyncQueryRunner, ITransactionContext, IQueryContext
     {
         /// <summary>
         /// Asynchronously begin a new transaction in this session using server default transaction configurations.
@@ -106,43 +106,6 @@ namespace Neo4j.Driver
         [Obsolete("Deprecated, Use ExecuteWriteAsync. Will be removed in 6.0.")]
         Task WriteTransactionAsync(Func<IAsyncTransaction, Task> work, Action<TransactionConfigBuilder> action = null);
 
-        /// <summary>
-        /// Asynchronously execute given unit of work as a transaction with a specific <see cref="TransactionConfig"/>.
-        /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="work">The <see cref="Func{IAsyncQueryRunner, Task}"/> to be applied to a new read transaction.</param>
-        /// <param name="action">Given a <see cref="TransactionConfigBuilder"/>, defines how to set the configurations for the new transaction.
-        /// This configuration overrides server side default transaction configurations. See <see cref="TransactionConfig"/></param>
-        /// <returns>A task that represents the asynchronous execution operation.</returns>
-        Task<TResult> ExecuteReadAsync<TResult>(Func<IAsyncQueryRunner, Task<TResult>> work, Action<TransactionConfigBuilder> action = null);
-
-        /// <summary>
-        /// Asynchronously execute given unit of work as a transaction with a specific <see cref="TransactionConfig"/>.
-        /// </summary>
-        /// <param name="work">The <see cref="Func{IAsyncQueryRunner, Task}"/> to be applied to a new read transaction.</param>
-        /// <param name="action">Given a <see cref="TransactionConfigBuilder"/>, defines how to set the configurations for the new transaction.
-        /// This configuration overrides server side default transaction configurations. See <see cref="TransactionConfig"/></param>
-        /// <returns>A task that represents the asynchronous execution operation.</returns>
-        Task ExecuteReadAsync(Func<IAsyncQueryRunner, Task> work, Action<TransactionConfigBuilder> action = null);
-
-        /// <summary>
-        /// Asynchronously execute given unit of work as a transaction with a specific <see cref="TransactionConfig"/>.
-        /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="work">The <see cref="Func{IAsyncQueryRunner, Task}"/> to be applied to a new write transaction.</param>
-        /// <param name="action">Given a <see cref="TransactionConfigBuilder"/>, defines how to set the configurations for the new transaction.
-        /// This configuration overrides server side default transaction configurations. See <see cref="TransactionConfig"/></param>
-        /// <returns>A task that represents the asynchronous execution operation.</returns>
-        Task<TResult> ExecuteWriteAsync<TResult>(Func<IAsyncQueryRunner, Task<TResult>> work, Action<TransactionConfigBuilder> action = null);
-
-        /// <summary>
-        /// Asynchronously execute given unit of work as a transaction with a specific <see cref="TransactionConfig"/>.
-        /// </summary>
-        /// <param name="work">The <see cref="Func{IAsyncQueryRunner, Task}"/> to be applied to a new write transaction.</param>
-        /// <param name="action">Given a <see cref="TransactionConfigBuilder"/>, defines how to set the configurations for the new transaction.
-        /// This configuration overrides server side default transaction configurations. See <see cref="TransactionConfig"/></param>
-        /// <returns>A task that represents the asynchronous execution operation.</returns>
-        Task ExecuteWriteAsync(Func<IAsyncQueryRunner, Task> work, Action<TransactionConfigBuilder> action = null);
 
         /// <summary>
         /// Close all resources used in this Session. If any transaction is left open in this session without commit or rollback,

@@ -17,10 +17,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Threading;
+using System.Linq;
 using System.Threading.Tasks;
-using Neo4j.Driver;
 
 namespace Neo4j.Driver.Internal.Result
 {
@@ -122,15 +120,41 @@ namespace Neo4j.Driver.Internal.Result
             get
             {
                 if (!_atEnd && _current == null && _peeked == null)
-                {
                     throw new InvalidOperationException("Tried to access Current without calling FetchAsync.");
-                }
 
                 return _current;
             }
         }
 
         public bool IsOpen => _summary == null;
+        public async Task<IRecordSetResult> ToResultAsync()
+        {
+            var rows = await this.ToListAsync().ConfigureAwait(false);
+            var keys = await KeysAsync().ConfigureAwait(false);
+            var summary = await ConsumeAsync().ConfigureAwait(false);
+            return new InternalRecordSetResult
+            {
+                Keys = keys,
+                Results = rows.ToArray(),
+                Summary = summary
+            };
+        }
+
+        public async Task<IRecordSetResult<T>> ToResultAsync<T>(Func<IRecord, T> converter = null)
+        {
+            var set = new List<T>();
+            while (await FetchAsync().ConfigureAwait(false))
+                set.Add(converter(_current));
+            
+            var keys = await KeysAsync().ConfigureAwait(false);
+            var summary = await ConsumeAsync().ConfigureAwait(false);
+            return new InternalRecordSetResult<T>
+            {
+                Keys = keys,
+                Results = set.ToArray(),
+                Summary = summary
+            };
+        }
 
         public void Cancel()
         {

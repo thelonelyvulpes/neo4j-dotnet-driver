@@ -51,8 +51,8 @@ namespace Neo4j.Driver.Internal.Result
             _summaryBuilder = summaryBuilder ?? throw new ArgumentNullException(nameof(summaryBuilder));
             _advanceFunction =
                 WrapAdvanceFunc(advanceFunction ?? throw new ArgumentNullException(nameof(advanceFunction)));
-            _moreFunction = moreFunction ?? ((s, id, n) => Task.CompletedTask);
-            _cancelFunction = cancelFunction ?? ((s, id) => Task.CompletedTask);
+            _moreFunction = moreFunction ?? ((_, _, _) => Task.CompletedTask);
+            _cancelFunction = cancelFunction ?? ((_, _) => Task.CompletedTask);
             _cancellationSource = new CancellationTokenSource();
             _resourceHandler = resourceHandler;
 
@@ -101,24 +101,22 @@ namespace Neo4j.Driver.Internal.Result
 
             public bool TryDisableAutoPull(int recordCount)
             {
-                if (_autoPull && recordCount > _highWatermark)
-                {
-                    _autoPull = false;
-                    return true;
-                }
+                if (!_autoPull || recordCount <= _highWatermark)
+                    return false;
+                
+                _autoPull = false;
+                return true;
 
-                return false;
             }
 
             public bool TryEnableAutoPull(int recordCount)
             {
-                if (!_autoPull && recordCount <= _lowWatermark)
-                {
-                    _autoPull = true;
-                    return true;
-                }
+                if (_autoPull || recordCount > _lowWatermark)
+                    return false;
+                
+                _autoPull = true;
+                return true;
 
-                return false;
             }
 
             public bool AutoPull => _autoPull;
@@ -142,7 +140,7 @@ namespace Neo4j.Driver.Internal.Result
                 await _advanceFunction().ConfigureAwait(false);
             }
 
-            return _fields ?? new string[0];
+            return _fields ?? Array.Empty<string>();
         }
 
         public async Task<IRecord> NextRecordAsync()
@@ -194,9 +192,7 @@ namespace Neo4j.Driver.Internal.Result
         public async Task<IResultSummary> ConsumeAsync()
         {
             while (CurrentState < State.Completed)
-            {
                 await _advanceFunction().ConfigureAwait(false);
-            }
             _pendingError?.EnsureThrown();
             return _summaryBuilder.Build();
         }
@@ -269,12 +265,7 @@ namespace Neo4j.Driver.Internal.Result
         {
             var desiredState = (int) desired;
             var currentState = (int) current;
-            if (Interlocked.CompareExchange(ref _state, desiredState, currentState) == currentState)
-            {
-                return true;
-            }
-
-            return false;
+            return Interlocked.CompareExchange(ref _state, desiredState, currentState) == currentState;
         }
 
         private void UpdateState(State desired)

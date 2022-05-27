@@ -15,9 +15,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Neo4j.Driver
@@ -74,5 +71,18 @@ namespace Neo4j.Driver
         /// Cursors can also be closed if its session is disposed or its session runs a query.
         /// </summary>
         bool IsOpen { get; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        Task<IRecordSetResult> ToResultAsync();
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="converter"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        Task<IRecordSetResult<T>> ToResultAsync<T>(Func<IRecord, T> converter = null);
     }
 }

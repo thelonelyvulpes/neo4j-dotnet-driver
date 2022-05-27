@@ -13,6 +13,17 @@ class Program
             MATCH (n: Example {field: $field}) 
             RETURN n.field as field, n.found as found SKIP 1",
             new { field = "example" });
+
+        await using var session = driver.AsyncSession(x => x.WithDatabase("db"));
+        var result = await session.WriteAsync(new Query("MERGE (:User {id: $id})", new {id = 10}));
+        if (result.Summary.Counters.NodesCreated == 0)
+            Console.WriteLine("User Exists");
+
+        await driver.WriteAsync(async x =>
+        {
+            await x.ReadAsync("");
+        }).ConfigureAwait(false);
+
     }
 }
 

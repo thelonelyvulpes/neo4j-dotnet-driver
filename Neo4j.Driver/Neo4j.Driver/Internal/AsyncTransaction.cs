@@ -22,8 +22,6 @@ using System.Threading.Tasks;
 using Neo4j.Driver.Internal.Connector;
 using Neo4j.Driver.Internal.MessageHandling;
 using Neo4j.Driver.Internal.Protocol;
-using Neo4j.Driver.Internal.Result;
-using static Neo4j.Driver.Internal.Logging.DriverLoggerUtil;
 
 namespace Neo4j.Driver.Internal
 {
@@ -136,10 +134,58 @@ namespace Neo4j.Driver.Internal
 		protected override async ValueTask DisposeAsyncCore()
 		{
 			if (IsOpen)
-				await RollbackAsync();
+				await RollbackAsync().ConfigureAwait(false);
 		}
 
-		private async Task DiscardUnconsumed()
+        public override async Task<IRecordSetResult<T>> ReadAsync<T>(Query query, Func<IRecord, T> converter = null)
+        {
+            var result = await RunAsync(query).ConfigureAwait(false);
+            return await result.ToResultAsync(converter).ConfigureAwait(false);
+        }
+
+        public override async Task<IRecordSetResult<T>> ReadAsync<T>(string query, object parameters = null, Func<IRecord, T> converter = null)
+        {
+            var result = await RunAsync(query).ConfigureAwait(false);
+            return await result.ToResultAsync(converter).ConfigureAwait(false);
+        }
+
+        public override async Task<IRecordSetResult<T>> WriteAsync<T>(Query query, Func<IRecord, T> converter = null)
+        {
+            var result = await RunAsync(query).ConfigureAwait(false);
+            return await result.ToResultAsync(converter).ConfigureAwait(false);
+        }
+
+        public override async Task<IRecordSetResult<T>> WriteAsync<T>(string query, object parameters = null, Func<IRecord, T> converter = null)
+        {
+            var result = await RunAsync(query).ConfigureAwait(false);
+            return await result.ToResultAsync(converter).ConfigureAwait(false);
+        }
+
+        public override async Task<IRecordSetResult> ReadAsync(Query query)
+        {
+            var result = await RunAsync(query).ConfigureAwait(false);
+            return await result.ToResultAsync().ConfigureAwait(false);
+        }
+
+        public override async Task<IRecordSetResult> ReadAsync(string query, object parameters = null)
+        {
+            var result = await RunAsync(query).ConfigureAwait(false);
+            return await result.ToResultAsync().ConfigureAwait(false);
+        }
+
+        public override async Task<IRecordSetResult> WriteAsync(Query query)
+        {
+            var result = await RunAsync(query).ConfigureAwait(false);
+            return await result.ToResultAsync().ConfigureAwait(false);
+        }
+
+        public override async Task<IRecordSetResult> WriteAsync(string query, object parameters = null)
+        {
+            var result = await RunAsync(query).ConfigureAwait(false);
+            return await result.ToResultAsync().ConfigureAwait(false);
+        }
+
+        private async Task DiscardUnconsumed()
         {
             foreach (var result in _results)
             {

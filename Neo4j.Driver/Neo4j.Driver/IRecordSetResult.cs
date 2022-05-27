@@ -15,36 +15,46 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Neo4j.Driver;
-
-/// <summary>
-/// 
-/// </summary>
-public interface IResult
+namespace Neo4j.Driver
 {
     /// <summary>
     /// 
     /// </summary>
-    IRecord[] Results { get; internal set; }
-    /// <summary>
-    /// 
-    /// </summary>
-    IResultSummary Summary { get; internal set; }
-}
+    public interface IRecordSetResult
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        IRecord[] Results { get; }
+        /// <summary>
+        /// 
+        /// </summary>
+        IResultSummary Summary { get; }
 
-/// <summary>
-/// 
-/// </summary>
-/// <typeparam name="T"></typeparam>
-public interface IResult<T>
-{
-    /// <summary>
-    /// 
-    /// </summary>
-    T[] Results { get; internal set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        string[] Keys { get; }
+    }
 
     /// <summary>
     /// 
     /// </summary>
-    IResultSummary Summary { get; internal set; }
+    /// <typeparam name="T"></typeparam>
+    public interface IRecordSetResult<out T>
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        T[] Results { get; }
+        /// <summary>
+        /// 
+        /// </summary>
+        IResultSummary Summary { get; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        string[] Keys { get; }
+    }
 }

@@ -21,6 +21,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Neo4j.Driver.Internal.Connector;
+using Neo4j.Driver.Internal.IO;
 using static Neo4j.Driver.Internal.Logging.DriverLoggerUtil;
 using static Neo4j.Driver.Internal.Util.ConfigBuilders;
 
@@ -163,22 +164,22 @@ namespace Neo4j.Driver.Internal
             return RunTransactionAsync(AccessMode.Write, work, action);
         }
 
-        public Task ExecuteReadAsync(Func<IAsyncQueryRunner, Task> work, Action<TransactionConfigBuilder> action = null)
+        public Task ReadAsync(Func<IQueryContext, Task> work, Action<TransactionConfigBuilder> action = null)
         {
             return RunTransactionAsync(AccessMode.Read, work, action);
         }
 
-        public Task<T> ExecuteReadAsync<T>(Func<IAsyncQueryRunner, Task<T>> work,  Action<TransactionConfigBuilder> action = null)
+        public Task<T> ReadAsync<T>(Func<IQueryContext, Task<T>> work,  Action<TransactionConfigBuilder> action = null)
         {
             return RunTransactionAsync(AccessMode.Read, work, action);
         }
 
-        public Task ExecuteWriteAsync(Func<IAsyncQueryRunner, Task> work, Action<TransactionConfigBuilder> action = null)
+        public Task WriteAsync(Func<IQueryContext, Task> work, Action<TransactionConfigBuilder> action = null)
         {
             return RunTransactionAsync(AccessMode.Write, work, action);
         }
 
-        public Task<T> ExecuteWriteAsync<T>(Func<IAsyncQueryRunner, Task<T>> work, Action<TransactionConfigBuilder> action = null)
+        public Task<T> WriteAsync<T>(Func<IQueryContext, Task<T>> work, Action<TransactionConfigBuilder> action = null)
         {
             return RunTransactionAsync(AccessMode.Write, work, action);
         }
@@ -284,276 +285,76 @@ namespace Neo4j.Driver.Internal
             return SessionConfig is not null ? SessionConfig.ImpersonatedUser : string.Empty;
         }
 
-        public Task<IResultSummary> ExecuteAsync(Query query, AccessMode access = AccessMode.Write)
+        public override Task<IRecordSetResult<T>> ReadAsync<T>(Query query, Func<IRecord, T> converter = null)
         {
-            return RunTransactionAsync(access, async t =>
+            return RunTransactionAsync(AccessMode.Read, async t =>
             {
                 var cursor = await t.RunAsync(query.Text, query.Parameters).ConfigureAwait(false);
-                return await cursor.ConsumeAsync().ConfigureAwait(false);
+                return await cursor.ToResultAsync(converter).ConfigureAwait(false);
             }, null);
         }
 
-        public Task<object> QueryScalarAsync(Query query, AccessMode access = AccessMode.Read)
+        public override Task<IRecordSetResult<T>> ReadAsync<T>(string query, object parameters = null, Func<IRecord, T> converter = null)
         {
-            return RunTransactionAsync(access, async t =>
+            return RunTransactionAsync(AccessMode.Read, async t =>
             {
-                var cursor = await t.RunAsync(query.Text, query.Parameters).ConfigureAwait(false);
-                var result = await cursor.SingleAsync().ConfigureAwait(false);
-                return result.Values.Values.Single();
+                var cursor = await t.RunAsync(query, parameters).ConfigureAwait(false);
+                return await cursor.ToResultAsync(converter).ConfigureAwait(false);
             }, null);
         }
 
-        public Task<IRecord> QuerySingleAsync(Query query, AccessMode access = AccessMode.Read)
+        public override Task<IRecordSetResult<T>> WriteAsync<T>(Query query, Func<IRecord, T> converter = null)
         {
-            return RunTransactionAsync(access, async t =>
+            return RunTransactionAsync(AccessMode.Write, async t =>
             {
                 var cursor = await t.RunAsync(query.Text, query.Parameters).ConfigureAwait(false);
-                return await cursor.SingleAsync().ConfigureAwait(false);
+                return await cursor.ToResultAsync(converter).ConfigureAwait(false);
             }, null);
         }
 
-        public Task<IRecord[]> QueryAsync(Query query,  AccessMode access = AccessMode.Read)
+        public override Task<IRecordSetResult<T>> WriteAsync<T>(string query, object parameters = null, Func<IRecord, T> converter = null)
         {
-            return RunTransactionAsync(access, async t =>
+            return RunTransactionAsync(AccessMode.Write, async t =>
             {
-                var cursor = await t.RunAsync(query.Text, query.Parameters).ConfigureAwait(false);
-                return (await cursor.ToListAsync().ConfigureAwait(false)).ToArray();
+                var cursor = await t.RunAsync(query, parameters).ConfigureAwait(false);
+                return await cursor.ToResultAsync(converter).ConfigureAwait(false);
             }, null);
         }
 
-        public Task<IResultSummary> ExecuteAsync(string query, object parameters = null, AccessMode access = AccessMode.Write)
+        public override Task<IRecordSetResult> ReadAsync(Query query)
         {
-            return ExecuteAsync(new Query(query, parameters), access);
-        }
-
-        public Task<object> QueryScalarAsync(string query, object parameters = null, AccessMode access = AccessMode.Read)
-        {
-            return QueryScalarAsync(new Query(query, parameters), access);
-        }
-
-        public Task<IRecord> QuerySingleAsync(string query, object parameters = null, AccessMode access = AccessMode.Read)
-        {
-            return QuerySingleAsync(new Query(query, parameters), access);
-        }
-
-        public Task<IRecord[]> QueryAsync(string query, object parameters = null, AccessMode access = AccessMode.Read)
-        {
-            return QueryAsync(new Query(query, parameters), access);
-        }
-
-        public Task<T> QueryScalarAsync<T>(Query query, AccessMode access = AccessMode.Read, Func<object, T> converter = null)
-        {
-            var appliedConverter = converter ?? InferValueConverter<T>();
-            return RunTransactionAsync(access, async t =>
+            return RunTransactionAsync(AccessMode.Read, async t =>
             {
                 var cursor = await t.RunAsync(query.Text, query.Parameters).ConfigureAwait(false);
-                var result = await cursor.SingleAsync().ConfigureAwait(false);
-                return appliedConverter(result.Values.Values.Single());
+                return await cursor.ToResultAsync().ConfigureAwait(false);
             }, null);
         }
 
-        public Task<T> QuerySingleAsync<T>(Query query, AccessMode access = AccessMode.Read, Func<IRecord, T> converter = null) where T : new()
+        public override Task<IRecordSetResult> ReadAsync(string query, object parameters = null)
         {
-            var appliedConverter = converter ?? InferRecordConverter<T>();
-            return RunTransactionAsync(access, async t =>
+            return RunTransactionAsync(AccessMode.Read, async t =>
             {
-                var cursor = await t.RunAsync(query.Text, query.Parameters).ConfigureAwait(false);
-                var result = await cursor.SingleAsync().ConfigureAwait(false);
-                return appliedConverter(result);
+                var cursor = await t.RunAsync(query, parameters).ConfigureAwait(false);
+                return await cursor.ToResultAsync().ConfigureAwait(false);
             }, null);
         }
 
-        public Task<T[]> QueryAsync<T>(Query query, AccessMode access = AccessMode.Read, Func<IRecord, T> converter = null) where T : new()
+        public override Task<IRecordSetResult> WriteAsync(Query query)
         {
-            var appliedConverter = converter ?? InferRecordConverter<T>();
-            return RunTransactionAsync(access, async t =>
+            return RunTransactionAsync(AccessMode.Write, async t =>
             {
                 var cursor = await t.RunAsync(query.Text, query.Parameters).ConfigureAwait(false);
-                return (await cursor.ToListAsync().ConfigureAwait(false)).Select(x => appliedConverter(x)).ToArray();
+                return await cursor.ToResultAsync().ConfigureAwait(false);
             }, null);
         }
 
-        public Task<T> QueryScalarAsync<T>(string query, object parameters = null, AccessMode access = AccessMode.Read, Func<object, T> converter = null)
+        public override Task<IRecordSetResult> WriteAsync(string query, object parameters = null)
         {
-            return QueryScalarAsync(new Query(query, parameters), access, converter);
-        }
-
-        public Task<T> QuerySingleAsync<T>(string query, object parameters = null, AccessMode access = AccessMode.Read, Func<IRecord, T> converter = null) where T : new()
-        {
-            return QuerySingleAsync(new Query(query, parameters), access, converter);
-        }
-
-        public Task<T[]> QueryAsync<T>(string query, object parameters = null, AccessMode access = AccessMode.Read, Func<IRecord, T> converter = null) where T : new()
-        {
-            return QueryAsync(new Query(query, parameters), access, converter);
-        }
-
-        public Task<SetResult<T>> ScalarWithSummaryAsync<T>(Query query, AccessMode access = AccessMode.Read,
-            Func<object, T> converter = null)
-        {
-            var appliedConverter = converter ?? InferValueConverter<T>();
-            return RunTransactionAsync(access, async t =>
+            return RunTransactionAsync(AccessMode.Write, async t =>
             {
-                var cursor = await t.RunAsync(query.Text, query.Parameters).ConfigureAwait(false);
-                var result = await cursor.SingleAsync().ConfigureAwait(false);
-                var summary = await cursor.ConsumeAsync().ConfigureAwait(false);
-                return new SetResult<T>
-                {
-                    Results = appliedConverter(result.Values.Values.Single()),
-                    Summary = summary
-                };
+                var cursor = await t.RunAsync(query, parameters).ConfigureAwait(false);
+                return await cursor.ToResultAsync().ConfigureAwait(false);
             }, null);
-        }
-
-        public Task<SetResult<T>> SingleWithSummaryAsync<T>(Query query, AccessMode access = AccessMode.Read,
-            Func<IRecord, T> converter = null) where T : new()
-        {
-            var appliedConverter = converter ?? InferRecordConverter<T>();
-            return RunTransactionAsync(access, async t =>
-            {
-                var cursor = await t.RunAsync(query.Text, query.Parameters).ConfigureAwait(false);
-                var result = await cursor.SingleAsync().ConfigureAwait(false);
-                var summary = await cursor.ConsumeAsync().ConfigureAwait(false);
-                return new SetResult<T>
-                {
-                    Results = appliedConverter(result),
-                    Summary = summary
-                };
-            }, null);
-        }
-
-        public Task<SetResult<T[]>> QueryWithSummaryAsync<T>(Query query, AccessMode access = AccessMode.Read,
-            Func<IRecord, T> converter = null) where T : new()
-        {
-            var appliedConverter = converter ?? InferRecordConverter<T>();
-            return RunTransactionAsync(access, async t =>
-            {
-                var cursor = await t.RunAsync(query.Text, query.Parameters).ConfigureAwait(false);
-                var result = (await cursor.ToListAsync().ConfigureAwait(false)).Select(x => appliedConverter(x)).ToArray();
-                var summary = await cursor.ConsumeAsync().ConfigureAwait(false);
-                return new SetResult<T[]>
-                {
-                    Results = result,
-                    Summary = summary
-                };
-            }, null);
-        }
-
-        public Task<SetResult<T>> ScalarWithSummaryAsync<T>(string query, object parameters = null, AccessMode access = AccessMode.Read,
-            Func<object, T> converter = null)
-        {
-            return ScalarWithSummaryAsync(new Query(query, parameters), access, converter);
-        }
-
-        public Task<SetResult<T>> SingleWithSummaryAsync<T>(string query, object parameters = null, AccessMode access = AccessMode.Read,
-            Func<IRecord, T> converter = null) where T : new()
-        {
-            return SingleWithSummaryAsync(new Query(query, parameters), access, converter);
-        }
-
-        public Task<SetResult<T[]>> QueryWithSummaryAsync<T>(string query, object parameters = null, AccessMode access = AccessMode.Read,
-            Func<IRecord, T> converter = null) where T : new()
-        {
-            return QueryWithSummaryAsync(new Query(query, parameters), access, converter);
-        }
-
-        public Task<SetResult<object>> ScalarWithSummaryAsync(Query query, AccessMode access = AccessMode.Read)
-        {
-            return RunTransactionAsync(access, async t =>
-            {
-                var cursor = await t.RunAsync(query.Text, query.Parameters).ConfigureAwait(false);
-                var result = await cursor.SingleAsync().ConfigureAwait(false);
-                var summary = await cursor.ConsumeAsync().ConfigureAwait(false);
-                return new SetResult<object>
-                {
-                    Results = result.Values.Values.Single(),
-                    Summary = summary
-                };
-            }, null);
-        }
-
-        public Task<SetResult<IRecord>> SingleWithSummaryAsync(Query query, AccessMode access = AccessMode.Read)
-        {
-            return RunTransactionAsync(access, async t =>
-            {
-                var cursor = await t.RunAsync(query.Text, query.Parameters).ConfigureAwait(false);
-                var result = await cursor.SingleAsync().ConfigureAwait(false);
-                var summary = await cursor.ConsumeAsync().ConfigureAwait(false);
-                return new SetResult<IRecord>
-                {
-                    Results = result,
-                    Summary = summary
-                };
-            }, null);
-        }
-
-        public Task<SetResult<IRecord[]>> QueryWithSummaryAsync(Query query, AccessMode access = AccessMode.Read)
-        {
-            return RunTransactionAsync(access, async t =>
-            {
-                var cursor = await t.RunAsync(query.Text, query.Parameters).ConfigureAwait(false);
-                var result = await cursor.ToListAsync().ConfigureAwait(false);
-                var summary = await cursor.ConsumeAsync().ConfigureAwait(false);
-                return new SetResult<IRecord[]>
-                {
-                    Results = result.ToArray(),
-                    Summary = summary
-                };
-            }, null);
-        }
-
-        public Task<SetResult<object>> ScalarWithSummaryAsync(string query, object parameters = null, AccessMode access = AccessMode.Read)
-        {
-            return ScalarWithSummaryAsync(new Query(query, parameters), access);
-        }
-
-        public Task<SetResult<IRecord>> SingleWithSummaryAsync(string query, object parameters = null, AccessMode access = AccessMode.Read)
-        {
-            return SingleWithSummaryAsync(new Query(query, parameters), access);
-        }
-
-        public Task<SetResult<IRecord[]>> QueryWithSummaryAsync(string query, object parameters = null, AccessMode access = AccessMode.Read)
-        {
-            return QueryWithSummaryAsync(new Query(query, parameters), access);
-        }
-
-
-        private Func<object, T> InferValueConverter<T>()
-        {
-            return o => (T)Convert.ChangeType(o, typeof(T));
-        }
-
-        private Func<IRecord, T> InferRecordConverter<T>() where T: new()
-        {
-            return record =>
-            {
-                var obj = new T();
-                var propsInfo = typeof(T).GetProperties().ToDictionary(x => x.Name.ToLower(), x => x);
-
-                foreach (var key in record.Keys)
-                {
-                    if (!propsInfo.TryGetValue(key.ToLower(), out var propInfo))
-                        continue;
-                    propInfo.SetValue(obj, coerceType(record[key], propInfo.PropertyType));
-                }
-
-                return obj;
-            };
-        }
-
-        private object coerceType(object o, Type propInfoPropertyType)
-        {
-            return Convert.ChangeType(o, propInfoPropertyType);
-        }
-
-        public Task<IResultCursor> RunInAutoCommitAsync(Query query)
-        {
-            return RunAsync(query);
-        }
-
-        public Task<IResultCursor> RunInAutoCommitAsync(string query, object parameters = null)
-        {
-            return RunAsync(query, parameters);
         }
     }
 }
