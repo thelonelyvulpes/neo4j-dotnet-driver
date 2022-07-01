@@ -164,12 +164,12 @@ namespace Neo4j.Driver.Internal
             return RunTransactionAsync(AccessMode.Write, work, action);
         }
 
-        public Task ReadAsync(Func<IQueryContext, Task> work, Action<TransactionConfigBuilder> action = null)
+        public Task ExecuteAsync(Func<IQueryContext, Task> work, Action<TransactionConfigBuilder> action = null)
         {
             return RunTransactionAsync(AccessMode.Read, work, action);
         }
 
-        public Task<T> ReadAsync<T>(Func<IQueryContext, Task<T>> work,  Action<TransactionConfigBuilder> action = null)
+        public Task<T> ExecuteAsync<T>(Func<IQueryContext, Task<T>> work,  Action<TransactionConfigBuilder> action = null)
         {
             return RunTransactionAsync(AccessMode.Read, work, action);
         }
@@ -285,7 +285,7 @@ namespace Neo4j.Driver.Internal
             return SessionConfig is not null ? SessionConfig.ImpersonatedUser : string.Empty;
         }
 
-        public override Task<IRecordSetResult<T>> ReadAsync<T>(Query query, Func<IRecord, T> converter = null)
+        public override Task<IRecordSetResult<T>> QueryAsync<T>(Query query, Func<IRecord, T> converter = null)
         {
             return RunTransactionAsync(AccessMode.Read, async t =>
             {
@@ -294,7 +294,7 @@ namespace Neo4j.Driver.Internal
             }, null);
         }
 
-        public override Task<IRecordSetResult<T>> ReadAsync<T>(string query, object parameters = null, Func<IRecord, T> converter = null)
+        public override Task<IRecordSetResult<T>> QueryAsync<T>(string query, object parameters = null, Func<IRecord, T> converter = null)
         {
             return RunTransactionAsync(AccessMode.Read, async t =>
             {
@@ -321,7 +321,7 @@ namespace Neo4j.Driver.Internal
             }, null);
         }
 
-        public override Task<IRecordSetResult> ReadAsync(Query query)
+        public override Task<IRecordSetResult> QueryAsync(Query query)
         {
             return RunTransactionAsync(AccessMode.Read, async t =>
             {
@@ -330,7 +330,7 @@ namespace Neo4j.Driver.Internal
             }, null);
         }
 
-        public override Task<IRecordSetResult> ReadAsync(string query, object parameters = null)
+        public override Task<IRecordSetResult> QueryAsync(string query, object parameters = null)
         {
             return RunTransactionAsync(AccessMode.Read, async t =>
             {

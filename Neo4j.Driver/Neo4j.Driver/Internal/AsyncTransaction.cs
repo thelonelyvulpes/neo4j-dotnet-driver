@@ -137,13 +137,13 @@ namespace Neo4j.Driver.Internal
 				await RollbackAsync().ConfigureAwait(false);
 		}
 
-        public override async Task<IRecordSetResult<T>> ReadAsync<T>(Query query, Func<IRecord, T> converter = null)
+        public override async Task<IRecordSetResult<T>> QueryAsync<T>(Query query, Func<IRecord, T> converter = null)
         {
             var result = await RunAsync(query).ConfigureAwait(false);
             return await result.ToResultAsync(converter).ConfigureAwait(false);
         }
 
-        public override async Task<IRecordSetResult<T>> ReadAsync<T>(string query, object parameters = null, Func<IRecord, T> converter = null)
+        public override async Task<IRecordSetResult<T>> QueryAsync<T>(string query, object parameters = null, Func<IRecord, T> converter = null)
         {
             var result = await RunAsync(query).ConfigureAwait(false);
             return await result.ToResultAsync(converter).ConfigureAwait(false);
@@ -161,13 +161,13 @@ namespace Neo4j.Driver.Internal
             return await result.ToResultAsync(converter).ConfigureAwait(false);
         }
 
-        public override async Task<IRecordSetResult> ReadAsync(Query query)
+        public override async Task<IRecordSetResult> QueryAsync(Query query)
         {
             var result = await RunAsync(query).ConfigureAwait(false);
             return await result.ToResultAsync().ConfigureAwait(false);
         }
 
-        public override async Task<IRecordSetResult> ReadAsync(string query, object parameters = null)
+        public override async Task<IRecordSetResult> QueryAsync(string query, object parameters = null)
         {
             var result = await RunAsync(query).ConfigureAwait(false);
             return await result.ToResultAsync().ConfigureAwait(false);

@@ -169,18 +169,18 @@ namespace Neo4j.Driver.Internal
             return _metrics;
         }
 
-        public async Task<IRecordSetResult<T>> ReadAsync<T>(Query query, Func<IRecord, T> converter = null) where T : new()
+        public async Task<IRecordSetResult<T>> QueryAsync<T>(Query query, Func<IRecord, T> converter = null) where T : new()
         {
             var session = Session(null, false);
             await using var _ = session.ConfigureAwait(false);
-            return await session.ReadAsync(query, converter).ConfigureAwait(false);
+            return await session.QueryAsync(query, converter).ConfigureAwait(false);
         }
 
-        public async Task<IRecordSetResult<T>> ReadAsync<T>(string query, object parameters = null, Func<IRecord, T> converter = null) where T : new()
+        public async Task<IRecordSetResult<T>> QueryAsync<T>(string query, object parameters = null, Func<IRecord, T> converter = null) where T : new()
         {
             var session = Session(null, false);
             await using var _ = session.ConfigureAwait(false);
-            return await session.ReadAsync(query, parameters, converter).ConfigureAwait(false);
+            return await session.QueryAsync(query, parameters, converter).ConfigureAwait(false);
         }
 
         public async Task<IRecordSetResult<T>> WriteAsync<T>(Query query, Func<IRecord, T> converter = null) where T : new()
@@ -197,18 +197,18 @@ namespace Neo4j.Driver.Internal
             return await session.WriteAsync(query, parameters, converter).ConfigureAwait(false);
         }
 
-        public async Task<IRecordSetResult> ReadAsync(Query query)
+        public async Task<IRecordSetResult> QueryAsync(Query query)
         {
             var session = Session(null, false);
             await using var _ = session.ConfigureAwait(false);
-            return await session.ReadAsync(query).ConfigureAwait(false);
+            return await session.QueryAsync(query).ConfigureAwait(false);
         }
 
-        public async Task<IRecordSetResult> ReadAsync(string query, object parameters = null)
+        public async Task<IRecordSetResult> QueryAsync(string query, object parameters = null)
         {
             var session = Session(null, false);
             await using var _ = session.ConfigureAwait(false);
-            return await session.ReadAsync(query, parameters).ConfigureAwait(false);
+            return await session.QueryAsync(query, parameters).ConfigureAwait(false);
         }
 
         public async Task<IRecordSetResult> WriteAsync(Query query)
@@ -225,11 +225,11 @@ namespace Neo4j.Driver.Internal
             return await session.WriteAsync(query, parameters).ConfigureAwait(false);
         }
 
-        public async Task<T> ReadAsync<T>(Func<IQueryContext, Task<T>> work, Action<TransactionConfigBuilder> action = null)
+        public async Task<T> ExecuteAsync<T>(Func<IQueryContext, Task<T>> work, Action<TransactionConfigBuilder> action = null)
         {
             var session = Session(null, false);
             await using var _ = session.ConfigureAwait(false);
-            return await session.ReadAsync(work, action).ConfigureAwait(false);
+            return await session.ExecuteAsync(work, action).ConfigureAwait(false);
         }
 
         public async Task<T> WriteAsync<T>(Func<IQueryContext, Task<T>> work, Action<TransactionConfigBuilder> action = null)
@@ -239,11 +239,11 @@ namespace Neo4j.Driver.Internal
             return await session.WriteAsync(work, action).ConfigureAwait(false);
         }
 
-        public async Task ReadAsync(Func<IQueryContext, Task> work, Action<TransactionConfigBuilder> action = null)
+        public async Task ExecuteAsync(Func<IQueryContext, Task> work, Action<TransactionConfigBuilder> action = null)
         {
             var session = Session(null, false);
             await using var _ = session.ConfigureAwait(false);
-            await session.ReadAsync(work, action).ConfigureAwait(false);
+            await session.ExecuteAsync(work, action).ConfigureAwait(false);
         }
 
         public async Task WriteAsync(Func<IQueryContext, Task> work, Action<TransactionConfigBuilder> action = null)

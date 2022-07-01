@@ -16,6 +16,7 @@
 // limitations under the License.
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Neo4j.Driver;
@@ -32,8 +33,8 @@ public interface IQueryContext
     /// <param name="converter"></param>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    Task<IRecordSetResult<T>> ReadAsync<T>(Query query,
-        Func<IRecord, T> converter = null) where T : new();
+    Task<IRecordSetResult<T>> QueryAsync<T>(Query query,
+        Func<IRecord, T> converter = null);
     /// <summary>
     /// 
     /// </summary>
@@ -42,53 +43,65 @@ public interface IQueryContext
     /// <param name="converter"></param>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    Task<IRecordSetResult<T>> ReadAsync<T>(string query, object parameters = null,
-        Func<IRecord, T> converter = null) where T : new();
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="query"></param>
-    /// <param name="converter"></param>
-    /// <typeparam name="T"></typeparam>
-    /// <returns></returns>
-    Task<IRecordSetResult<T>> WriteAsync<T>(Query query,
-        Func<IRecord, T> converter = null) where T : new();
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="query"></param>
-    /// <param name="parameters"></param>
-    /// <param name="converter"></param>
-    /// <typeparam name="T"></typeparam>
-    /// <returns></returns>
-    Task<IRecordSetResult<T>> WriteAsync<T>(string query, object parameters = null,
-        Func<IRecord, T> converter = null) where T : new();
+    Task<IRecordSetResult<T>> QueryAsync<T>(string query, object parameters = null,
+        Func<IRecord, T> converter = null);
+    
     /// <summary>
     /// 
     /// </summary>
     /// <param name="query"></param>
     /// <returns></returns>
-    Task<IRecordSetResult> ReadAsync(Query query);
+    Task<IRecordSetResult> QueryAsync(Query query, 
+        QueryConfig config = null, 
+        CancellationToken cancellationToken = default);
     /// <summary>
     /// 
     /// </summary>
     /// <param name="query"></param>
     /// <param name="parameters"></param>
     /// <returns></returns>
-    Task<IRecordSetResult> ReadAsync(string query, object parameters = null);
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="query"></param>
-    /// <returns></returns>
-    Task<IRecordSetResult> WriteAsync(Query query);
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="query"></param>
-    /// <param name="parameters"></param>
-    /// <returns></returns>
-    Task<IRecordSetResult> WriteAsync(string query, object parameters = null);
+    Task<IRecordSetResult> QueryAsync(string query, object parameters = null, 
+        Access access = Access.Naive, bool canBeRetried = false);
+}
+
+public enum Access
+{
+    Naive = 0,
+    Read = 1,
+    Write = 2,
+    AutoCommitWrite = 3
+}
+
+public sealed class QueryConfig
+{
+    public static readonly QueryConfig Read = new QueryConfig
+    {
+        Access = Access.Read
+    };
+    
+    public static readonly QueryConfig Write = new QueryConfig
+    {
+        Access = Access.Write
+    };
+    
+    public static readonly QueryConfig AutoCommit = new QueryConfig
+    {
+        Access = Access.AutoCommitWrite
+    };
+
+    public Access Access { get; init; } = Access.Naive;
+    public int MaxRetry { get; init; } = 2;
+    public Func<Exception, int, (bool retry, TimeSpan delay)> RetryFunc { get; init; } = Retries.Transient;
+    public string DbName { get; init; } = null;
+    
+}
+
+public static class Retries
+{
+    public static Func<Exception, int, (bool retry, TimeSpan delay)> Transient = (ex, n)  => 
+        (
+            retry: ex is Neo4jException neoEx && neoEx.CanBeRetried, 
+            delay: TimeSpan.FromMilliseconds(n * 100 + Random.Shared.Next(-10, 10)) );
 }
 
 /// <summary>
@@ -103,18 +116,8 @@ public interface ITransactionContext
     /// <param name="action">Given a <see cref="TransactionConfigBuilder"/>, defines how to set the configurations for the new transaction.
     /// This configuration overrides server side default transaction configurations. See <see cref="TransactionConfig"/></param>
     /// <returns>A task that represents the asynchronous execution operation.</returns>
-    Task<T> ReadAsync<T>(Func<IQueryContext, Task<T>> work, Action<TransactionConfigBuilder> action = null);
+    Task<T> ExecuteAsync<T>(Func<IQueryContext, Task<T>> work, Action<TransactionConfigBuilder> action = null);
 
-    /// <summary>
-    /// Asynchronously execute given unit of work as a transaction with a specific <see cref="TransactionConfig"/>.
-    /// </summary>
-    /// <typeparam name="TResult"></typeparam>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="work">The <see cref="Func{IAsyncQueryRunner, Task}"/> to be applied to a new write transaction.</param>
-    /// <param name="action">Given a <see cref="TransactionConfigBuilder"/>, defines how to set the configurations for the new transaction.
-    /// This configuration overrides server side default transaction configurations. See <see cref="TransactionConfig"/></param>
-    /// <returns>A task that represents the asynchronous execution operation.</returns>
-    Task<T> WriteAsync<T>(Func<IQueryContext, Task<T>> work, Action<TransactionConfigBuilder> action = null);
     /// <summary>
     /// Asynchronously execute given unit of work as a transaction with a specific <see cref="TransactionConfig"/>.
     /// </summary>
@@ -122,16 +125,5 @@ public interface ITransactionContext
     /// <param name="action">Given a <see cref="TransactionConfigBuilder"/>, defines how to set the configurations for the new transaction.
     /// This configuration overrides server side default transaction configurations. See <see cref="TransactionConfig"/></param>
     /// <returns>A task that represents the asynchronous execution operation.</returns>
-    Task ReadAsync(Func<IQueryContext, Task> work, Action<TransactionConfigBuilder> action = null);
-
-    /// <summary>
-    /// Asynchronously execute given unit of work as a transaction with a specific <see cref="TransactionConfig"/>.
-    /// </summary>
-    /// <typeparam name="TResult"></typeparam>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="work">The <see cref="Func{IAsyncQueryRunner, Task}"/> to be applied to a new write transaction.</param>
-    /// <param name="action">Given a <see cref="TransactionConfigBuilder"/>, defines how to set the configurations for the new transaction.
-    /// This configuration overrides server side default transaction configurations. See <see cref="TransactionConfig"/></param>
-    /// <returns>A task that represents the asynchronous execution operation.</returns>
-    Task WriteAsync(Func<IQueryContext, Task> work, Action<TransactionConfigBuilder> action = null);
+    Task ExecuteAsync(Func<IQueryContext, Task> work, Action<TransactionConfigBuilder> action = null);
 }
