@@ -16,92 +16,116 @@
 // limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Neo4j.Driver;
 
-/// <summary>
-/// 
-/// </summary>
 public interface IQueryContext
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="query"></param>
-    /// <param name="converter"></param>
-    /// <typeparam name="T"></typeparam>
-    /// <returns></returns>
-    Task<IRecordSetResult<T>> QueryAsync<T>(Query query,
-        Func<IRecord, T> converter = null);
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="query"></param>
-    /// <param name="parameters"></param>
-    /// <param name="converter"></param>
-    /// <typeparam name="T"></typeparam>
-    /// <returns></returns>
-    Task<IRecordSetResult<T>> QueryAsync<T>(string query, object parameters = null,
-        Func<IRecord, T> converter = null);
-    
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="query"></param>
-    /// <returns></returns>
     Task<IRecordSetResult> QueryAsync(Query query, 
         QueryConfig config = null, 
         CancellationToken cancellationToken = default);
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="query"></param>
-    /// <param name="parameters"></param>
-    /// <returns></returns>
-    Task<IRecordSetResult> QueryAsync(string query, object parameters = null, 
-        Access access = Access.Naive, bool canBeRetried = false);
+
+    Task<IRecordSetResult<T>> QueryAsync<T>(Query query,
+        QueryConfig<T> config = null,
+        CancellationToken cancellationToken = default);
+
+    Task<IRecordSetResult> QueryAsync(string query, 
+        object parameters = null, 
+        ClusterMemberAccess clusterMemberAccess = ClusterMemberAccess.Naive,
+        int maxRetry = 0,
+        string dbName = null,
+        string impersonation = null,
+        Bookmarks bookmarks = null,
+        CancellationToken cancellationToken = default);
+
+    Task<IRecordSetResult<T>> QueryAsync<T>(string query,
+        object parameters = null,
+        ClusterMemberAccess clusterMemberAccess = ClusterMemberAccess.Naive,
+        Func<IRecord, T> mapper = null,
+        int maxRetry = 0,
+        string dbName = null,
+        string impersonation = null,
+        Bookmarks bookmarks = null,
+        CancellationToken cancellationToken = default);
+
+    Task<IRecordSetResult> QueryAsync(string query,
+        Dictionary<string, object> parameters = null,
+        ClusterMemberAccess clusterMemberAccess = ClusterMemberAccess.Naive,
+        int maxRetry = 0,
+        string dbName = null,
+        string impersonation = null,
+        Bookmarks bookmarks = null,
+        CancellationToken cancellationToken = default);
+
+    Task<IRecordSetResult<T>> QueryAsync<T>(string query,
+        Dictionary<string, object> parameters = null,
+        ClusterMemberAccess clusterMemberAccess = ClusterMemberAccess.Naive,
+        Func<IRecord, T> mapper = null,
+        int maxRetry = 0,
+        string dbName = null,
+        string impersonation = null,
+        Bookmarks bookmarks = null,
+        CancellationToken cancellationToken = default);
 }
 
-public enum Access
+public enum ClusterMemberAccess
 {
     Naive = 0,
-    Read = 1,
-    Write = 2,
-    AutoCommitWrite = 3
+    Follower = 1,
+    Leader = 2
 }
 
-public sealed class QueryConfig
+public class QueryConfig
 {
     public static readonly QueryConfig Read = new QueryConfig
     {
-        Access = Access.Read
+        ClusterMemberAccess = ClusterMemberAccess.Follower
     };
     
     public static readonly QueryConfig Write = new QueryConfig
     {
-        Access = Access.Write
+        ClusterMemberAccess = ClusterMemberAccess.Leader
     };
-    
     public static readonly QueryConfig AutoCommit = new QueryConfig
     {
-        Access = Access.AutoCommitWrite
+        ClusterMemberAccess = ClusterMemberAccess.Leader,
+        MaxRetry = 0
     };
 
-    public Access Access { get; init; } = Access.Naive;
-    public int MaxRetry { get; init; } = 2;
-    public Func<Exception, int, (bool retry, TimeSpan delay)> RetryFunc { get; init; } = Retries.Transient;
-    public string DbName { get; init; } = null;
-    
+    public ClusterMemberAccess ClusterMemberAccess { get; set; } = ClusterMemberAccess.Naive;
+    public int MaxRetry { get; set; } = 2;
+    public Func<Exception, int, (bool retry, TimeSpan delay)> RetryFunc { get; set; } = Retries.Transient;
+    public string DbName { get; set; } = null;
+    public Dictionary<string, string> Metadata { get; set; }
+    public TimeSpan Timeout { get; set; }
+    public Bookmarks Bookmarks { get; set; } = null;
+}
+
+
+public class QueryConfig<T> : QueryConfig
+{
+    public Func<IRecord, T> Mapper { get; set; } = null;
+}
+
+public class TxConfig
+{
+    public ClusterMemberAccess ClusterMemberAccess { get; set; } = ClusterMemberAccess.Naive;
+    public int MaxRetry { get; set; } = 2;
+    public Func<Exception, int, (bool retry, TimeSpan delay)> RetryFunc { get; set; } = Retries.Transient;
+    public string DbName { get; set; } = null;
+    public Dictionary<string, string> Metadata { get; set; }
+    public Bookmarks Bookmarks { get; set; } = null;
+    public TimeSpan Timeout { get; set; }
 }
 
 public static class Retries
 {
     public static Func<Exception, int, (bool retry, TimeSpan delay)> Transient = (ex, n)  => 
-        (
-            retry: ex is Neo4jException neoEx && neoEx.CanBeRetried, 
-            delay: TimeSpan.FromMilliseconds(n * 100 + Random.Shared.Next(-10, 10)) );
+        (retry: ex is Neo4jException neoEx && neoEx.CanBeRetried, 
+            delay: TimeSpan.FromMilliseconds(n * 100 + new Random().Next(-10, 10)));
 }
 
 /// <summary>
@@ -109,21 +133,6 @@ public static class Retries
 /// </summary>
 public interface ITransactionContext
 {
-    /// <summary>
-    /// Asynchronously execute given unit of work as a transaction with a specific <see cref="TransactionConfig"/>.
-    /// </summary>
-    /// <param name="work">The <see cref="Func{IAsyncQueryRunner, Task}"/> to be applied to a new read transaction.</param>
-    /// <param name="action">Given a <see cref="TransactionConfigBuilder"/>, defines how to set the configurations for the new transaction.
-    /// This configuration overrides server side default transaction configurations. See <see cref="TransactionConfig"/></param>
-    /// <returns>A task that represents the asynchronous execution operation.</returns>
-    Task<T> ExecuteAsync<T>(Func<IQueryContext, Task<T>> work, Action<TransactionConfigBuilder> action = null);
-
-    /// <summary>
-    /// Asynchronously execute given unit of work as a transaction with a specific <see cref="TransactionConfig"/>.
-    /// </summary>
-    /// <param name="work">The <see cref="Func{IAsyncQueryRunner, Task}"/> to be applied to a new read transaction.</param>
-    /// <param name="action">Given a <see cref="TransactionConfigBuilder"/>, defines how to set the configurations for the new transaction.
-    /// This configuration overrides server side default transaction configurations. See <see cref="TransactionConfig"/></param>
-    /// <returns>A task that represents the asynchronous execution operation.</returns>
-    Task ExecuteAsync(Func<IQueryContext, Task> work, Action<TransactionConfigBuilder> action = null);
+    Task ExecuteAsync(Func<IQueryContext, Task> work, TxConfig config = null);
+    Task<T> ExecuteAsync<T>(Func<IQueryContext, Task<T>> work, TxConfig config = null);
 }
