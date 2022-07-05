@@ -78,6 +78,12 @@ public enum ClusterMemberAccess
     Leader = 2
 }
 
+public enum TransactionClusterMemberAccess
+{
+    Follower = 1,
+    Leader = 2
+}
+
 public class QueryConfig
 {
     public static readonly QueryConfig Read = new QueryConfig
@@ -112,7 +118,6 @@ public class QueryConfig<T> : QueryConfig
 
 public class TxConfig
 {
-    public ClusterMemberAccess ClusterMemberAccess { get; set; } = ClusterMemberAccess.Naive;
     public int MaxRetry { get; set; } = 2;
     public Func<Exception, int, (bool retry, TimeSpan delay)> RetryFunc { get; set; } = Retries.Transient;
     public string DbName { get; set; } = null;
@@ -133,6 +138,6 @@ public static class Retries
 /// </summary>
 public interface ITransactionContext
 {
-    Task ExecuteAsync(Func<IQueryContext, Task> work, TxConfig config = null);
-    Task<T> ExecuteAsync<T>(Func<IQueryContext, Task<T>> work, TxConfig config = null);
+    Task ExecuteAsync(Func<IQueryContext, Task> work, TransactionClusterMemberAccess clusterMemberAccess, TxConfig config = null);
+    Task<T> ExecuteAsync<T>(Func<IQueryContext, Task<T>> work, TransactionClusterMemberAccess clusterMemberAccess, TxConfig config = null);
 }
