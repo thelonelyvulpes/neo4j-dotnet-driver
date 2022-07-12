@@ -16,6 +16,8 @@
 // limitations under the License.
 
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Neo4j.Driver.Internal.Metrics;
@@ -169,88 +171,58 @@ namespace Neo4j.Driver.Internal
             return _metrics;
         }
 
-        public async Task<IRecordSetResult<T>> QueryAsync<T>(Query query, Func<IRecord, T> converter = null) where T : new()
+        public Task<IRecordSetResult> QueryAsync(string query, object parameters = null,
+            ClusterMemberAccess clusterMemberAccess = ClusterMemberAccess.Automatic,
+            CancellationToken cancellationToken = default)
         {
-            var session = Session(null, false);
-            await using var _ = session.ConfigureAwait(false);
-            return await session.QueryAsync(query, converter).ConfigureAwait(false);
+            return QueryAsync(new Query(query, parameters), new DriverQueryConfig {ClusterMemberAccess = clusterMemberAccess},
+                cancellationToken);
         }
 
-        public async Task<IRecordSetResult<T>> QueryAsync<T>(string query, object parameters = null, Func<IRecord, T> converter = null) where T : new()
+        public Task<IRecordSetResult> QueryAsync(string query, Dictionary<string, object> parameters,
+            ClusterMemberAccess clusterMemberAccess = ClusterMemberAccess.Automatic,
+            CancellationToken cancellationToken = default)
         {
-            var session = Session(null, false);
-            await using var _ = session.ConfigureAwait(false);
-            return await session.QueryAsync(query, parameters, converter).ConfigureAwait(false);
+            return QueryAsync(new Query(query, parameters), new DriverQueryConfig { ClusterMemberAccess = clusterMemberAccess },
+                cancellationToken);
         }
 
-        public async Task<IRecordSetResult<T>> WriteAsync<T>(Query query, Func<IRecord, T> converter = null) where T : new()
+        public Task<IRecordSetResult> QueryAsync(string query, object parameters, DriverQueryConfig queryConfig,
+            CancellationToken cancellationToken = default)
         {
-            var session = Session(null, false);
-            await using var _ = session.ConfigureAwait(false);
-            return await session.WriteAsync(query, converter).ConfigureAwait(false);
+            return QueryAsync(new Query(query, parameters), queryConfig, cancellationToken);
         }
 
-        public async Task<IRecordSetResult<T>> WriteAsync<T>(string query, object parameters = null, Func<IRecord, T> converter = null) where T : new()
+        public Task<IRecordSetResult> QueryAsync(string query, Dictionary<string, object> parameters, DriverQueryConfig queryConfig,
+            CancellationToken cancellationToken = default)
         {
-            var session = Session(null, false);
-            await using var _ = session.ConfigureAwait(false);
-            return await session.WriteAsync(query, parameters, converter).ConfigureAwait(false);
+            return QueryAsync(new Query(query, parameters), queryConfig, cancellationToken);
         }
 
-        public async Task<IRecordSetResult> QueryAsync(Query query)
+        public Task<IRecordSetResult> QueryAsync(Query query, DriverQueryConfig queryConfig, CancellationToken cancellationToken = default)
         {
-            var session = Session(null, false);
-            await using var _ = session.ConfigureAwait(false);
-            return await session.QueryAsync(query).ConfigureAwait(false);
+            // assert config is valid
+            // - if automatic, ensure can complete query (bolt / SSR / Guesstimator)
+            // - 
+            // create session
+            // create retry
+            // create transaction
+            // execute query
+            // create IRecordResultSet
+            //    populate records & summary.
+            // update bookmarks
+            // return result.
+            return null;
         }
 
-        public async Task<IRecordSetResult> QueryAsync(string query, object parameters = null)
+        public Task ExecuteAsync(Func<IAsyncQueryRunner>, Task> work, TransactionClusterMemberAccess clusterMemberAccess, TxConfig config = null)
         {
-            var session = Session(null, false);
-            await using var _ = session.ConfigureAwait(false);
-            return await session.QueryAsync(query, parameters).ConfigureAwait(false);
+            throw new NotImplementedException();
         }
 
-        public async Task<IRecordSetResult> WriteAsync(Query query)
+        public Task<T> ExecuteAsync<T>(Func<IConfigurableQueryRunner<>, Task<T>> work, TransactionClusterMemberAccess clusterMemberAccess, TxConfig config = null)
         {
-            var session = Session(null, false);
-            await using var _ = session.ConfigureAwait(false);
-            return await session.WriteAsync(query).ConfigureAwait(false);
-        }
-
-        public async Task<IRecordSetResult> WriteAsync(string query, object parameters = null)
-        {
-            var session = Session(null, false);
-            await using var _ = session.ConfigureAwait(false);
-            return await session.WriteAsync(query, parameters).ConfigureAwait(false);
-        }
-
-        public async Task<T> ExecuteAsync<T>(Func<IQueryContext, Task<T>> work, Action<TransactionConfigBuilder> action = null)
-        {
-            var session = Session(null, false);
-            await using var _ = session.ConfigureAwait(false);
-            return await session.ExecuteAsync(work, action).ConfigureAwait(false);
-        }
-
-        public async Task<T> WriteAsync<T>(Func<IQueryContext, Task<T>> work, Action<TransactionConfigBuilder> action = null)
-        {
-            var session = Session(null, false);
-            await using var _ = session.ConfigureAwait(false);
-            return await session.WriteAsync(work, action).ConfigureAwait(false);
-        }
-
-        public async Task ExecuteAsync(Func<IQueryContext, Task> work, Action<TransactionConfigBuilder> action = null)
-        {
-            var session = Session(null, false);
-            await using var _ = session.ConfigureAwait(false);
-            await session.ExecuteAsync(work, action).ConfigureAwait(false);
-        }
-
-        public async Task WriteAsync(Func<IQueryContext, Task> work, Action<TransactionConfigBuilder> action = null)
-        {
-            var session = Session(null, false);
-            await using var _ = session.ConfigureAwait(false);
-            await session.WriteAsync(work, action).ConfigureAwait(false);
+            throw new NotImplementedException();
         }
     }
 }

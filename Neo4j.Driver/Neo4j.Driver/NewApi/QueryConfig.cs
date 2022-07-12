@@ -23,12 +23,12 @@ namespace Neo4j.Driver;
 /// <summary>
 /// 
 /// </summary>
-public class QueryConfig
+public class DriverQueryConfig : SessionQueryConfig
 {
     /// <summary>
     /// 
     /// </summary>
-    public static readonly QueryConfig Read = new QueryConfig
+    public static readonly DriverQueryConfig Read = new DriverQueryConfig
     {
         ClusterMemberAccess = ClusterMemberAccess.Readers
     };
@@ -36,15 +36,52 @@ public class QueryConfig
     /// <summary>
     /// 
     /// </summary>
-    public static readonly QueryConfig Write = new QueryConfig
+    public static readonly DriverQueryConfig Write = new DriverQueryConfig
     {
         ClusterMemberAccess = ClusterMemberAccess.Writers
     };
 
     /// <summary>
     /// 
+    /// </summary>w
+    public static readonly DriverQueryConfig AutoCommit = new DriverQueryConfig
+    {
+        ClusterMemberAccess = ClusterMemberAccess.Writers,
+        MaxRetry = 0
+    };
+
+    /// <summary>
+    /// 
     /// </summary>
-    public static readonly QueryConfig CypherTransaction = new QueryConfig
+    public Bookmarks Bookmarks { get; set; } = null;
+    /// <summary>
+    /// 
+    /// </summary>
+    public string DbName { get; set; } = null;
+}
+
+public class SessionQueryConfig
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    public static readonly SessionQueryConfig Read = new SessionQueryConfig
+    {
+        ClusterMemberAccess = ClusterMemberAccess.Readers
+    };
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public static readonly SessionQueryConfig Write = new SessionQueryConfig
+    {
+        ClusterMemberAccess = ClusterMemberAccess.Writers
+    };
+
+    /// <summary>
+    /// 
+    /// </summary>w
+    public static readonly SessionQueryConfig AutoCommit = new SessionQueryConfig
     {
         ClusterMemberAccess = ClusterMemberAccess.Writers,
         MaxRetry = 0
@@ -54,12 +91,19 @@ public class QueryConfig
     /// 
     /// </summary>
     public ClusterMemberAccess ClusterMemberAccess { get; set; } = ClusterMemberAccess.Automatic;
+
     /// <summary>
     /// 
     /// </summary>
-    public int MaxRetry { get; set; } = 2;
+    public Dictionary<string, string> Metadata { get; set; } = null;
+
     /// <summary>
     /// 
     /// </summary>
-    public Func<Exception, int, int, (bool retry, TimeSpan delay)> RetryFunc { get; set; } = Retries.Transient;
+    public TimeSpan Timeout { get; set; }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public int MaxRetry { get; set; }
 }

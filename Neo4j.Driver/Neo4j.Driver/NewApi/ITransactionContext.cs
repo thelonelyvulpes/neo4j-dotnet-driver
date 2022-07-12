@@ -23,8 +23,9 @@ namespace Neo4j.Driver;
 /// <summary>
 /// 
 /// </summary>
-public interface ITransactionContext
+public interface ITransactionContext<in TConfig>
 {
-    Task ExecuteAsync(Func<IQueryContext, Task> work, TransactionClusterMemberAccess clusterMemberAccess, TxConfig config = null);
-    Task<T> ExecuteAsync<T>(Func<IQueryContext, Task<T>> work, TransactionClusterMemberAccess clusterMemberAccess, TxConfig config = null);
+    Task ExecuteAsync(Func<IEagerQueryRunner, Task> work, TransactionClusterMemberAccess clusterMemberAccess, TConfig config = null);
+    Task<TResult> ExecuteAsync<TResult>(Func<IEagerQueryRunner, Task<TResult>> work, TransactionClusterMemberAccess clusterMemberAccess, TConfig config = null);
 }
+

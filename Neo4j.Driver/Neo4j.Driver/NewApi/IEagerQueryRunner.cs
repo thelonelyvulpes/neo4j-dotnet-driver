@@ -15,36 +15,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Neo4j.Driver;
 
-public class SessionTxConfig
+public interface IEagerQueryRunner : IAsyncQueryRunner
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    public int MaxRetry { get; set; } = 2;
-    /// <summary>
-    /// 
-    /// </summary>
-    public Dictionary<string, string> Metadata { get; set; }
-    /// <summary>
-    /// 
-    /// </summary>
-    public TimeSpan Timeout { get; set; }
-}
+    Task<IRecordSetResult> QueryAsync(string query,
+        object parameters = null,
+        CancellationToken cancellationToken = default);
 
+    Task<IRecordSetResult> QueryAsync(string query,
+        Dictionary<string, object> parameters,
+        CancellationToken cancellationToken = default);
 
-public class DriverTransactionConfig : SessionTxConfig
-{
-    /// <summary>
-    /// 
-    /// </summary>
-    public string DbName { get; set; } = null;
-    /// <summary>
-    /// 
-    /// </summary>
-    public Bookmarks Bookmarks { get; set; } = null;
+    Task<IRecordSetResult> QueryAsync(Query query,
+        CancellationToken cancellationToken = default);
 }

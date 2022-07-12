@@ -164,22 +164,22 @@ namespace Neo4j.Driver.Internal
             return RunTransactionAsync(AccessMode.Write, work, action);
         }
 
-        public Task ExecuteAsync(Func<IQueryContext, Task> work, Action<TransactionConfigBuilder> action = null)
+        public Task ExecuteAsync(Func<IConfigurableQueryRunner<>, Task> work, Action<TransactionConfigBuilder> action = null)
         {
             return RunTransactionAsync(AccessMode.Read, work, action);
         }
 
-        public Task<T> ExecuteAsync<T>(Func<IQueryContext, Task<T>> work,  Action<TransactionConfigBuilder> action = null)
+        public Task<T> ExecuteAsync<T>(Func<IConfigurableQueryRunner<>, Task<T>> work,  Action<TransactionConfigBuilder> action = null)
         {
             return RunTransactionAsync(AccessMode.Read, work, action);
         }
 
-        public Task WriteAsync(Func<IQueryContext, Task> work, Action<TransactionConfigBuilder> action = null)
+        public Task WriteAsync(Func<IConfigurableQueryRunner<>, Task> work, Action<TransactionConfigBuilder> action = null)
         {
             return RunTransactionAsync(AccessMode.Write, work, action);
         }
 
-        public Task<T> WriteAsync<T>(Func<IQueryContext, Task<T>> work, Action<TransactionConfigBuilder> action = null)
+        public Task<T> WriteAsync<T>(Func<IConfigurableQueryRunner<>, Task<T>> work, Action<TransactionConfigBuilder> action = null)
         {
             return RunTransactionAsync(AccessMode.Write, work, action);
         }
