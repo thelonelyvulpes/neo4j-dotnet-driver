@@ -20,12 +20,13 @@ using System.Threading.Tasks;
 
 namespace Neo4j.Driver;
 
-/// <summary>
-/// 
-/// </summary>
-public interface ITransactionContext<in TConfig>
+public interface ITransactionContext<in TConfig> where TConfig: SessionTxConfig
 {
-    Task ExecuteAsync(Func<IEagerQueryRunner, Task> work, TransactionClusterMemberAccess clusterMemberAccess, TConfig config = null);
-    Task<TResult> ExecuteAsync<TResult>(Func<IEagerQueryRunner, Task<TResult>> work, TransactionClusterMemberAccess clusterMemberAccess, TConfig config = null);
+
+    Task ExecuteAsync(Func<IEagerQueryRunner, Task> work, 
+        TransactionClusterMemberAccess clusterMemberAccess, TConfig config = null);
+
+    Task<TResult> ExecuteAsync<TResult>(Func<IEagerQueryRunner, Task<TResult>> work, 
+        TransactionClusterMemberAccess clusterMemberAccess, TConfig config = null);
 }
 

@@ -81,13 +81,13 @@ namespace Neo4j.Driver.Internal
 
             var sessionConfig = ConfigBuilders.BuildSessionConfig(action);
 
-            var session = new AsyncSession(_connectionProvider, 
-                                           _logger, 
-                                           _retryLogic, 
-                                           sessionConfig.DefaultAccessMode,
-                                           sessionConfig.Database, 
-                                           Bookmarks.From(sessionConfig.Bookmarks ?? Array.Empty<Bookmarks>()), 
-                                           reactive, ParseFetchSize(sessionConfig.FetchSize)) {SessionConfig = sessionConfig};
+            var session = new AsyncSession(_connectionProvider,
+                _logger,
+                _retryLogic,
+                sessionConfig.DefaultAccessMode,
+                sessionConfig.Database,
+                Bookmarks.From(sessionConfig.Bookmarks ?? Array.Empty<Bookmarks>()),
+                reactive, ParseFetchSize(sessionConfig.FetchSize)) {SessionConfig = sessionConfig};
 
             if (IsClosed)
             {
@@ -109,8 +109,8 @@ namespace Neo4j.Driver.Internal
 
         public Task CloseAsync()
         {
-            return Interlocked.CompareExchange(ref _closedMarker, 1, 0) == 0 
-                ? _connectionProvider.CloseAsync() 
+            return Interlocked.CompareExchange(ref _closedMarker, 1, 0) == 0
+                ? _connectionProvider.CloseAsync()
                 : Task.CompletedTask;
         }
 
@@ -127,7 +127,7 @@ namespace Neo4j.Driver.Internal
         //Non public facing api. Used for testing with testkit only
         public IRoutingTable GetRoutingTable(string database)
         {
-            return _connectionProvider.GetRoutingTable(database);		
+            return _connectionProvider.GetRoutingTable(database);
         }
 
         public void Dispose()
@@ -175,7 +175,8 @@ namespace Neo4j.Driver.Internal
             ClusterMemberAccess clusterMemberAccess = ClusterMemberAccess.Automatic,
             CancellationToken cancellationToken = default)
         {
-            return QueryAsync(new Query(query, parameters), new DriverQueryConfig {ClusterMemberAccess = clusterMemberAccess},
+            return QueryAsync(new Query(query, parameters),
+                new DriverQueryConfig {ClusterMemberAccess = clusterMemberAccess},
                 cancellationToken);
         }
 
@@ -183,7 +184,8 @@ namespace Neo4j.Driver.Internal
             ClusterMemberAccess clusterMemberAccess = ClusterMemberAccess.Automatic,
             CancellationToken cancellationToken = default)
         {
-            return QueryAsync(new Query(query, parameters), new DriverQueryConfig { ClusterMemberAccess = clusterMemberAccess },
+            return QueryAsync(new Query(query, parameters),
+                new DriverQueryConfig {ClusterMemberAccess = clusterMemberAccess},
                 cancellationToken);
         }
 
@@ -193,13 +195,15 @@ namespace Neo4j.Driver.Internal
             return QueryAsync(new Query(query, parameters), queryConfig, cancellationToken);
         }
 
-        public Task<IRecordSetResult> QueryAsync(string query, Dictionary<string, object> parameters, DriverQueryConfig queryConfig,
+        public Task<IRecordSetResult> QueryAsync(string query, Dictionary<string, object> parameters,
+            DriverQueryConfig queryConfig,
             CancellationToken cancellationToken = default)
         {
             return QueryAsync(new Query(query, parameters), queryConfig, cancellationToken);
         }
 
-        public Task<IRecordSetResult> QueryAsync(Query query, DriverQueryConfig queryConfig, CancellationToken cancellationToken = default)
+        public Task<IRecordSetResult> QueryAsync(Query query, DriverQueryConfig queryConfig,
+            CancellationToken cancellationToken = default)
         {
             // assert config is valid
             // - if automatic, ensure can complete query (bolt / SSR / Guesstimator)
@@ -215,12 +219,12 @@ namespace Neo4j.Driver.Internal
             return null;
         }
 
-        public Task ExecuteAsync(Func<IAsyncQueryRunner>, Task> work, TransactionClusterMemberAccess clusterMemberAccess, TxConfig config = null)
+        public Task ExecuteAsync(Func<IEagerQueryRunner, Task> work, TransactionClusterMemberAccess clusterMemberAccess, DriverTxConfig config = null)
         {
             throw new NotImplementedException();
         }
 
-        public Task<T> ExecuteAsync<T>(Func<IConfigurableQueryRunner<>, Task<T>> work, TransactionClusterMemberAccess clusterMemberAccess, TxConfig config = null)
+        public Task<TResult> ExecuteAsync<TResult>(Func<IEagerQueryRunner, Task<TResult>> work, TransactionClusterMemberAccess clusterMemberAccess, DriverTxConfig config = null)
         {
             throw new NotImplementedException();
         }

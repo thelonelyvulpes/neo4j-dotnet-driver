@@ -37,7 +37,7 @@ public class SessionTxConfig
 }
 
 
-public class DriverTransactionConfig : SessionTxConfig
+public class DriverTxConfig : SessionTxConfig
 {
     /// <summary>
     /// 

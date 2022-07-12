@@ -120,15 +120,6 @@ namespace Neo4j.Driver.Tests
             };
         }
 
-        public async Task<IRecordSetResult<T>> ToResultAsync<T>(Func<IRecord, T> converter = null)
-        {
-            return new InternalRecordSetResult<T>
-            {
-                Results = (await this.ToListAsync()).Select(converter).ToArray(),
-                Summary = await this.GetSummaryAsync()
-            };
-        }
-
         public void Cancel()
         {
         }

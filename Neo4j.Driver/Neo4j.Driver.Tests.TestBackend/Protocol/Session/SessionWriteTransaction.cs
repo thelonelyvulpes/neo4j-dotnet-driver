@@ -21,7 +21,7 @@ namespace Neo4j.Driver.Tests.TestBackend
         {
             var sessionContainer = (NewSession)ObjManager.GetObject(data.sessionId);
 
-            await sessionContainer.Session.WriteAsync(async tx =>
+            await sessionContainer.Session.WriteTransactionAsync(async tx =>
             {
 				sessionContainer.SetupRetryAbleState(NewSession.SessionState.RetryAbleNothing);
 

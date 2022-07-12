@@ -140,22 +140,6 @@ namespace Neo4j.Driver.Internal.Result
             };
         }
 
-        public async Task<IRecordSetResult<T>> ToResultAsync<T>(Func<IRecord, T> converter = null)
-        {
-            var set = new List<T>();
-            while (await FetchAsync().ConfigureAwait(false))
-                set.Add(converter(_current));
-            
-            var keys = await KeysAsync().ConfigureAwait(false);
-            var summary = await ConsumeAsync().ConfigureAwait(false);
-            return new InternalRecordSetResult<T>
-            {
-                Keys = keys,
-                Results = set.ToArray(),
-                Summary = summary
-            };
-        }
-
         public void Cancel()
         {
             _resultStream.Cancel();

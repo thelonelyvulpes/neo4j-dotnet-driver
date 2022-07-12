@@ -77,12 +77,5 @@ namespace Neo4j.Driver
         /// </summary>
         /// <returns></returns>
         Task<IRecordSetResult> ToResultAsync();
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="converter"></param>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        Task<IRecordSetResult<T>> ToResultAsync<T>(Func<IRecord, T> converter = null);
-    }
+ }
 }

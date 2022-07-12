@@ -80,20 +80,6 @@ namespace Neo4j.Driver.Internal
 			//Nothing to dispose of in this class. Methods required for derived classes and correct dispose pattern
 			return new ValueTask(Task.CompletedTask);
 		}
-
-        public abstract Task<IRecordSetResult<T>> QueryAsync<T>(Query query,
-            Func<IRecord, T> converter = null) where T : new();
-        public abstract Task<IRecordSetResult<T>> QueryAsync<T>(string query, object parameters = null,
-            Func<IRecord, T> converter = null) where T : new();
-        public abstract Task<IRecordSetResult<T>> WriteAsync<T>(Query query,
-            Func<IRecord, T> converter = null) where T : new();
-        public abstract Task<IRecordSetResult<T>> WriteAsync<T>(string query, object parameters = null,
-            Func<IRecord, T> converter = null) where T : new();
-
-        public abstract Task<IRecordSetResult> QueryAsync(Query query);
-        public abstract Task<IRecordSetResult> QueryAsync(string query, object parameters = null);
-        public abstract Task<IRecordSetResult> WriteAsync(Query query);
-        public abstract Task<IRecordSetResult> WriteAsync(string query, object parameters = null);
     }
 
     internal interface IResultResourceHandler

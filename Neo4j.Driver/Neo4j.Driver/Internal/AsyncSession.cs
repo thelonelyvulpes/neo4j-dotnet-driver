@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Neo4j.Driver.Internal.Connector;
 using Neo4j.Driver.Internal.IO;
@@ -164,26 +165,6 @@ namespace Neo4j.Driver.Internal
             return RunTransactionAsync(AccessMode.Write, work, action);
         }
 
-        public Task ExecuteAsync(Func<IConfigurableQueryRunner<>, Task> work, Action<TransactionConfigBuilder> action = null)
-        {
-            return RunTransactionAsync(AccessMode.Read, work, action);
-        }
-
-        public Task<T> ExecuteAsync<T>(Func<IConfigurableQueryRunner<>, Task<T>> work,  Action<TransactionConfigBuilder> action = null)
-        {
-            return RunTransactionAsync(AccessMode.Read, work, action);
-        }
-
-        public Task WriteAsync(Func<IConfigurableQueryRunner<>, Task> work, Action<TransactionConfigBuilder> action = null)
-        {
-            return RunTransactionAsync(AccessMode.Write, work, action);
-        }
-
-        public Task<T> WriteAsync<T>(Func<IConfigurableQueryRunner<>, Task<T>> work, Action<TransactionConfigBuilder> action = null)
-        {
-            return RunTransactionAsync(AccessMode.Write, work, action);
-        }
-
         private Task RunTransactionAsync(AccessMode mode, Func<IAsyncQueryRunner, Task> work,
             Action<TransactionConfigBuilder> action)
         {
@@ -285,76 +266,46 @@ namespace Neo4j.Driver.Internal
             return SessionConfig is not null ? SessionConfig.ImpersonatedUser : string.Empty;
         }
 
-        public override Task<IRecordSetResult<T>> QueryAsync<T>(Query query, Func<IRecord, T> converter = null)
+        public Task ExecuteAsync(Func<IEagerQueryRunner, Task> work, TransactionClusterMemberAccess clusterMemberAccess, SessionTxConfig config = null)
         {
-            return RunTransactionAsync(AccessMode.Read, async t =>
-            {
-                var cursor = await t.RunAsync(query.Text, query.Parameters).ConfigureAwait(false);
-                return await cursor.ToResultAsync(converter).ConfigureAwait(false);
-            }, null);
+            throw new NotImplementedException();
         }
 
-        public override Task<IRecordSetResult<T>> QueryAsync<T>(string query, object parameters = null, Func<IRecord, T> converter = null)
+        public Task<TResult> ExecuteAsync<TResult>(Func<IEagerQueryRunner, Task<TResult>> work, TransactionClusterMemberAccess clusterMemberAccess,
+            SessionTxConfig config = null)
         {
-            return RunTransactionAsync(AccessMode.Read, async t =>
-            {
-                var cursor = await t.RunAsync(query, parameters).ConfigureAwait(false);
-                return await cursor.ToResultAsync(converter).ConfigureAwait(false);
-            }, null);
+            throw new NotImplementedException();
         }
 
-        public override Task<IRecordSetResult<T>> WriteAsync<T>(Query query, Func<IRecord, T> converter = null)
+        public Task<IRecordSetResult> QueryAsync(string query, object parameters = null,
+            ClusterMemberAccess clusterMemberAccess = ClusterMemberAccess.Automatic,
+            CancellationToken cancellationToken = default)
         {
-            return RunTransactionAsync(AccessMode.Write, async t =>
-            {
-                var cursor = await t.RunAsync(query.Text, query.Parameters).ConfigureAwait(false);
-                return await cursor.ToResultAsync(converter).ConfigureAwait(false);
-            }, null);
+            throw new NotImplementedException();
         }
 
-        public override Task<IRecordSetResult<T>> WriteAsync<T>(string query, object parameters = null, Func<IRecord, T> converter = null)
+        public Task<IRecordSetResult> QueryAsync(string query, Dictionary<string, object> parameters,
+            ClusterMemberAccess clusterMemberAccess = ClusterMemberAccess.Automatic,
+            CancellationToken cancellationToken = default)
         {
-            return RunTransactionAsync(AccessMode.Write, async t =>
-            {
-                var cursor = await t.RunAsync(query, parameters).ConfigureAwait(false);
-                return await cursor.ToResultAsync(converter).ConfigureAwait(false);
-            }, null);
+            throw new NotImplementedException();
         }
 
-        public override Task<IRecordSetResult> QueryAsync(Query query)
+        public Task<IRecordSetResult> QueryAsync(Query query, SessionQueryConfig queryConfig, CancellationToken cancellationToken = default)
         {
-            return RunTransactionAsync(AccessMode.Read, async t =>
-            {
-                var cursor = await t.RunAsync(query.Text, query.Parameters).ConfigureAwait(false);
-                return await cursor.ToResultAsync().ConfigureAwait(false);
-            }, null);
+            throw new NotImplementedException();
         }
 
-        public override Task<IRecordSetResult> QueryAsync(string query, object parameters = null)
+        public Task<IRecordSetResult> QueryAsync(string query, object parameters, SessionQueryConfig queryConfig,
+            CancellationToken cancellationToken = default)
         {
-            return RunTransactionAsync(AccessMode.Read, async t =>
-            {
-                var cursor = await t.RunAsync(query, parameters).ConfigureAwait(false);
-                return await cursor.ToResultAsync().ConfigureAwait(false);
-            }, null);
+            throw new NotImplementedException();
         }
 
-        public override Task<IRecordSetResult> WriteAsync(Query query)
+        public Task<IRecordSetResult> QueryAsync(string query, Dictionary<string, object> parameters, SessionQueryConfig queryConfig,
+            CancellationToken cancellationToken = default)
         {
-            return RunTransactionAsync(AccessMode.Write, async t =>
-            {
-                var cursor = await t.RunAsync(query.Text, query.Parameters).ConfigureAwait(false);
-                return await cursor.ToResultAsync().ConfigureAwait(false);
-            }, null);
-        }
-
-        public override Task<IRecordSetResult> WriteAsync(string query, object parameters = null)
-        {
-            return RunTransactionAsync(AccessMode.Write, async t =>
-            {
-                var cursor = await t.RunAsync(query, parameters).ConfigureAwait(false);
-                return await cursor.ToResultAsync().ConfigureAwait(false);
-            }, null);
+            throw new NotImplementedException();
         }
     }
 }

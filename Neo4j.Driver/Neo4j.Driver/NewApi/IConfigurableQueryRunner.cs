@@ -20,10 +20,7 @@ using System.Threading.Tasks;
 
 namespace Neo4j.Driver;
 
-/// <summary>
-/// 
-/// </summary>
-public interface IConfigurableQueryRunner<in TConfig>
+public interface IConfigurableQueryRunner<in TConfig> where TConfig : SessionQueryConfig
 {
     Task<IRecordSetResult> QueryAsync(string query,
         object parameters = null,
@@ -36,7 +33,7 @@ public interface IConfigurableQueryRunner<in TConfig>
         CancellationToken cancellationToken = default);
 
     Task<IRecordSetResult> QueryAsync(Query query, 
-        TConfig queryConfig,
+        TConfig queryConfig = null,
         CancellationToken cancellationToken = default);
 
     Task<IRecordSetResult> QueryAsync(string query,

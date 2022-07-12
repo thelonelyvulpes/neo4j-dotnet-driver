@@ -68,11 +68,6 @@ namespace Neo4j.Driver.Internal.Result
             return _cursor.ToResultAsync();
         }
 
-        public Task<IRecordSetResult<T>> ToResultAsync<T>(Func<IRecord, T> converter = null)
-        {
-            return _cursor.ToResultAsync(converter);
-        }
-
         public void Cancel()
         {
             _cursor.Cancel();
@@ -90,13 +85,6 @@ namespace Neo4j.Driver.Internal.Result
     internal class InternalRecordSetResult : IRecordSetResult
     {
         public IRecord[] Results { get; internal set; }
-        public IResultSummary Summary { get; internal set; }
-        public string[] Keys { get; internal set; }
-    }
-
-    internal class InternalRecordSetResult<T> : IRecordSetResult<T>
-    {
-        public T[] Results { get; internal set; }
         public IResultSummary Summary { get; internal set; }
         public string[] Keys { get; internal set; }
     }

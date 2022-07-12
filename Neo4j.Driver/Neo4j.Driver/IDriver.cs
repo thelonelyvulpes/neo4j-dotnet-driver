@@ -29,7 +29,7 @@ namespace Neo4j.Driver
     /// The size of the buffer can be configured by the <see cref="Neo4j.Driver.Config.MaxConnectionPoolSize" />
     /// property on the <see cref="Neo4j.Driver.Config" /> when creating the Driver.
     /// </remarks>
-    public interface IDriver : IConfigurableQueryRunner<DriverQueryConfig>, ITransactionContext<DriverTransactionConfig>, IDisposable, IAsyncDisposable
+    public interface IDriver : IConfigurableQueryRunner<DriverQueryConfig>, ITransactionContext<DriverTxConfig>, IDisposable, IAsyncDisposable
     {
         /// <summary>
         /// Obtain a session with the default <see cref="SessionConfig"/>.

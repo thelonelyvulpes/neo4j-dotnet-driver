@@ -17,43 +17,11 @@
 
 namespace Neo4j.Driver;
 
-/// <summary>
-/// 
-/// </summary>
 public interface IRecordSetResult
 {
-    /// <summary>
-    /// 
-    /// </summary>
     IRecord[] Results { get; }
-    /// <summary>
-    /// 
-    /// </summary>
+
     IResultSummary Summary { get; }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    string[] Keys { get; }
-}
-
-/// <summary>
-/// 
-/// </summary>
-/// <typeparam name="T"></typeparam>
-public interface IRecordSetResult<out T>
-{
-    /// <summary>
-    /// 
-    /// </summary>
-    T[] Results { get; }
-    /// <summary>
-    /// 
-    /// </summary>
-    IResultSummary Summary { get; }
-
-    /// <summary>
-    /// 
-    /// </summary>
     string[] Keys { get; }
 }

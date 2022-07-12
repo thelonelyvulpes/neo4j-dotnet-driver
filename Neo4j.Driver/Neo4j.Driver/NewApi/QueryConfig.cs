@@ -20,90 +20,53 @@ using System.Collections.Generic;
 
 namespace Neo4j.Driver;
 
-/// <summary>
-/// 
-/// </summary>
-public class DriverQueryConfig : SessionQueryConfig
+public record DriverQueryConfig : SessionQueryConfig
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public static readonly DriverQueryConfig Read = new DriverQueryConfig
     {
         ClusterMemberAccess = ClusterMemberAccess.Readers
     };
 
-    /// <summary>
-    /// 
-    /// </summary>
     public static readonly DriverQueryConfig Write = new DriverQueryConfig
     {
         ClusterMemberAccess = ClusterMemberAccess.Writers
     };
 
-    /// <summary>
-    /// 
-    /// </summary>w
     public static readonly DriverQueryConfig AutoCommit = new DriverQueryConfig
     {
         ClusterMemberAccess = ClusterMemberAccess.Writers,
         MaxRetry = 0
     };
 
-    /// <summary>
-    /// 
-    /// </summary>
-    public Bookmarks Bookmarks { get; set; } = null;
-    /// <summary>
-    /// 
-    /// </summary>
-    public string DbName { get; set; } = null;
+    public Bookmarks Bookmarks { get; init; } = null;
+
+    public string DbName { get; init; } = null;
 }
 
-public class SessionQueryConfig
+public record SessionQueryConfig
 {
-    /// <summary>
-    /// 
-    /// </summary>
+
     public static readonly SessionQueryConfig Read = new SessionQueryConfig
     {
         ClusterMemberAccess = ClusterMemberAccess.Readers
     };
 
-    /// <summary>
-    /// 
-    /// </summary>
     public static readonly SessionQueryConfig Write = new SessionQueryConfig
     {
         ClusterMemberAccess = ClusterMemberAccess.Writers
     };
 
-    /// <summary>
-    /// 
-    /// </summary>w
     public static readonly SessionQueryConfig AutoCommit = new SessionQueryConfig
     {
         ClusterMemberAccess = ClusterMemberAccess.Writers,
         MaxRetry = 0
     };
 
-    /// <summary>
-    /// 
-    /// </summary>
-    public ClusterMemberAccess ClusterMemberAccess { get; set; } = ClusterMemberAccess.Automatic;
+    public ClusterMemberAccess ClusterMemberAccess { get; init; } = ClusterMemberAccess.Automatic;
 
-    /// <summary>
-    /// 
-    /// </summary>
-    public Dictionary<string, string> Metadata { get; set; } = null;
+    public Dictionary<string, string> Metadata { get; init; } = null;
 
-    /// <summary>
-    /// 
-    /// </summary>
-    public TimeSpan Timeout { get; set; }
+    public TimeSpan Timeout { get; init; }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    public int MaxRetry { get; set; }
+    public int MaxRetry { get; init; }
 }
