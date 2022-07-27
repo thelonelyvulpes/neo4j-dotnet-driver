@@ -17,9 +17,17 @@
 
 namespace Neo4j.Driver;
 
-public enum ClusterMemberAccess
+/// <summary>
+/// 
+/// </summary>
+public enum TxAccess
 {
-    Automatic = 0,
+    /// <summary>
+    /// 
+    /// </summary>
     Readers = 1,
+    /// <summary>
+    /// 
+    /// </summary>
     Writers = 2
 }

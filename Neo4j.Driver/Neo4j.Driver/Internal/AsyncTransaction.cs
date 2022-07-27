@@ -22,10 +22,11 @@ using System.Threading.Tasks;
 using Neo4j.Driver.Internal.Connector;
 using Neo4j.Driver.Internal.MessageHandling;
 using Neo4j.Driver.Internal.Protocol;
+using Neo4j.Driver.Internal.Result;
 
 namespace Neo4j.Driver.Internal
 {
-    internal class AsyncTransaction : AsyncQueryRunner, IInternalAsyncTransaction, IBookmarksTracker
+    internal class AsyncTransaction : AsyncQueryRunner, IInternalAsyncTransaction, IBookmarksTracker, IEagerQueryRunner
     {
         private static readonly IState Active = new ActiveState();
         private static readonly IState Committed = new CommittedState();
@@ -37,11 +38,11 @@ namespace Neo4j.Driver.Internal
         private readonly bool _reactive;
         private readonly ITransactionResourceHandler _resourceHandler;
         private readonly string _database;
-		private readonly string _impersonatedUser = null;
+        private readonly string _impersonatedUser;
 
         private Bookmarks _bookmarks;
 
-        private bool _disposed = false;
+        private bool _disposed;
         private IState _state = Active;
         private readonly ILogger _logger;
         private readonly long _fetchSize;
@@ -60,7 +61,7 @@ namespace Neo4j.Driver.Internal
             _reactive = reactive;
             _database = database;
             _fetchSize = fetchSize;
-			_impersonatedUser = impersonatedUser;
+            _impersonatedUser = impersonatedUser;
         }
 
         public bool IsOpen => _state == Active;
@@ -73,7 +74,8 @@ namespace Neo4j.Driver.Internal
 
         public override Task<IResultCursor> RunAsync(Query query)
         {
-            var result = _state.RunAsync(query, _connection, _protocol, _logger, _reactive, _fetchSize, out var nextState);
+            var result = _state.RunAsync(query, _connection, _protocol, _logger, _reactive, _fetchSize,
+                out var nextState);
             _state = nextState;
             _results.Add(result);
             return result;
@@ -129,13 +131,13 @@ namespace Neo4j.Driver.Internal
             }
         }
 
-		//Needed to implement the DisposeAsync interface correctly. This is called from the parent class that is
-		//implementing the rest of the pattern.
-		protected override async ValueTask DisposeAsyncCore()
-		{
-			if (IsOpen)
-				await RollbackAsync().ConfigureAwait(false);
-		}
+        //Needed to implement the DisposeAsync interface correctly. This is called from the parent class that is
+        //implementing the rest of the pattern.
+        protected override async ValueTask DisposeAsyncCore()
+        {
+            if (IsOpen)
+                await RollbackAsync().ConfigureAwait(false);
+        }
 
         private async Task DiscardUnconsumed()
         {
@@ -234,13 +236,15 @@ namespace Neo4j.Driver.Internal
             public Task CommitAsync(IConnection connection, IBoltProtocol protocol, IBookmarksTracker tracker,
                 out IState nextState)
             {
-                throw new TransactionClosedException("Cannot commit this transaction, because it has already been committed.");
+                throw new TransactionClosedException(
+                    "Cannot commit this transaction, because it has already been committed.");
             }
 
             public Task RollbackAsync(IConnection connection, IBoltProtocol protocol, IBookmarksTracker tracker,
                 out IState nextState)
             {
-                throw new TransactionClosedException("Cannot rollback this transaction, because it has already been committed.");
+                throw new TransactionClosedException(
+                    "Cannot rollback this transaction, because it has already been committed.");
             }
         }
 
@@ -258,13 +262,15 @@ namespace Neo4j.Driver.Internal
             public Task CommitAsync(IConnection connection, IBoltProtocol protocol, IBookmarksTracker tracker,
                 out IState nextState)
             {
-                throw new TransactionClosedException("Cannot commit this transaction, because it has already been rolled back.");
+                throw new TransactionClosedException(
+                    "Cannot commit this transaction, because it has already been rolled back.");
             }
 
             public Task RollbackAsync(IConnection connection, IBoltProtocol protocol, IBookmarksTracker tracker,
                 out IState nextState)
             {
-                throw new TransactionClosedException("Cannot rollback this transaction, because it has already been rolled back.");
+                throw new TransactionClosedException(
+                    "Cannot rollback this transaction, because it has already been rolled back.");
             }
         }
 
@@ -293,5 +299,22 @@ namespace Neo4j.Driver.Internal
                 return Task.CompletedTask;
             }
         }
+
+        public Task<IRecordSetResult> QueryAsync(string query, object parameters = null, QueryConfig config = null,
+            CancellationToken cancellationToken = default) =>
+            QueryAsync(new Query(query, parameters), config, cancellationToken);
+
+        public Task<IRecordSetResult> QueryAsync(string query, Dictionary<string, object> parameters,
+            QueryConfig config,
+            CancellationToken cancellationToken = default) =>
+            QueryAsync(new Query(query, parameters), config, cancellationToken);
+
+        public async Task<IRecordSetResult> QueryAsync(Query query, QueryConfig queryConfig = null,
+            CancellationToken cancellationToken = default)
+        {
+            var cursor = await RunAsync(query).ConfigureAwait(false);
+            return await cursor.ToResultAsync(queryConfig, cancellationToken).ConfigureAwait(false);
+        }
+
     }
 }

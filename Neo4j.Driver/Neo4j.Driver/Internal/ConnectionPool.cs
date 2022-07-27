@@ -396,6 +396,11 @@ namespace Neo4j.Driver.Internal
             return connection.Server;
         }
 
+        public Task<bool> SupportsAutoRoutingQueries()
+        {
+            return Task.FromResult(true);
+        }
+
         public async Task<bool> SupportsMultiDbAsync()
         {
             // Establish a connection with the server and immediately close it.

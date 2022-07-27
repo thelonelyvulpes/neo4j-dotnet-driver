@@ -24,12 +24,26 @@ namespace Neo4j.Driver;
 /// </summary>
 public static class Retries
 {
+
     /// <summary>
-    /// Default Transient retry function.
+    /// 
     /// </summary>
-    public static readonly Func<Exception, int, int, (bool retry, TimeSpan delay)> Transient = (ex, tries, max)  => 
-        tries == max 
-            ? (false, TimeSpan.MaxValue) 
-            : (ex is Neo4jException {CanBeRetried: true}, 
-                TimeSpan.FromMilliseconds(tries * 100 + new Random().Next(-10, 10)));
+    /// <param name="exception"></param>
+    /// <param name="attempt"></param>
+    /// <param name="maxAttempts"></param>
+    /// <returns></returns>
+    public static (bool retry, TimeSpan delay) Transient(Exception exception, int attempt, int maxAttempts) =>
+        attempt == maxAttempts
+            ? (false, TimeSpan.MaxValue)
+            : (exception is Neo4jException { CanBeRetried: true },
+                TimeSpan.FromMilliseconds(attempt * 100 + new Random().Next(-10, 10)));
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="exception"></param>
+    /// <param name="attempt"></param>
+    /// <param name="maxAttempts"></param>
+    /// <returns></returns>
+    public static (bool retry, TimeSpan delay) NoRetry(Exception exception, int attempt, int maxAttempts) => (false, TimeSpan.Zero);
 }

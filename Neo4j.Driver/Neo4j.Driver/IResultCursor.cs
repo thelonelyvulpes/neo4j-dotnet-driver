@@ -15,6 +15,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Neo4j.Driver
@@ -75,7 +76,9 @@ namespace Neo4j.Driver
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="queryConfig"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task<IRecordSetResult> ToResultAsync();
+        Task<IRecordSetResult> ToResultAsync(QueryConfig queryConfig = null, CancellationToken cancellationToken = default);
  }
 }

@@ -388,6 +388,11 @@ namespace Neo4j.Driver.Tests
                 throw new NotSupportedException();
             }
 
+            public Task<bool> SupportsAutoRoutingQueries()
+            {
+                return Task.FromResult(true);
+            }
+
             public Task VerifyConnectivityAsync()
             {
                 return Task.CompletedTask;

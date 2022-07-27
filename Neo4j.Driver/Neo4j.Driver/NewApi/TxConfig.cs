@@ -20,31 +20,66 @@ using System.Collections.Generic;
 
 namespace Neo4j.Driver;
 
-public class SessionTxConfig
+/// <summary>
+/// 
+/// </summary>
+public record SessionTxConfig
 {
     /// <summary>
     /// 
     /// </summary>
-    public int MaxRetry { get; set; } = 2;
+    public int MaxRetry { get; init; } = 2;
+
+
+    public Func<Exception, int, int, (bool, TimeSpan)> RetryFunc { get; init; } = Retries.Transient;
+
     /// <summary>
     /// 
     /// </summary>
-    public Dictionary<string, string> Metadata { get; set; }
+    public Dictionary<string, object> Metadata { get; init; } = new Dictionary<string, object>();
+
     /// <summary>
     /// 
     /// </summary>
-    public TimeSpan Timeout { get; set; }
+    public TimeSpan Timeout { get; init; } = TimeSpan.Zero;
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public TransactionConfig TransactionConfig => new TransactionConfig
+    {
+        Metadata = Metadata,
+        Timeout = Timeout
+    };
 }
 
 
-public class DriverTxConfig : SessionTxConfig
+/// <summary>
+/// 
+/// </summary>
+public record DriverTxConfig : SessionTxConfig
 {
     /// <summary>
     /// 
     /// </summary>
-    public string DbName { get; set; } = null;
+    public string Database { get; init; } = null;
     /// <summary>
     /// 
     /// </summary>
-    public Bookmarks Bookmarks { get; set; } = null;
+    public Bookmarks Bookmarks { get; init; } = null;
+    /// <summary>
+    /// 
+    /// </summary>
+    public string ImpersonatedUser { get; init; } = null;
+
+    public void ConfigureSession(SessionConfigBuilder sessionConfigBuilder, Bookmarks bookmarks)
+    {
+        sessionConfigBuilder.WithBookmarks(Bookmarks ?? bookmarks);
+
+        if (Database != null)
+            sessionConfigBuilder.WithDatabase(Database);
+
+        if (ImpersonatedUser != null)
+            sessionConfigBuilder.WithImpersonatedUser(ImpersonatedUser);
+    }
 }

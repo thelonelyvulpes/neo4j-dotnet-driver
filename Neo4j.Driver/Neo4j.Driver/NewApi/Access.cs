@@ -20,14 +20,9 @@ namespace Neo4j.Driver;
 /// <summary>
 /// 
 /// </summary>
-public enum TransactionClusterMemberAccess
+public enum Access
 {
-    /// <summary>
-    /// 
-    /// </summary>
+    Automatic = 0,
     Readers = 1,
-    /// <summary>
-    /// 
-    /// </summary>
     Writers = 2
 }

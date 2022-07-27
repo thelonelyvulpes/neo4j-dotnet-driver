@@ -8,12 +8,23 @@ class Program
     {
         var driver = GraphDatabase.Driver("bolt://localhost:7687", AuthTokens.Basic("neo4j", "pass"));
 
-        var write = await driver.QueryAsync(@"CREATE (n: Example { field: 'example', found: false }) return n.field");
+        await driver.QueryAsync(@"CREATE (n: Example { field: 'example', found: false }) return n.field");
 
-        await driver.ExecuteAsync(async x =>
+        await driver.ExecuteAsync(async (x, ct) =>
         {
-            await x.QueryAsync("");
-        }, TransactionClusterMemberAccess.Writers).ConfigureAwait(false);
+            var blah = await x.QueryAsync("MATCH (n: Example) SET n.found = true", cancellationToken: ct);
+            Console.WriteLine(blah.Summary.Counters.ContainsUpdates);
+        }, TxAccess.Writers).ConfigureAwait(false);
+
+
+        await using var session = driver.AsyncSession(x => x.WithDatabase("neo4j"));
+        await session.QueryAsync(@"CREATE (n: SessEg { field: 'example', found: false }) return n.field");
+
+        await session.ExecuteAsync(async (x, ct) =>
+        {
+            var blah = await x.QueryAsync("MATCH (n: SessEg) SET n.found = true", cancellationToken: ct);
+            Console.WriteLine(blah.Summary.Counters.ContainsUpdates);
+        }, TxAccess.Writers).ConfigureAwait(false);
     }
 }
 

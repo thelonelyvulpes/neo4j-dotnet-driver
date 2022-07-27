@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Neo4j.Driver.Internal.Result
@@ -127,17 +128,43 @@ namespace Neo4j.Driver.Internal.Result
         }
 
         public bool IsOpen => _summary == null;
-        public async Task<IRecordSetResult> ToResultAsync()
+
+        public async Task<IRecordSetResult> ToResultAsync(QueryConfig queryConfig = null, CancellationToken cancellationToken = default)
         {
-            var rows = await this.ToListAsync().ConfigureAwait(false);
-            var keys = await KeysAsync().ConfigureAwait(false);
-            var summary = await ConsumeAsync().ConfigureAwait(false);
-            return new InternalRecordSetResult
+            queryConfig ??= QueryConfig.Default;
+            try
             {
-                Keys = keys,
-                Results = rows.ToArray(),
-                Summary = summary
-            };
+                return new InternalRecordSetResult
+                {
+                    Records = await BufferAsync(queryConfig, cancellationToken).ConfigureAwait(false),
+                    Summary = await ConsumeAsync().ConfigureAwait(false),
+                    Keys = await KeysAsync().ConfigureAwait(false)
+                };
+            }
+            catch (OperationCanceledException)
+            {
+                Cancel();
+                throw;
+            }
+        }
+
+        private async Task<IRecord[]> BufferAsync(QueryConfig queryConfig, CancellationToken cancellationToken)
+        {
+            if (queryConfig.SkipRecords)
+                return Array.Empty<IRecord>();
+
+            var counter = 0;
+            var list = new List<IRecord>();
+
+            while (!cancellationToken.IsCancellationRequested &&
+                   ++counter <= queryConfig.MaxRecords &&
+                   await FetchAsync().ConfigureAwait(false))
+            {
+                list.Add(Current);
+            }
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return list.ToArray();
         }
 
         public void Cancel()

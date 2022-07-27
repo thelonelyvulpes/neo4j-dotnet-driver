@@ -146,6 +146,20 @@ namespace Neo4j.Driver.Internal.Routing
                 "ensure the database is running and that there is a working network connection to it.");
         }
 
+        public Task<bool> SupportsAutoRoutingQueries()
+        {
+            try
+            {
+                return Task.FromResult(true);
+            }
+            catch (ServiceUnavailableException e)
+            {
+                throw new ServiceUnavailableException(
+                    "Unable to connect to database, " +
+                    "ensure the database is running and that there is a working network connection to it.", e);
+            }
+        }
+
         public async Task<bool> SupportsMultiDbAsync()
         {
             var uris = _initialServerAddressProvider.Get();
@@ -155,8 +169,9 @@ namespace Neo4j.Driver.Internal.Routing
             {
                 try
                 {
-                    var connection = await CreateClusterConnectionAsync(uri, Simple.Mode, Simple.Database, null,
-                        Simple.Bookmarks).ConfigureAwait(false);
+                    var connection = await CreateClusterConnectionAsync(uri, 
+                        Simple.Mode, Simple.Database, null, Simple.Bookmarks)
+                        .ConfigureAwait(false);
                     var multiDb = connection.SupportsMultidatabase();
                     await connection.CloseAsync().ConfigureAwait(false);
                     return multiDb;

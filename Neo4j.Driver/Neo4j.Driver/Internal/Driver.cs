@@ -17,7 +17,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Neo4j.Driver.Internal.Metrics;
@@ -119,10 +118,11 @@ namespace Neo4j.Driver.Internal
 
         public Task VerifyConnectivityAsync() => GetServerInfoAsync();
 
-        public Task<bool> SupportsMultiDbAsync()
-        {
-            return _connectionProvider.SupportsMultiDbAsync();
-        }
+        public Task<bool> SupportsMultiDbAsync() => 
+            _connectionProvider.SupportsMultiDbAsync();
+
+        public Task<bool> SupportsAutoRoutingQueries() =>
+            _connectionProvider.SupportsAutoRoutingQueries();
 
         //Non public facing api. Used for testing with testkit only
         public IRoutingTable GetRoutingTable(string database)
@@ -172,61 +172,114 @@ namespace Neo4j.Driver.Internal
         }
 
         public Task<IRecordSetResult> QueryAsync(string query, object parameters = null,
-            ClusterMemberAccess clusterMemberAccess = ClusterMemberAccess.Automatic,
+            Access access = Access.Automatic,
             CancellationToken cancellationToken = default)
         {
             return QueryAsync(new Query(query, parameters),
-                new DriverQueryConfig {ClusterMemberAccess = clusterMemberAccess},
+                new DriverQueryConfig {Access = access},
                 cancellationToken);
         }
 
         public Task<IRecordSetResult> QueryAsync(string query, Dictionary<string, object> parameters,
-            ClusterMemberAccess clusterMemberAccess = ClusterMemberAccess.Automatic,
+            Access access = Access.Automatic,
             CancellationToken cancellationToken = default)
         {
             return QueryAsync(new Query(query, parameters),
-                new DriverQueryConfig {ClusterMemberAccess = clusterMemberAccess},
+                new DriverQueryConfig {Access = access},
                 cancellationToken);
         }
 
-        public Task<IRecordSetResult> QueryAsync(string query, object parameters, DriverQueryConfig queryConfig,
+        public Task<IRecordSetResult> QueryAsync(Query query, Access access = Access.Automatic,
             CancellationToken cancellationToken = default)
         {
-            return QueryAsync(new Query(query, parameters), queryConfig, cancellationToken);
+            return QueryAsync(query, new DriverQueryConfig {Access = access},
+                cancellationToken);
+        }
+
+        public Task<IRecordSetResult> QueryAsync(string query, object parameters, DriverQueryConfig config = null,
+            CancellationToken cancellationToken = default)
+        {
+            return QueryAsync(new Query(query, parameters), config, cancellationToken);
         }
 
         public Task<IRecordSetResult> QueryAsync(string query, Dictionary<string, object> parameters,
-            DriverQueryConfig queryConfig,
+            DriverQueryConfig config,
             CancellationToken cancellationToken = default)
         {
-            return QueryAsync(new Query(query, parameters), queryConfig, cancellationToken);
+            return QueryAsync(new Query(query, parameters), config, cancellationToken);
         }
 
-        public Task<IRecordSetResult> QueryAsync(Query query, DriverQueryConfig queryConfig,
+        public async Task<IRecordSetResult> QueryAsync(Query query, DriverQueryConfig queryConfig = null,
             CancellationToken cancellationToken = default)
         {
-            // assert config is valid
-            // - if automatic, ensure can complete query (bolt / SSR / Guesstimator)
-            // - 
-            // create session
-            // create retry
-            // create transaction
-            // execute query
-            // create IRecordResultSet
-            //    populate records & summary.
-            // update bookmarks
-            // return result.
-            return null;
+            queryConfig ??= DriverQueryConfig.Automatic;
+            var sessionBookmarks = await GetBookmarks(cancellationToken).ConfigureAwait(false);
+            var session = AsyncSession(x => queryConfig.ConfigureSession(x, sessionBookmarks));
+            await using (session.ConfigureAwait(false))
+            {
+                var result = await session.QueryAsync(query, queryConfig, cancellationToken)
+                    .ConfigureAwait(false);
+                
+                await UpdateBookmarks(cancellationToken, session).ConfigureAwait(false);
+                return result;
+            }
         }
 
-        public Task ExecuteAsync(Func<IEagerQueryRunner, Task> work, TransactionClusterMemberAccess clusterMemberAccess, DriverTxConfig config = null)
+        public async Task ExecuteAsync(Func<IEagerQueryRunner, CancellationToken, Task> work, TxAccess txAccess, 
+            DriverTxConfig config = null, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            config ??= new DriverTxConfig();
+            var sessionBookmarks = await GetBookmarks(cancellationToken).ConfigureAwait(false);
+            var session = AsyncSession(x => config.ConfigureSession(x, sessionBookmarks));
+            await using (session.ConfigureAwait(false))
+            {
+                await session.ExecuteAsync(work, txAccess, config, cancellationToken).ConfigureAwait(false);
+                await UpdateBookmarks(cancellationToken, session).ConfigureAwait(false);
+            }
         }
 
-        public Task<TResult> ExecuteAsync<TResult>(Func<IEagerQueryRunner, Task<TResult>> work, TransactionClusterMemberAccess clusterMemberAccess, DriverTxConfig config = null)
+        public async Task<TResult> ExecuteAsync<TResult>(Func<IEagerQueryRunner, CancellationToken, Task<TResult>> work, 
+            TxAccess txAccess, DriverTxConfig config = null, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            config ??= new DriverTxConfig();
+            var sessionBookmarks = await GetBookmarks(cancellationToken).ConfigureAwait(false);
+            var session = AsyncSession(x => config.ConfigureSession(x, sessionBookmarks));
+            await using (session.ConfigureAwait(false))
+            {
+                var result = await session.ExecuteAsync(work, txAccess, config, cancellationToken).ConfigureAwait(false);
+                await UpdateBookmarks(cancellationToken, session).ConfigureAwait(false);
+                return result;
+            }
         }
+
+        // naive bookmark manager
+        private readonly SemaphoreSlim _bookmarksLock = new(1);
+        internal Bookmarks Bookmarks;
+        private async Task UpdateBookmarks(CancellationToken cancellationToken, IAsyncSession session)
+        {
+            await _bookmarksLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
+            {
+                Bookmarks = session.LastBookmarks;
+            }
+            finally
+            {
+                _bookmarksLock.Release();
+            }
+        }
+
+        private async Task<Bookmarks> GetBookmarks(CancellationToken cancellationToken)
+        {
+            await _bookmarksLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
+            {
+                return Bookmarks;
+            }
+            finally
+            {
+                _bookmarksLock.Release();
+            }
+        }
+
     }
 }

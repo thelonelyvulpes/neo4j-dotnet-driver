@@ -25,20 +25,20 @@ namespace Neo4j.Driver;
 /// 
 /// </summary>
 /// <typeparam name="TConfig"></typeparam>
-public interface IConfigurableQueryRunner<in TConfig>
-    where TConfig : QueryConfig
+public interface IAccessConfigurableQueryRunner<in TConfig> : IConfigurableQueryRunner<TConfig>
+    where TConfig : SessionQueryConfig
 {
     /// <summary>
     /// 
     /// </summary>
     /// <param name="query"></param>
     /// <param name="parameters"></param>
-    /// <param name="config"></param>
+    /// <param name="access"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     Task<IRecordSetResult> QueryAsync(string query,
-        object parameters = null,
-        TConfig config = null,
+        object parameters,
+        Access access,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -46,22 +46,22 @@ public interface IConfigurableQueryRunner<in TConfig>
     /// </summary>
     /// <param name="query"></param>
     /// <param name="parameters"></param>
-    /// <param name="config"></param>
+    /// <param name="access"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     Task<IRecordSetResult> QueryAsync(string query,
         Dictionary<string, object> parameters,
-        TConfig config = null,
+        Access access,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 
     /// </summary>
     /// <param name="query"></param>
-    /// <param name="queryConfig"></param>
+    /// <param name="access"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     Task<IRecordSetResult> QueryAsync(Query query,
-        TConfig queryConfig = null,
+        Access access,
         CancellationToken cancellationToken = default);
 }

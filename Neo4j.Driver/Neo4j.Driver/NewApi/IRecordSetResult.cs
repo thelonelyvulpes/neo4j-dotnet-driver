@@ -19,7 +19,7 @@ namespace Neo4j.Driver;
 
 public interface IRecordSetResult
 {
-    IRecord[] Results { get; }
+    IRecord[] Records { get; }
 
     IResultSummary Summary { get; }
 

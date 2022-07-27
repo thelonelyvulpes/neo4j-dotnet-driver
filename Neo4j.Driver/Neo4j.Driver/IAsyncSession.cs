@@ -30,7 +30,7 @@ namespace Neo4j.Driver
     /// Session objects are not thread safe, if you want to run concurrent operations against the database,
     /// simply create multiple session objects.
     /// </summary>
-    public interface IAsyncSession : IAsyncQueryRunner, ITransactionContext<SessionTxConfig>, IConfigurableQueryRunner<SessionQueryConfig>
+    public interface IAsyncSession : IAsyncQueryRunner, ITransactionContext<SessionTxConfig>, IAccessConfigurableQueryRunner<SessionQueryConfig>
     {
         /// <summary>
         /// Asynchronously begin a new transaction in this session using server default transaction configurations.

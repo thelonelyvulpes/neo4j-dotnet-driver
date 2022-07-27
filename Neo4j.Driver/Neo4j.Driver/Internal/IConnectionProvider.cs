@@ -31,5 +31,6 @@ namespace Neo4j.Driver.Internal
 
         IDictionary<string, string> RoutingContext { get; set; }
         Task<IServerInfo> VerifyConnectivityAndGetInfoAsync();
+        Task<bool> SupportsAutoRoutingQueries();
     }
 }

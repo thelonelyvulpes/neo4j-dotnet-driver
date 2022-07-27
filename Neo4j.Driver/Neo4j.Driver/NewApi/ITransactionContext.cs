@@ -16,17 +16,38 @@
 // limitations under the License.
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Neo4j.Driver;
 
+/// <summary>
+/// 
+/// </summary>
+/// <typeparam name="TConfig"></typeparam>
 public interface ITransactionContext<in TConfig> where TConfig: SessionTxConfig
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="work"></param>
+    /// <param name="txAccess"></param>
+    /// <param name="config"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task ExecuteAsync(Func<IEagerQueryRunner, CancellationToken, Task> work, 
+        TxAccess txAccess, TConfig config = null, CancellationToken cancellationToken = default);
 
-    Task ExecuteAsync(Func<IEagerQueryRunner, Task> work, 
-        TransactionClusterMemberAccess clusterMemberAccess, TConfig config = null);
-
-    Task<TResult> ExecuteAsync<TResult>(Func<IEagerQueryRunner, Task<TResult>> work, 
-        TransactionClusterMemberAccess clusterMemberAccess, TConfig config = null);
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="work"></param>
+    /// <param name="txAccess"></param>
+    /// <param name="config"></param>
+    /// <param name="cancellationToken"></param>
+    /// <typeparam name="TResult"></typeparam>
+    /// <returns></returns>
+    Task<TResult> ExecuteAsync<TResult>(Func<IEagerQueryRunner, CancellationToken, Task<TResult>> work, 
+        TxAccess txAccess, TConfig config = null, CancellationToken cancellationToken = default);
 }
 

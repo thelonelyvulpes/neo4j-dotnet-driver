@@ -20,53 +20,152 @@ using System.Collections.Generic;
 
 namespace Neo4j.Driver;
 
+/// <summary>
+/// 
+/// </summary>
 public record DriverQueryConfig : SessionQueryConfig
 {
-    public static readonly DriverQueryConfig Read = new DriverQueryConfig
+    /// <summary>
+    /// 
+    /// </summary>
+    public new static readonly DriverQueryConfig Read = new()
     {
-        ClusterMemberAccess = ClusterMemberAccess.Readers
+        Access = Access.Readers,
     };
 
-    public static readonly DriverQueryConfig Write = new DriverQueryConfig
+    /// <summary>
+    /// 
+    /// </summary>
+    public new static readonly DriverQueryConfig Write = new()
     {
-        ClusterMemberAccess = ClusterMemberAccess.Writers
+        Access = Access.Writers
     };
 
-    public static readonly DriverQueryConfig AutoCommit = new DriverQueryConfig
+    /// <summary>
+    /// 
+    /// </summary>
+    public new static readonly DriverQueryConfig AutoCommit = new()
     {
-        ClusterMemberAccess = ClusterMemberAccess.Writers,
+        Access = Access.Writers,
+        ExecuteInTransaction = false,
         MaxRetry = 0
     };
 
+    /// <summary>
+    /// 
+    /// </summary>
+    public static readonly DriverQueryConfig Automatic = new()
+    {
+        Access = Access.Automatic,
+        MaxRetry = 0
+    };
+    /// <summary>
+    /// 
+    /// </summary>
     public Bookmarks Bookmarks { get; init; } = null;
+    /// <summary>
+    /// 
+    /// </summary>
+    public string Database { get; init; } = null;
 
-    public string DbName { get; init; } = null;
+    /// <summary>
+    /// 
+    /// </summary>
+    public string ImpersonatedUser { get; init; }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="sessionConfigBuilder"></param>
+    /// <param name="bookmarks"></param>
+    internal void ConfigureSession(SessionConfigBuilder sessionConfigBuilder, Bookmarks bookmarks)
+    {
+        sessionConfigBuilder.WithBookmarks(Bookmarks ?? bookmarks);
+
+        if (Database != null)
+            sessionConfigBuilder.WithDatabase(Database);
+
+        if (ImpersonatedUser != null)
+            sessionConfigBuilder.WithImpersonatedUser(ImpersonatedUser);
+    }
 }
 
-public record SessionQueryConfig
+/// <summary>
+/// 
+/// </summary>
+public record SessionQueryConfig : QueryConfig
 {
-
-    public static readonly SessionQueryConfig Read = new SessionQueryConfig
+    /// <summary>
+    /// 
+    /// </summary>
+    public static readonly SessionQueryConfig Read = new()
     {
-        ClusterMemberAccess = ClusterMemberAccess.Readers
+        Access = Access.Readers
     };
 
-    public static readonly SessionQueryConfig Write = new SessionQueryConfig
+    /// <summary>
+    /// 
+    /// </summary>
+    public static readonly SessionQueryConfig Write = new()
     {
-        ClusterMemberAccess = ClusterMemberAccess.Writers
+        Access = Access.Writers
     };
 
-    public static readonly SessionQueryConfig AutoCommit = new SessionQueryConfig
+    /// <summary>
+    /// 
+    /// </summary>
+    public static readonly SessionQueryConfig AutoCommit = new()
     {
-        ClusterMemberAccess = ClusterMemberAccess.Writers,
+        Access = Access.Writers,
+        ExecuteInTransaction = false,
+        RetryFunc = Retries.NoRetry,
         MaxRetry = 0
     };
 
-    public ClusterMemberAccess ClusterMemberAccess { get; init; } = ClusterMemberAccess.Automatic;
+    /// <summary>
+    /// 
+    /// </summary>
+    public Access Access { get; init; } = Access.Automatic;
 
+    /// <summary>
+    /// 
+    /// </summary>
+    public bool ExecuteInTransaction { get; init; } = true;
+
+    /// <summary>
+    /// 
+    /// </summary>
     public Dictionary<string, string> Metadata { get; init; } = null;
 
+    /// <summary>
+    /// 
+    /// </summary>
     public TimeSpan Timeout { get; init; }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public int MaxRetry { get; init; }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public Func<Exception, int, int, (bool, TimeSpan)> RetryFunc { get; set; }
+}
+
+/// <summary>
+/// 
+/// </summary>
+public record QueryConfig
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    public bool SkipRecords { get; init; } = false;
+    /// <summary>
+    /// 
+    /// </summary>
+    public int MaxRecords { get; init; } = 1000;
+
+    public static readonly QueryConfig Default = new QueryConfig();
 }

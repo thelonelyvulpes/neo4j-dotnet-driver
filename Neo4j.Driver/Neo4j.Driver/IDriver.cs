@@ -29,7 +29,7 @@ namespace Neo4j.Driver
     /// The size of the buffer can be configured by the <see cref="Neo4j.Driver.Config.MaxConnectionPoolSize" />
     /// property on the <see cref="Neo4j.Driver.Config" /> when creating the Driver.
     /// </remarks>
-    public interface IDriver : IConfigurableQueryRunner<DriverQueryConfig>, ITransactionContext<DriverTxConfig>, IDisposable, IAsyncDisposable
+    public interface IDriver : IAccessConfigurableQueryRunner<DriverQueryConfig>, ITransactionContext<DriverTxConfig>, IDisposable, IAsyncDisposable
     {
         /// <summary>
         /// Obtain a session with the default <see cref="SessionConfig"/>.
@@ -80,6 +80,16 @@ namespace Neo4j.Driver
         /// The task result contains True if the remote server and/or cluster support multi-databases, otherwise false.
         /// </returns>
         Task<bool> SupportsMultiDbAsync();
+
+        /// <summary>
+        /// Asynchronously verify if the driver connects to a remote server and/or cluster support automatic query routing.
+        /// Automatic routing requires a single member or server side routing 
+        /// </summary>
+        /// <returns>
+        /// A task that represents the asynchronous operation.
+        /// The task result contains True if the remote server and/or cluster support automatic query routing, otherwise false.
+        /// </returns>
+        Task<bool> SupportsAutoRoutingQueries();
 
         /// <summary>
         /// Gets the driver configurations.

@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Neo4j.Driver.Internal;
@@ -111,14 +112,16 @@ namespace Neo4j.Driver.Tests
 
         public bool IsOpen => true;
 
-        public async Task<IRecordSetResult> ToResultAsync()
+        public Task<IRecordSetResult> ToResultAsync(CancellationToken cancellationToken = default)
         {
-            return new InternalRecordSetResult
+            return Task.FromResult(new InternalRecordSetResult
             {
-                Results = (await this.ToListAsync()).ToArray(),
-                Summary = await this.GetSummaryAsync()
-            };
+                Keys = _keys,
+                Records = _recordsFunc().ToArray(),
+                Summary = _summary
+            } as IRecordSetResult);
         }
+
 
         public void Cancel()
         {
