@@ -15,16 +15,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace Neo4j.Driver.Internal.Result;
 
-internal class Record : IRecord
+internal sealed class Record : IRecord
 {
     public Record(string[] keys, object[] values)
     {
         Throw.ProtocolException.IfNotEqual(keys.Length, values.Length, nameof(keys), nameof(values));
-
+        
         var valueKeys = new Dictionary<string, object>();
 
         for (var i = 0; i < keys.Length; i++)
@@ -42,3 +44,4 @@ internal class Record : IRecord
     public IReadOnlyDictionary<string, object> Values { get; }
     public IReadOnlyList<string> Keys { get; }
 }
+

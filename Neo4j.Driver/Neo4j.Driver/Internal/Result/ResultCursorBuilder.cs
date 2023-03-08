@@ -151,7 +151,11 @@ internal class ResultCursorBuilder : IResultCursorBuilder
 
     public void PushRecord(object[] fieldValues)
     {
-        _records.Enqueue(new Record(_fields, fieldValues));
+        var record = _fields.Length > 10
+            ? (IRecord)new Record(_fields, fieldValues)
+            : new KvpRecord(_fields, fieldValues);
+        
+        _records.Enqueue(record);
         _autoPullHandler.TryDisableAutoPull(_records.Count);
 
         UpdateState(State.RecordsStreaming);
