@@ -31,14 +31,14 @@ public class Program
 [MemoryDiagnoser]
 public class RecordBenchmarks
 {
-    private readonly (string[], object[])[] pairs;
-    private readonly IRecord[] DictionaryRecords;
-    private readonly IRecord[] KvpRecords;
+    private readonly (string[], object[])[] _pairs;
+    private readonly IRecord[] _dictionaryRecords;
+    private readonly IRecord[] _kvpRecords;
 
     public RecordBenchmarks()
     {
-        pairs = Enumerable
-            .Range(1, 50)
+        _pairs = Enumerable
+            .Range(1, 4)
             .Select(
                 x =>
                     (Enumerable
@@ -50,33 +50,33 @@ public class RecordBenchmarks
                             .Select(y => (object)y).ToArray()))
             .ToArray();
 
-        KvpRecords = pairs.Select(x => new KvpRecord(x.Item1, x.Item2)).ToArray();
-        DictionaryRecords = pairs.Select(x => new Record(x.Item1, x.Item2)).ToArray();
+        _kvpRecords = _pairs.Select(x => new KvpRecord(x.Item1, x.Item2)).ToArray();
+        _dictionaryRecords = _pairs.Select(x => new Record(x.Item1, x.Item2)).ToArray();
     }
 
     [Benchmark]
     public IRecord[] Building()
     {
-        return pairs.Select(x => new KvpRecord(x.Item1, x.Item2)).ToArray();
+        return _pairs.Select(x => (IRecord)new KvpRecord(x.Item1, x.Item2)).ToArray();
     }
-
+    
     [Benchmark]
     public IRecord[] BuildingDictionary()
     {
-        return pairs.Select(x => new Record(x.Item1, x.Item2)).ToArray();
+        return _pairs.Select(x => (IRecord)new Record(x.Item1, x.Item2)).ToArray();
     }
-    //
-    // [Benchmark]
-    // public object FindingKeyKvp()
-    // {
-    //     return KvpRecords[0]["b"];
-    // }
-    //
-    // [Benchmark]
-    // public object FindingKey()
-    // {
-    //     return DictionaryRecords[0]["b"];
-    // }
+    
+    [Benchmark]
+    public object FindingKeyKvp()
+    {
+        return _kvpRecords.Select((x, y) => x[y.ToString()]).ToArray();
+    }
+    
+    [Benchmark]
+    public object FindingKey()
+    {
+        return _dictionaryRecords.Select((x, y) => x[y.ToString()]).ToArray();
+    }
     //
     // [Benchmark]
     // public object IteringKeyKvp()

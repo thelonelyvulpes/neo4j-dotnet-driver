@@ -18,6 +18,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace Neo4j.Driver.Internal.Result;
@@ -90,13 +91,24 @@ internal sealed record KvpSet : IReadOnlyDictionary<string, object>
     {
         get
         {
-            for (var i = 0; i < KeyArray.Length; i++)
+#if NET6_0_OR_GREATER
+            var span = new Span<string>(KeyArray);
+            for (var i = 0; i < span.Length; i++)
+            {
+                if (span[i].Equals(key, StringComparison.Ordinal))
+                {
+                    return ValueArray[i];
+                }
+            }
+#else
+           for (var i = 0; i < KeyArray.Length; i++)
             {
                 if (KeyArray[i].Equals(key, StringComparison.Ordinal))
                 {
                     return ValueArray[i];
                 }
             }
+#endif
 
             return null;
         }
