@@ -39,7 +39,7 @@ internal class TransactionWrapper
     }
 }
 
-internal class TransactionManager
+internal sealed class TransactionManager
 {
     private Dictionary<string, TransactionWrapper> Transactions { get; } = new();
 

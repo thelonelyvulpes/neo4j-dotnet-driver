@@ -19,46 +19,28 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Neo4j.Driver.Tests.TestBackend;
 
-public class Program
+public static class Program
 {
-    private static IPAddress Address;
-    private static uint Port;
-
-    private static void Main(string[] args)
+    private static async Task Main(string[] args)
     {
         var consoleTraceListener = new TextWriterTraceListener(Console.Out);
         Trace.Listeners.Add(consoleTraceListener);
+        var cancellation = new CancellationTokenSource();
 
         try
         {
-            ArgumentsValidation(args);
-
-            using (var connection = new Connection(Address.ToString(), Port))
-            {
-                var controller = new Controller(connection);
-
-                try
-                {
-                    controller.Process(true, e => { return true; }).Wait();
-                }
-                catch (Exception ex)
-                {
-                    Trace.WriteLine(
-                        $"It looks like the ExceptionExtensions system has failed in an unexpected way. \n{ex}");
-                }
-                finally
-                {
-                    connection.StopServer();
-                }
-            }
+            var (address, port) = ArgumentsValidation(args);
+            using var serverInstance = new TestkitTcpServer(address, port);
+            await serverInstance.RunAsync(cancellation.Token);
         }
         catch (Exception ex)
         {
-            Trace.WriteLine(ex.Message);
-            Trace.WriteLine($"Exception Details: \n {ex.StackTrace}");
+            Trace.WriteLine($"Unhandled Exception: {ex}");
         }
         finally
         {
@@ -69,7 +51,7 @@ public class Program
         }
     }
 
-    private static void ArgumentsValidation(string[] args)
+    private static (IPAddress address, int port) ArgumentsValidation(string[] args)
     {
         if (args.Length < 2)
         {
@@ -77,13 +59,13 @@ public class Program
                 $"Incorrect number of arguments passed in. Expecting Address Port, but got {args.Length} arguments");
         }
 
-        if (!uint.TryParse(args[1], out Port))
+        if (!int.TryParse(args[1], out var port) || port < 0)
         {
             throw new IOException(
                 $"Invalid port passed in parameter 2.  Should be unsigned integer but was: {args[1]}.");
         }
 
-        if (!IPAddress.TryParse(args[0], out Address))
+        if (!IPAddress.TryParse(args[0], out var address))
         {
             throw new IOException($"Invalid IPAddress passed in parameter 1. {args[0]}");
         }
@@ -94,6 +76,8 @@ public class Program
             Trace.WriteLine("Logging to file: " + args[2]);
         }
 
-        Trace.WriteLine($"Starting TestBackend on {Address}:{Port}");
+        Trace.WriteLine($"Starting TestBackend on {address}:{port}");
+
+        return (address, port);
     }
 }

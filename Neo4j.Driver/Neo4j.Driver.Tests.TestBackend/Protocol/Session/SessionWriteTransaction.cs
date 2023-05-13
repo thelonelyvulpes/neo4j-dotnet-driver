@@ -52,7 +52,6 @@ internal class SessionWriteTransaction : IProtocolObject
                     .ConfigureAwait(false);
 
                 await controller.Process(
-                    false,
                     e =>
                     {
                         switch (sessionContainer.RetryState)
