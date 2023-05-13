@@ -33,9 +33,9 @@ internal class ResultConsume : IProtocolObject
         Summary = await ((Result)ObjManager.GetObject(data.resultId)).ConsumeResults().ConfigureAwait(false);
     }
 
-    public override string Respond()
+    public override ProtocolResponse Response()
     {
-        return new ProtocolResponse("Summary", SummaryJsonSerializer.SerializeToRaw(Summary)).Encode();
+        return new ProtocolResponse("Summary", SummaryJsonSerializer.SerializeToRaw(Summary));
     }
 
     public class ResultConsumeType

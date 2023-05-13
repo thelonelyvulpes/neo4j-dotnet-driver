@@ -64,9 +64,9 @@ internal class NewDriver : IProtocolObject
         await Task.CompletedTask;
     }
 
-    public override string Respond()
+    public override ProtocolResponse Response()
     {
-        return new ProtocolResponse("Driver", uniqueId).Encode();
+        return new ProtocolResponse("Driver", uniqueId);
     }
 
     private void DriverConfig(ConfigBuilder configBuilder)

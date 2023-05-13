@@ -43,9 +43,9 @@ internal class SessionRun : IProtocolObject
         ResultId = result.uniqueId;
     }
 
-    public override string Respond()
+    public override ProtocolResponse Response()
     {
-        return ((Result)ObjManager.GetObject(ResultId)).Respond();
+        return ObjManager.GetObject<Result>(ResultId).Response();
     }
 
     [JsonConverter(typeof(SessionTypeJsonConverter))]

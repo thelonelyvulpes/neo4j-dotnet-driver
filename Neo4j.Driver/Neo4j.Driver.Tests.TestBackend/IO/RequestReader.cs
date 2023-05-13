@@ -63,7 +63,7 @@ internal sealed class RequestReader
             var endOfmessage = end + CloseTag.Length;
 
             var res = ParseProtocolObject(slice);
-
+            Trace.WriteLine(res.ToString());
             _pipeReader.AdvanceTo(buffer.Slice(endOfmessage).Start);
             return res;
 
@@ -75,7 +75,6 @@ internal sealed class RequestReader
         if (slice.IsSingleSegment)
         {
             return ProtocolObjectFactory.CreateObject(Encoding.UTF8.GetString(slice.FirstSpan));
-
         }
 
         using var memory = MemoryPool<byte>.Shared.Rent((int)slice.Length);

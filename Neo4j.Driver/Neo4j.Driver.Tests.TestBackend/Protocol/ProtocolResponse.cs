@@ -15,11 +15,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using Newtonsoft.Json;
 
 namespace Neo4j.Driver.Tests.TestBackend;
 
-internal class ProtocolResponse
+internal sealed record ProtocolResponse
 {
     public ProtocolResponse(string newName, string newId)
     {
@@ -42,14 +43,15 @@ internal class ProtocolResponse
 
     public string name { get; }
     public object data { get; set; }
+    public static readonly ProtocolResponse None = new(null, null);
 
-    public string Encode()
-    {
-        return JsonConvert.SerializeObject(this);
-    }
-
-    public class ResponseType
+    public sealed class ResponseType
     {
         public string id { get; set; }
+    }
+
+    public ReadOnlySpan<char> Encode()
+    {
+        return JsonConvert.SerializeObject(this).AsSpan();
     }
 }

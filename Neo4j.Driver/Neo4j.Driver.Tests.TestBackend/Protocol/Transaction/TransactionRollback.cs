@@ -29,9 +29,9 @@ internal class TransactionRollback : IProtocolObject
         await transactionWrapper.Transaction.RollbackAsync();
     }
 
-    public override string Respond()
+    public override ProtocolResponse Response()
     {
-        return new ProtocolResponse("Transaction", uniqueId).Encode();
+        return new ProtocolResponse("Transaction", uniqueId);
     }
 
     public class TransactionRollbackType

@@ -23,7 +23,7 @@ internal class RetryablePositive : IProtocolObject
 {
     public RetryablePositiveType data { get; set; } = new();
 
-    public override async Task Process()
+    public override Task Process()
     {
         var sessionContainer = (NewSession)ObjManager.GetObject(data.sessionId);
         sessionContainer.SetupRetryAbleState(NewSession.SessionState.RetryAblePositive);
@@ -33,12 +33,12 @@ internal class RetryablePositive : IProtocolObject
 
         TriggerEvent();
 
-        await Task.CompletedTask;
+        return Task.CompletedTask;
     }
-
-    public override string Respond()
+    
+    public override ProtocolResponse Response()
     {
-        return string.Empty;
+        return new ProtocolResponse(nameof(RetryablePositive), data);
     }
 
     public class RetryablePositiveType

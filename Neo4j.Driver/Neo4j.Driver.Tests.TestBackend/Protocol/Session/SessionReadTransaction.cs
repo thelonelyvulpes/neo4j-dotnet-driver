@@ -48,7 +48,7 @@ internal class SessionReadTransaction : IProtocolObject
 
                 sessionContainer.SessionTransactions.Add(TransactionId);
 
-                await controller.SendResponse(new ProtocolResponse("RetryableTry", TransactionId).Encode())
+                await controller.SendResponse(new ProtocolResponse("RetryableTry", TransactionId))
                     .ConfigureAwait(false);
 
                 Exception storedException = new TestKitClientException("Error from client");
@@ -75,7 +75,7 @@ internal class SessionReadTransaction : IProtocolObject
             data.TransactionConfig);
     }
 
-    public override string Respond()
+    public override ProtocolResponse Response()
     {
         var sessionContainer = (NewSession)ObjManager.GetObject(data.sessionId);
 
@@ -89,15 +89,14 @@ internal class SessionReadTransaction : IProtocolObject
             if (string.IsNullOrEmpty(sessionContainer.RetryableErrorId))
             {
                 return ExceptionManager
-                    .GenerateExceptionResponse(new TestKitClientException("Error from client in retryable tx"))
-                    .Encode();
+                    .GenerateExceptionResponse(new TestKitClientException("Error from client in retryable tx"));
             }
 
             var exception = ((ProtocolException)ObjManager.GetObject(sessionContainer.RetryableErrorId)).ExceptionObj;
-            return ExceptionManager.GenerateExceptionResponse(exception).Encode();
+            return ExceptionManager.GenerateExceptionResponse(exception);
         }
 
-        return new ProtocolResponse("RetryableDone", new {}).Encode();
+        return new ProtocolResponse("RetryableDone", new object());
     }
 
     [JsonConverter(typeof(BaseSessionTypeJsonConverter<SessionReadTransactionType>))]

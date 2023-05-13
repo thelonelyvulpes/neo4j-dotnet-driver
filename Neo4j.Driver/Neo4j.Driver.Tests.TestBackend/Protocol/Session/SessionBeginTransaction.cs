@@ -42,9 +42,9 @@ internal class SessionBeginTransaction : IProtocolObject
                 }));
     }
 
-    public override string Respond()
+    public override ProtocolResponse Response()
     {
-        return new ProtocolResponse("Transaction", TransactionId).Encode();
+        return new ProtocolResponse("Transaction", TransactionId);
     }
 
     [JsonConverter(typeof(BaseSessionTypeJsonConverter<SessionBeginTransactionType>))]

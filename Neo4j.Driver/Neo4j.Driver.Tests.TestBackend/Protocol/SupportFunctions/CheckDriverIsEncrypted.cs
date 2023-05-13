@@ -33,9 +33,9 @@ internal class CheckDriverIsEncrypted : IProtocolObject
         return Task.CompletedTask;
     }
 
-    public override string Respond()
+    public override ProtocolResponse Response()
     {
-        return new ProtocolResponse("DriverIsEncrypted", new { encrypted = Encrypted }).Encode();
+        return new ProtocolResponse("DriverIsEncrypted", new { encrypted = Encrypted });
     }
 
     public class DriverIsEncryptedType

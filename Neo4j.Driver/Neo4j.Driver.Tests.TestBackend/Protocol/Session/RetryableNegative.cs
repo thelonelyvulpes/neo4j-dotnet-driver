@@ -33,11 +33,11 @@ internal class RetryableNegative : IProtocolObject
         await Task.CompletedTask;
     }
 
-    public override string Respond()
+    public override ProtocolResponse Response()
     {
-        return string.Empty;
+        return new ProtocolResponse(nameof(RetryableNegative), data);
     }
-
+    
     public class RetryableNegativeType
     {
         public string sessionId { get; set; }

@@ -37,7 +37,7 @@ internal class GetRoutingTable : IProtocolObject
         await Task.CompletedTask;
     }
 
-    public override string Respond()
+    public override ProtocolResponse Response()
     {
         return new ProtocolResponse(
             "RoutingTable",
@@ -48,7 +48,7 @@ internal class GetRoutingTable : IProtocolObject
                 routers = RoutingTable.Routers.Select(x => x.Authority),
                 readers = RoutingTable.Readers.Select(x => x.Authority),
                 writers = RoutingTable.Writers.Select(x => x.Authority)
-            }).Encode();
+            });
     }
 
     public class GetRoutingTableDataType

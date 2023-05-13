@@ -29,9 +29,9 @@ internal class SessionClose : IProtocolObject
         await session.CloseAsync();
     }
 
-    public override string Respond()
+    public override ProtocolResponse Response()
     {
-        return new ProtocolResponse("Session", uniqueId).Encode();
+        return new ProtocolResponse("Session", uniqueId);
     }
 
     public class SessionCloseType

@@ -33,10 +33,10 @@ internal class Result : IProtocolObject
         await Task.CompletedTask;
     }
 
-    public override string Respond()
+    public override ProtocolResponse Response()
     {
         var keys = ResultCursor.KeysAsync().GetAwaiter().GetResult();
-        return new ProtocolResponse("Result", new { id = uniqueId, keys }).Encode();
+        return new ProtocolResponse("Result", new { id = uniqueId, keys });
     }
 
     public async Task<IRecord> GetNextRecord()

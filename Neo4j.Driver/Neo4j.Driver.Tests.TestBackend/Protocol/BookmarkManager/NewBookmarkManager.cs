@@ -67,23 +67,23 @@ internal class NewBookmarkManager : IProtocolObject
         return Task.CompletedTask;
     }
 
-    private string GetConsumeRequest(string[] bookmarks, BookmarkManagerConsumerRequest request)
+    private ProtocolResponse GetConsumeRequest(string[] bookmarks, BookmarkManagerConsumerRequest request)
     {
         return new ProtocolResponse(
             "BookmarksConsumerRequest",
-            new { bookmarks, bookmarkManagerId = uniqueId, id = request.uniqueId }).Encode();
+            new { bookmarks, bookmarkManagerId = uniqueId, id = request.uniqueId });
     }
 
-    private string GetSupplyRequest(BookmarkManagerSupplierRequest request)
+    private ProtocolResponse GetSupplyRequest(BookmarkManagerSupplierRequest request)
     {
         return new ProtocolResponse(
             "BookmarksSupplierRequest",
-            new { bookmarkManagerId = uniqueId, id = request.uniqueId }).Encode();
+            new { bookmarkManagerId = uniqueId, id = request.uniqueId });
     }
 
-    public override string Respond()
+    public override ProtocolResponse Response()
     {
-        return new ProtocolResponse("BookmarkManager", new { id = uniqueId }).Encode();
+        return new ProtocolResponse("BookmarkManager", new { id = uniqueId });
     }
 
     public class NewBookmarkManagerDto

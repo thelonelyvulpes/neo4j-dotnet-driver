@@ -21,24 +21,17 @@ namespace Neo4j.Driver.Tests.TestBackend;
 
 internal class GetFeatures : IProtocolObject
 {
-    public GetFeaturesType data { get; set; } = new();
+    public object data { get; set; } = null;
 
-    public override async Task Process()
-    {
-        await Task.CompletedTask;
-    }
+    static readonly ProtocolResponse _response = new(
+        "FeatureList",
+        new
+        {
+            features = SupportedFeatures.FeaturesList
+        });
 
-    public override string Respond()
+    public override ProtocolResponse Response()
     {
-        return new ProtocolResponse(
-            "FeatureList",
-            new
-            {
-                features = SupportedFeatures.FeaturesList
-            }).Encode();
-    }
-
-    public class GetFeaturesType
-    {
+        return _response;
     }
 }

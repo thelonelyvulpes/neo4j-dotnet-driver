@@ -22,7 +22,7 @@ using System.Linq;
 
 namespace Neo4j.Driver.Tests.TestBackend;
 
-internal class NativeToCypherObject
+internal sealed class NativeToCypherObject
 {
     public string name { get; set; }
     public object data { get; set; }

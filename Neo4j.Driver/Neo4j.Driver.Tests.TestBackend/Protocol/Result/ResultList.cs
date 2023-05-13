@@ -34,11 +34,11 @@ internal class ResultList : IProtocolObject
         Records = await result.ToListAsync();
     }
 
-    public override string Respond()
+    public override ProtocolResponse Response()
     {
         if (Records == null)
         {
-            return new ProtocolResponse("NullRecord", (object)null).Encode();
+            return new ProtocolResponse("NullRecord", (object)null);
         }
 
         var mappedList = Records
@@ -51,7 +51,7 @@ internal class ResultList : IProtocolObject
                 })
             .ToList();
 
-        return new ProtocolResponse("RecordList", new { records = mappedList }).Encode();
+        return new ProtocolResponse("RecordList", new { records = mappedList });
     }
 
     public class ResultListType

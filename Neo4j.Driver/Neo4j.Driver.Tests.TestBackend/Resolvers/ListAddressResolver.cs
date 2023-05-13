@@ -50,11 +50,10 @@ internal class ListAddressResolver : IServerAddressResolver
                 {
                     id = ProtocolObjectManager.GenerateUniqueIdString(),
                     address = Uri.Host + ":" + Uri.Port
-                })
-            .Encode();
+                });
 
         //Send the ResolverResolutionRequired response
-        Control.SendResponse(response).ConfigureAwait(false);
+        Control.SendResponse(response).RunSynchronously();
 
         //Read the ResolverResolutionCompleted request, throw if another type of request has come in
         var result = Control.TryConsumeStreamObjectOfType<ResolverResolutionCompleted>().Result;

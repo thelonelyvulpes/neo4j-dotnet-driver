@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
@@ -112,15 +113,14 @@ internal abstract class IProtocolObject
 {
     public string name { get; set; }
 
+    //Only exposes the get option so that the serializer will output it.  Don't want to read in on deserialization.
     [JsonProperty("id")]
-    public string
-        uniqueId
-    {
-        get;
-        internal set;
-    } //Only exposes the get option so that the serializer will output it.  Don't want to read in on deserialization.
+    [JsonPropertyName("id")]
+    public string uniqueId { get; internal set; }
 
-    [JsonIgnore] protected ProtocolObjectManager ObjManager { get; set; }
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
+    protected ProtocolObjectManager ObjManager { get; set; }
 
     public event EventHandler ProtocolEvent;
 
@@ -134,26 +134,20 @@ internal abstract class IProtocolObject
         uniqueId = id;
     }
 
-    public virtual async Task Process()
+    public virtual Task Process()
     {
-        await Task.CompletedTask;
+        return Task.CompletedTask;
     }
 
-    public virtual async Task
-        Process(
-            Controller controller) //Default is to not use the controller object. But option to override this method and use it if necessary.
+    //Default is to not use the controller object. But option to override this method and use it if necessary.
+    public virtual async Task Process(Controller controller)
     {
         await Process();
     }
 
-    public string Encode()
+    public virtual ProtocolResponse Response()
     {
-        return JsonConvert.SerializeObject(this, Formatting.Indented);
-    }
-
-    public virtual string Respond()
-    {
-        return Encode();
+        return ProtocolResponse.None;
     }
 
     protected void TriggerEvent()

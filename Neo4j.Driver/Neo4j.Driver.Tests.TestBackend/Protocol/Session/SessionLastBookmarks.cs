@@ -32,9 +32,9 @@ internal class SessionLastBookmarks : IProtocolObject
         await Task.CompletedTask;
     }
 
-    public override string Respond()
+    public override ProtocolResponse Response()
     {
-        return new ProtocolResponse("Bookmarks", new { bookmarks = Bookmarks }).Encode();
+        return new ProtocolResponse("Bookmarks", new { bookmarks = Bookmarks });
     }
 
     public class SessionLastBookmarksType

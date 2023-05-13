@@ -23,7 +23,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Neo4j.Driver.Tests.TestBackend;
 
-internal class CypherToNativeObject
+internal sealed class CypherToNativeObject
 {
     public string name { get; set; }
     public object data { get; set; }

@@ -29,9 +29,9 @@ internal class TransactionCommit : IProtocolObject
         await transactionWrapper.Transaction.CommitAsync();
     }
 
-    public override string Respond()
+    public override ProtocolResponse Response()
     {
-        return new ProtocolResponse("Transaction", uniqueId).Encode();
+        return new ProtocolResponse("Transaction", uniqueId);
     }
 
     public class TransactionCommitType

@@ -40,16 +40,16 @@ internal class ResultSingle : IProtocolObject
         }
     }
 
-    public override string Respond()
+    public override ProtocolResponse Response()
     {
         if (Records is null)
         {
-            return new ProtocolResponse("NullRecord", (object)null).Encode();
+            return new ProtocolResponse("NullRecord", (object)null);
         }
 
         //Generate list of ordered records
         var valuesList = Records.Values.Select(v => NativeToCypher.Convert(v.Value)).ToList();
-        return new ProtocolResponse("Record", new { values = valuesList }).Encode();
+        return new ProtocolResponse("Record", new { values = valuesList });
     }
 
     public class ResultSingleType

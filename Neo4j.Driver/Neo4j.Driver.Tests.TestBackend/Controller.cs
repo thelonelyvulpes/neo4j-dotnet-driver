@@ -30,12 +30,12 @@ internal sealed class Controller
     {
         Trace.WriteLine("Controller initialising");
         
-        var connectionReader = new StreamReader(stream, new UTF8Encoding(false));
-        var connectionWriter = new StreamWriter(stream, new UTF8Encoding(false));
-        connectionWriter.NewLine = "\n";
+        // var connectionReader = new StreamReader(stream, new UTF8Encoding(false));
+        // var connectionWriter = new StreamWriter(stream, new UTF8Encoding(false));
+        // connectionWriter.NewLine = "\n";
         
         RequestReader = new RequestReader(stream);
-        ResponseWriter = new ResponseWriter(connectionWriter);
+        ResponseWriter = new ResponseWriter(stream);
         
         ProtocolObjectFactory.ObjManager = new ProtocolObjectManager();
     }
@@ -131,7 +131,7 @@ internal sealed class Controller
         return ResponseWriter.WriteResponseAsync(protocolObject);
     }
 
-    public Task SendResponse(string response)
+    public Task SendResponse(ProtocolResponse response)
     {
         return ResponseWriter.WriteResponseAsync(response);
     }

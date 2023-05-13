@@ -29,9 +29,9 @@ internal class TransactionClose : IProtocolObject
         await transactionWrapper.Transaction.DisposeAsync();
     }
 
-    public override string Respond()
+    public override ProtocolResponse Response()
     {
-        return new ProtocolResponse("Transaction", uniqueId).Encode();
+        return new ProtocolResponse("Transaction", uniqueId);
     }
 
     public class TransactionCloseDataType

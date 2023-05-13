@@ -30,7 +30,7 @@ internal class GetServerInfo : IProtocolObject
         ServerInfo = await driver.GetServerInfoAsync();
     }
 
-    public override string Respond()
+    public override ProtocolResponse Response()
     {
         var data = new
         {
@@ -39,7 +39,7 @@ internal class GetServerInfo : IProtocolObject
             protocolVersion = ServerInfo.ProtocolVersion
         };
 
-        return new ProtocolResponse("ServerInfo", data).Encode();
+        return new ProtocolResponse("ServerInfo", data);
     }
 
     public class GetServerInfoType

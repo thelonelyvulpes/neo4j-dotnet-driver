@@ -29,9 +29,9 @@ internal class DriverClose : IProtocolObject
         await driver.DisposeAsync();
     }
 
-    public override string Respond()
+    public override ProtocolResponse Response()
     {
-        return new ProtocolResponse("Driver", uniqueId).Encode();
+        return new ProtocolResponse("Driver", uniqueId);
     }
 
     public class DriverCloseType

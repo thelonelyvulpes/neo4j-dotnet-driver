@@ -41,18 +41,18 @@ internal class ResultNext : IProtocolObject
         }
     }
 
-    public override string Respond()
+    public override ProtocolResponse Response()
     {
         if (Records is null)
         {
-            return new ProtocolResponse("NullRecord", (object)null).Encode();
+            return new ProtocolResponse("NullRecord", (object)null);
         }
 
         //Generate list of ordered records
         var valuesList = Records.Keys.Select(v => NativeToCypher.Convert(Records[v]));
         try
         {
-            return new ProtocolResponse("Record", new { values = valuesList }).Encode();
+            return new ProtocolResponse("Record", new { values = valuesList });
         }
         catch (TimeZoneNotFoundException tz)
         {

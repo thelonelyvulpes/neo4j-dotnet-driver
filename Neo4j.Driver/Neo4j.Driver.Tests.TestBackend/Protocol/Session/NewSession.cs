@@ -118,9 +118,9 @@ internal class NewSession : IProtocolObject
         await Task.CompletedTask;
     }
 
-    public override string Respond()
+    public override ProtocolResponse Response()
     {
-        return new ProtocolResponse("Session", uniqueId).Encode();
+        return new ProtocolResponse("Session", uniqueId);
     }
 
     public void SetupRetryAbleState(SessionState state, string retryableErrorId = "")

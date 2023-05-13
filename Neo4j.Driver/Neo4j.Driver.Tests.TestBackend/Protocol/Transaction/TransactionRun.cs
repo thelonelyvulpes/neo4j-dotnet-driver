@@ -46,11 +46,11 @@ internal class TransactionRun : IProtocolObject
         }
     }
 
-    public override string Respond()
+    public override ProtocolResponse Response()
     {
         try
         {
-            return ((Result)ObjManager.GetObject(ResultId)).Respond();
+            return ObjManager.GetObject<Result>(ResultId).Response();
         }
         catch (TimeZoneNotFoundException tz)
         {

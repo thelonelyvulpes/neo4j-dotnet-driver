@@ -45,10 +45,9 @@ internal class CypherTypeField : IProtocolObject
         };
     }
 
-    public override string Respond()
+    public override ProtocolResponse Response()
     {
-        return new ProtocolResponse("Field", new { value = NativeToCypher.Convert(Field) })
-            .Encode();
+        return new ProtocolResponse("Field", new { value = NativeToCypher.Convert(Field) });
     }
 
     private object ReadPath(Path path, string field)

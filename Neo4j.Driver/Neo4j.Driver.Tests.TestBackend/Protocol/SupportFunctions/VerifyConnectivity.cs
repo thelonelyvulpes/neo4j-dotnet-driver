@@ -29,9 +29,9 @@ internal class VerifyConnectivity : IProtocolObject
         await driver.VerifyConnectivityAsync();
     }
 
-    public override string Respond()
+    public override ProtocolResponse Response()
     {
-        return new ProtocolResponse("Driver", uniqueId).Encode();
+        return new ProtocolResponse("Driver", uniqueId);
     }
 
     public class VerifyConnectivityType

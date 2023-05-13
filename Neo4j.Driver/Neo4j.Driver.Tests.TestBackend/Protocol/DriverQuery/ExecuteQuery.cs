@@ -79,7 +79,7 @@ internal class ExecuteQuery : IProtocolObject
             enableBookmarkManager);
     }
 
-    public override string Respond()
+    public override ProtocolResponse Response()
     {
         var mappedList = Result.Result
             .Select(
@@ -98,7 +98,7 @@ internal class ExecuteQuery : IProtocolObject
                 keys = Result.Keys,
                 records = mappedList,
                 summary = SummaryJsonSerializer.SerializeToRaw(Result.Summary)
-            }).Encode();
+            });
     }
 
     public class ExecuteQueryDto

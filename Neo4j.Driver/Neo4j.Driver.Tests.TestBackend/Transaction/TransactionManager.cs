@@ -21,7 +21,7 @@ using System.Threading.Tasks;
 
 namespace Neo4j.Driver.Tests.TestBackend;
 
-internal class TransactionWrapper
+internal sealed class TransactionWrapper
 {
     private readonly Func<IResultCursor, Task<string>> ResultHandler;
 
@@ -33,9 +33,9 @@ internal class TransactionWrapper
 
     public IAsyncTransaction Transaction { get; }
 
-    public async Task<string> ProcessResults(IResultCursor cursor)
+    public Task<string> ProcessResults(IResultCursor cursor)
     {
-        return await ResultHandler(cursor);
+        return ResultHandler(cursor);
     }
 }
 

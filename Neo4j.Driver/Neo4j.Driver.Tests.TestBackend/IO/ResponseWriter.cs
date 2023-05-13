@@ -15,48 +15,75 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
+using System.Buffers;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Pipelines;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Neo4j.Driver.Tests.TestBackend;
 
-internal class ResponseWriter
+internal sealed class ResponseWriter
 {
-    private const string OpenTag = "#response begin";
-    private const string CloseTag = "#response end";
+    private static readonly ReadOnlyMemory<byte> OpenTag = new(Encoding.UTF8.GetBytes("#response begin\n"));
+    private static readonly ReadOnlyMemory<byte> CloseTag = new(Encoding.UTF8.GetBytes("\n#response end\n"));
 
-    public ResponseWriter(StreamWriter writer)
+    private readonly PipeWriter _pipeWriter;
+    private readonly JsonSerializerOptions _serializerSettings;
+
+    public ResponseWriter(Stream writer)
     {
-        WriterTarget = writer;
+        _pipeWriter = PipeWriter.Create(writer);
+        _serializerSettings = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            WriteIndented = true
+        };
     }
 
-    private StreamWriter WriterTarget { get; }
-
-    public Task<string> WriteResponseAsync(IProtocolObject protocolObject)
+    public Task WriteResponseAsync(IProtocolObject protocolObject)
     {
-        return WriteResponseAsync(protocolObject.Respond());
+        return WriteResponseAsync(protocolObject.Response());
     }
 
     public Task WriteResponseAsync(ProtocolResponse response)
     {
-        return WriteResponseAsync(response.Encode());
+        if (response == ProtocolResponse.None)
+        {
+            Trace.WriteLine("Noop response.\n");
+            return Task.CompletedTask;
+        }
+        var responseString = response.Encode();
+        Trace.WriteLine($"Sending response: {responseString}\n");
+        _pipeWriter.Write(OpenTag.Span);
+        // using var _jsonWriter = new Utf8JsonWriter(_pipeWriter);
+        // JsonSerializer.Serialize(_jsonWriter, response, _serializerSettings);
+        using var memory = MemoryPool<byte>.Shared.Rent(responseString.Length);
+        Encoding.UTF8.GetBytes(responseString, memory.Memory.Span);
+        _pipeWriter.Write(memory.Memory.Slice(0, responseString.Length).Span);
+        _pipeWriter.Write(CloseTag.Span);
+        return _pipeWriter.FlushAsync().AsTask();
     }
 
-    public async Task<string> WriteResponseAsync(string response)
+    public Task WriteResponseAsync(string response)
     {
         if (string.IsNullOrEmpty(response))
         {
-            return string.Empty;
+            return Task.CompletedTask;
         }
 
         Trace.WriteLine($"Sending response: {response}\n");
-
-        await WriterTarget.WriteLineAsync(OpenTag);
-        await WriterTarget.WriteLineAsync(response);
-        await WriterTarget.WriteLineAsync(CloseTag);
-        await WriterTarget.FlushAsync();
-
-        return response;
+        
+        using var memory = MemoryPool<byte>.Shared.Rent(response.Length);
+        Encoding.UTF8.GetBytes(response, memory.Memory.Span);
+        _pipeWriter.Write(OpenTag.Span);
+        _pipeWriter.Write(memory.Memory.Slice(0, response.Length).Span);
+        _pipeWriter.Write(CloseTag.Span);
+        return _pipeWriter.FlushAsync().AsTask();
     }
 }

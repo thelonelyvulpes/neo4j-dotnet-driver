@@ -32,10 +32,9 @@ internal class CheckMultiDBSupport : IProtocolObject
         MutlitDBSupportAvailable = await driver.SupportsMultiDbAsync();
     }
 
-    public override string Respond()
+    public override ProtocolResponse Response()
     {
-        return new ProtocolResponse("MultiDBSupport", new { id = uniqueId, available = MutlitDBSupportAvailable })
-            .Encode();
+        return new ProtocolResponse("MultiDBSupport", new { id = uniqueId, available = MutlitDBSupportAvailable });
     }
 
     public class CheckMultiDBSupportType
