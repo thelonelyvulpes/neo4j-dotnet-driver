@@ -19,25 +19,16 @@ using Newtonsoft.Json;
 
 namespace Neo4j.Driver.Tests.TestBackend;
 
-internal class ProtocolResponse
+internal sealed class ProtocolResponse
 {
-    public ProtocolResponse(string newName, string newId)
+    public ProtocolResponse(string newName, string newId) : this(newName, new ResponseType { id = newId })
     {
-        data = new ResponseType();
-        name = newName;
-        ((ResponseType)data).id = newId;
     }
 
     public ProtocolResponse(string newName, object dataType)
     {
         name = newName;
         data = dataType;
-    }
-
-    public ProtocolResponse(string newName)
-    {
-        name = newName;
-        data = null;
     }
 
     public string name { get; }
@@ -48,7 +39,7 @@ internal class ProtocolResponse
         return JsonConvert.SerializeObject(this);
     }
 
-    public class ResponseType
+    private class ResponseType
     {
         public string id { get; set; }
     }

@@ -51,8 +51,7 @@ internal class SessionWriteTransaction : IProtocolObject
                 await controller.SendResponse(new ProtocolResponse("RetryableTry", TransactionId).Encode())
                     .ConfigureAwait(false);
 
-                await controller.Process(
-                    false,
+                await controller.Process(false,
                     e =>
                     {
                         switch (sessionContainer.RetryState)

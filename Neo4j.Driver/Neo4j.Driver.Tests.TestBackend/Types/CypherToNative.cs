@@ -23,7 +23,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Neo4j.Driver.Tests.TestBackend;
 
-internal class CypherToNativeObject
+internal sealed class CypherToNativeObject
 {
     public string name { get; set; }
     public object data { get; set; }
@@ -47,12 +47,12 @@ internal class CypherToNativeObject
     }
 }
 
-internal class SimpleValue
+internal sealed class SimpleValue
 {
     public object value { get; set; }
 }
 
-public class DateTimeParameterValue
+public sealed class DateTimeParameterValue
 {
     public int? year { get; set; }
     public int? month { get; set; }
@@ -65,7 +65,7 @@ public class DateTimeParameterValue
     public string timezone_id { get; set; }
 }
 
-public class DurationParameterValue
+public sealed class DurationParameterValue
 {
     public long? months { get; set; }
     public long? days { get; set; }
@@ -73,7 +73,7 @@ public class DurationParameterValue
     public int? nanoseconds { get; set; }
 }
 
-internal class CypherToNative
+internal sealed class CypherToNative
 {
     //Mapping of object type to a cypher type name string that will be used in the JSON.
     private static Dictionary<string, Type> TypeMap { get; } = new()

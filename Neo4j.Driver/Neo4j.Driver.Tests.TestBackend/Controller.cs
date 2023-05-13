@@ -24,121 +24,73 @@ using Newtonsoft.Json;
 
 namespace Neo4j.Driver.Tests.TestBackend;
 
-internal class Controller
+internal sealed class Controller : IDisposable
 {
-    public Controller(IConnection conn)
+    public Controller(Stream conn)
     {
-        Trace.WriteLine("Controller initialising");
-        Connection = conn;
+        Trace.WriteLine("Controller initialising.");
+        RequestReader = new RequestReader(conn);
+        ResponseWriter = new ResponseWriter(
+            new StreamWriter(conn, new UTF8Encoding(false))
+            {
+                NewLine = "\n"
+            });
+
+        ObjManager = new ProtocolObjectManager();
+        TransactionManager = new TransactionManager();
         ProtocolObjectFactory.ObjManager = ObjManager;
     }
-
-    private IConnection Connection { get; }
-    private ProtocolObjectManager ObjManager { get; } = new();
-    private bool BreakProcessLoop { get; set; }
-    private RequestReader RequestReader { get; set; }
-    private ResponseWriter ResponseWriter { get; set; }
-    public TransactionManager TransactionManager { get; set; } = new();
-
-    public async Task ProcessStreamObjects()
+    
+    public void Dispose()
     {
-        BreakProcessLoop = false;
+        RequestReader.Dispose();
+    }
 
-        while (!BreakProcessLoop && await RequestReader.ParseNextRequest().ConfigureAwait(false))
+    private ProtocolObjectManager ObjManager { get; }
+    private RequestReader RequestReader { get; }
+    private ResponseWriter ResponseWriter { get; }
+    public TransactionManager TransactionManager { get; }
+
+    private async Task ProcessStreamObjects()
+    {
+        var keepProcessing = true;
+        while (keepProcessing)
         {
-            var protocolObject = RequestReader.CreateObjectFromData();
-            protocolObject.ProtocolEvent += BreakLoopEvent;
-
-            await protocolObject.Process(this).ConfigureAwait(false);
-            await SendResponse(protocolObject).ConfigureAwait(false);
+            var result = await RequestReader.ParseNextRequest();
+            if (result == null)
+            {
+                Trace.WriteLine("No more requests to process");
+                break;
+            }
+            result.ProtocolEvent += (_, __) =>
+            {
+                keepProcessing = false;
+            };
+            await result.Process(this);
+            await SendResponse(result);
             Trace.Flush();
         }
-
-        BreakProcessLoop = false; //Ensure that any process loops that this one is running within still continue.
     }
-
-    public async Task<IProtocolObject> TryConsumeStreamObjectOfType(Type type)
-    {
-        //Read the next incoming request message
-        await RequestReader.ParseNextRequest().ConfigureAwait(false);
-
-        //Is it of the correct type
-        if (RequestReader.GetObjectType() != type)
-        {
-            return null;
-        }
-
-        //Create and return an object from the request message
-        return ProtocolObjectFactory.CreateObject(RequestReader.CurrentObjectData);
-    }
-
-    public async Task<T> TryConsumeStreamObjectOfType<T>() where T : IProtocolObject
-    {
-        var result = await TryConsumeStreamObjectOfType(typeof(T)).ConfigureAwait(false);
-        return (T)result;
-    }
-
-    private async Task InitialiseCommunicationLayer()
-    {
-        await Connection.Open();
-
-        var connectionReader = new StreamReader(Connection.ConnectionStream, new UTF8Encoding(false));
-        var connectionWriter = new StreamWriter(Connection.ConnectionStream, new UTF8Encoding(false));
-        connectionWriter.NewLine = "\n";
-
-        Trace.WriteLine("Connection open");
-
-        RequestReader = new RequestReader(connectionReader);
-        ResponseWriter = new ResponseWriter(connectionWriter);
-
-        Trace.WriteLine("Starting to listen for requests");
-    }
-
+    
     public async Task Process(bool restartInitialState, Func<Exception, bool> loopConditional)
     {
         var restartConnection = restartInitialState;
-
+        
         Trace.WriteLine("Starting Controller.Process");
 
-        Exception storedException = new TestKitClientException("Error from client");
+        var storedException = default(Exception);
 
         while (loopConditional(storedException))
         {
-            if (restartConnection)
-            {
-                await InitialiseCommunicationLayer();
-            }
-
             try
             {
-                await ProcessStreamObjects().ConfigureAwait(false);
+                await ProcessStreamObjects();
             }
-            catch (Neo4jException ex) //TODO: sort this catch list out...reduce it down using where clauses?
+            catch (FinishedException)
             {
-                // Generate "driver" exception something happened within the driver
-                await ResponseWriter.WriteResponseAsync(ExceptionManager.GenerateExceptionResponse(ex));
-                storedException = ex;
-                restartConnection = false;
+                throw;
             }
-            catch (TestKitClientException ex)
-            {
-                await ResponseWriter.WriteResponseAsync(ExceptionManager.GenerateExceptionResponse(ex));
-                storedException = ex;
-                restartConnection = false;
-            }
-            catch (ArgumentException ex)
-            {
-                await ResponseWriter.WriteResponseAsync(ExceptionManager.GenerateExceptionResponse(ex));
-                storedException = ex;
-                restartConnection = false;
-            }
-            catch (NotSupportedException ex)
-            {
-                await ResponseWriter.WriteResponseAsync(ExceptionManager.GenerateExceptionResponse(ex));
-                storedException = ex;
-                restartConnection = false;
-            }
-            catch (JsonSerializationException ex)
+            catch (Exception ex) when (ExpectedExceptions(ex))
             {
                 await ResponseWriter.WriteResponseAsync(ExceptionManager.GenerateExceptionResponse(ex));
                 storedException = ex;
@@ -148,54 +100,51 @@ internal class Controller
             {
                 Trace.WriteLine($"TestKit protocol exception detected: {ex.Message}");
                 await ResponseWriter.WriteResponseAsync(ExceptionManager.GenerateExceptionResponse(ex));
-                storedException = ex;
-                restartConnection = true;
-            }
-            catch (DriverExceptionWrapper ex)
-            {
-                storedException = ex;
-                await ResponseWriter.WriteResponseAsync(ExceptionManager.GenerateExceptionResponse(ex));
-                restartConnection = false;
-            }
-            catch (IOException ex)
-            {
-                //Handled outside of the exception manager because there is no connection to reply on.
-                Trace.WriteLine($"Socket exception detected: {ex.Message}");
-
-                storedException = ex;
-                restartConnection = true;
+                throw new FinishedException(false);
             }
             catch (Exception ex)
             {
-                Trace.WriteLine($"General exception detected, restarting connection: {ex.Message}");
-                storedException = ex;
-                restartConnection = true;
+                Trace.WriteLine($"General exception detected, restarting connection: {ex}");
+                throw new FinishedException(false);
             }
-            finally
+            
+            if (restartConnection)
             {
-                if (restartConnection)
-                {
-                    Trace.WriteLine("Closing Connection");
-                    Connection.Close();
-                }
+                throw new FinishedException();
             }
 
             Trace.Flush();
         }
     }
 
-    private void BreakLoopEvent(object sender, EventArgs e)
+    private async Task<IProtocolObject> TryConsumeStreamObjectOfType(Type type)
     {
-        BreakProcessLoop = true;
+        var result = await RequestReader.ParseNextRequest();
+        return result.GetType().Name != type.Name ? null : result;
     }
 
-    public async Task SendResponse(IProtocolObject protocolObject)
+    public async Task<T> TryConsumeStreamObjectOfType<T>() where T : IProtocolObject
     {
-        await ResponseWriter.WriteResponseAsync(protocolObject).ConfigureAwait(false);
+        return (T)await TryConsumeStreamObjectOfType(typeof(T));
+    }
+    
+    private bool ExpectedExceptions(Exception exception)
+    {
+        return exception is Neo4jException
+            or TestKitClientException
+            or ArgumentException
+            or NotSupportedException
+            or JsonSerializationException
+            or DriverExceptionWrapper;
     }
 
-    public async Task SendResponse(string response)
+    private Task SendResponse(IProtocolObject protocolObject)
     {
-        await ResponseWriter.WriteResponseAsync(response);
+        return ResponseWriter.WriteResponseAsync(protocolObject);
+    }
+
+    public Task SendResponse(string response)
+    {
+        return ResponseWriter.WriteResponseAsync(response);
     }
 }

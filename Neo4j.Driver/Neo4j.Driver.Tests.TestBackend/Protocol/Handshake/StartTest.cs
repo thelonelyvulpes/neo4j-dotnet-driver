@@ -30,13 +30,12 @@ internal class StartTest : IProtocolObject
 
     public override string Respond()
     {
-        var reason = string.Empty;
-        if (TestBlackList.FindTest(data.testName, out reason))
+        if (TestBlackList.FindTest(data.testName, out var reason))
         {
             return new ProtocolResponse("SkipTest", new { reason }).Encode();
         }
 
-        return new ProtocolResponse("RunTest").Encode();
+        return new ProtocolResponse("RunTest", null).Encode();
     }
 
     public class StartTestType

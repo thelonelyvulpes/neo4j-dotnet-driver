@@ -33,26 +33,26 @@ internal class TransactionWrapper
 
     public IAsyncTransaction Transaction { get; }
 
-    public async Task<string> ProcessResults(IResultCursor cursor)
+    public Task<string> ProcessResults(IResultCursor cursor)
     {
-        return await ResultHandler(cursor);
+        return ResultHandler(cursor);
     }
 }
 
-internal class TransactionManager
+internal sealed class TransactionManager
 {
-    private Dictionary<string, TransactionWrapper> Transactions { get; } = new();
+    public TransactionManager()
+    {
+        Transactions = new Dictionary<string, TransactionWrapper>();
+    }
+    
+    private Dictionary<string, TransactionWrapper> Transactions { get; }
 
     public string AddTransaction(TransactionWrapper transation)
     {
         var key = ProtocolObjectManager.GenerateUniqueIdString();
         Transactions.Add(key, transation);
         return key;
-    }
-
-    public void RemoveTransaction(string key)
-    {
-        Transactions.Remove(key);
     }
 
     public TransactionWrapper FindTransaction(string key)

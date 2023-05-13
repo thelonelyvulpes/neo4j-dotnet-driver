@@ -53,8 +53,7 @@ internal class SessionReadTransaction : IProtocolObject
 
                 Exception storedException = new TestKitClientException("Error from client");
 
-                await controller.Process(
-                    false,
+                await controller.Process(false,
                     e =>
                     {
                         switch (sessionContainer.RetryState)

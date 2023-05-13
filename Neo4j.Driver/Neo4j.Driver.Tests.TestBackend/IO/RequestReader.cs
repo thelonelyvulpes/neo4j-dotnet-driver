@@ -16,109 +16,119 @@
 // limitations under the License.
 
 using System;
+using System.Buffers;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Pipelines;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Neo4j.Driver.Tests.TestBackend;
 
-internal class RequestReader
+internal sealed class RequestReader : IDisposable
 {
-    private const string OpenTag = "#request begin";
-    private const string CloseTag = "#request end";
+    private static readonly byte[] CloseTag = Encoding.UTF8.GetBytes("\n#request end\n");
+    private readonly PipeReader _pipeReader;
 
-    public RequestReader(StreamReader reader)
+    public RequestReader(Stream stream)
     {
-        InputReader = reader;
+        _pipeReader = PipeReader.Create(stream);
     }
 
-    private StreamReader InputReader { get; }
-    private bool MessageOpen { get; set; }
-
-    public string CurrentObjectData { get; set; }
-
-    public async Task<bool> ParseNextRequest()
+    public async Task<IProtocolObject> ParseNextRequest()
     {
-        Trace.WriteLine("Listening for request");
-
-        CurrentObjectData = string.Empty;
-
-        while (await ParseObjectData().ConfigureAwait(false))
+        Trace.WriteLine("Listening for next request");
+        // Read _pipeReader until we read the open tag
+        while (true)
         {
-            ;
-        }
-
-        Trace.WriteLine($"\nRequest recieved: {CurrentObjectData}");
-
-        return !string.IsNullOrEmpty(CurrentObjectData);
-    }
-
-    private async Task<bool> ParseObjectData()
-    {
-        var input = await InputReader.ReadLineAsync();
-
-        if (string.IsNullOrEmpty(input))
-        {
-            throw new IOException("The stream has been closed, and/or there is no more data on it.");
-        }
-
-        if (IsOpenTag(input))
-        {
-            return true;
-        }
-
-        if (IsCloseTag(input))
-        {
-            return false;
-        }
-
-        if (MessageOpen)
-        {
-            CurrentObjectData += input;
-        }
-
-        return true;
-    }
-
-    private bool IsOpenTag(string input)
-    {
-        if (input == OpenTag)
-        {
-            if (MessageOpen)
+            var readResult = await _pipeReader.ReadAtLeastAsync(16);
+            if (readResult is { IsCompleted: true, Buffer.IsEmpty: true })
             {
-                throw new IOException($"Read {OpenTag}, but message already open");
+                await _pipeReader.CompleteAsync();
+                throw new FinishedException();
             }
 
-            MessageOpen = true;
-            return true;
-        }
+            var buffer = readResult.Buffer;
 
-        return false;
-    }
-
-    private bool IsCloseTag(string input)
-    {
-        if (input == CloseTag)
-        {
-            if (!MessageOpen)
+            var (start, end) = FindIndexes(buffer);
+            if (end == -1)
             {
-                throw new IOException($"Read {CloseTag}, but message already closed");
+                // We didn't find the end tag, so we need to keep reading
+                continue;
             }
 
-            MessageOpen = false;
-            return true;
+            var slice = buffer.Slice(start, end - start);
+            var endOfmessage = end + CloseTag.Length;
+
+            var res = ParseProtocolObject(slice);
+
+            _pipeReader.AdvanceTo(buffer.Slice(endOfmessage).Start);
+            return res;
+
+        }
+    }
+
+    private static IProtocolObject ParseProtocolObject(ReadOnlySequence<byte> slice)
+    {
+        if (slice.IsSingleSegment)
+        {
+            return ProtocolObjectFactory.CreateObject(Encoding.UTF8.GetString(slice.FirstSpan));
         }
 
-        return false;
+        using var memory = MemoryPool<byte>.Shared.Rent((int)slice.Length);
+        slice.CopyTo(memory.Memory.Span);
+        return ProtocolObjectFactory.CreateObject(Encoding.UTF8.GetString(memory.Memory.Span));
     }
 
-    public IProtocolObject CreateObjectFromData()
+    private (int start, int end) FindIndexes(ReadOnlySequence<byte> buffer)
     {
-        return ProtocolObjectFactory.CreateObject(CurrentObjectData);
+        const byte openTag = (byte)'{';
+
+        var start = -1;
+        var end = -1;
+        
+        var index = 0;
+        var sequenceReader = new SequenceReader<byte>(buffer);
+        while(true)
+        {
+            if (start == -1)
+            {
+                var span = sequenceReader.CurrentSpan;
+                // If we haven't found the start tag yet, we need to find it
+                var startIndex = span.IndexOf(openTag);
+                if (startIndex == -1)
+                {
+                    break;
+                }
+                // We found the start tag
+                start = startIndex;
+                // }"":value at least should appear before the close tag.
+                const int basicDiff = 5;
+                index = startIndex + basicDiff;
+                sequenceReader.Advance(index);
+            } 
+            else
+            {
+                if (sequenceReader.IsNext(CloseTag))
+                {
+                    end = index;
+                    break;
+                }
+
+                index++;
+                sequenceReader.Advance(1);
+                if (sequenceReader.Remaining < CloseTag.Length)
+                {
+                    break;
+                }
+            }
+        }
+
+        return (start, end);
     }
 
-    public Type GetObjectType()
+    public void Dispose()
     {
-        return ProtocolObjectFactory.GetObjectType(CurrentObjectData);
+        _pipeReader.Complete();
     }
 }

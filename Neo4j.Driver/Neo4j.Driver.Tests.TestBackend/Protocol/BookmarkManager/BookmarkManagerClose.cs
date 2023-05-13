@@ -23,7 +23,7 @@ internal class BookmarkManagerClose : IProtocolObject
 
     public override string Respond()
     {
-        return new ProtocolResponse("BookmarkManager", new { data.id }).Encode();
+        return new ProtocolResponse("BookmarkManager", data.id).Encode();
     }
 
     public class BookmarkManagerCloseDto

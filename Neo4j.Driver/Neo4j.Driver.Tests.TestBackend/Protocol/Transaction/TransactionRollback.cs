@@ -21,7 +21,7 @@ namespace Neo4j.Driver.Tests.TestBackend;
 
 internal class TransactionRollback : IProtocolObject
 {
-    public TransactionRollbackType data { get; set; } = new();
+    public TransactionRollbackType data { get; } = new();
 
     public override async Task Process(Controller controller)
     {

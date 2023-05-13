@@ -19,20 +19,14 @@ using System.Collections.Generic;
 
 namespace Neo4j.Driver.Tests.TestBackend;
 
-internal class ProtocolObjectManager
+internal sealed class ProtocolObjectManager
 {
     private static int ObjectCounter { get; set; }
     private Dictionary<string, IProtocolObject> ProtocolObjects { get; } = new();
-    public int ObjectCount => ProtocolObjects.Count;
 
     public static string GenerateUniqueIdString()
     {
         return (ObjectCounter++).ToString();
-    }
-
-    public static int GenerateUniqueIdInt()
-    {
-        return ObjectCounter++;
     }
 
     public void AddProtocolObject(IProtocolObject obj)
@@ -43,12 +37,7 @@ internal class ProtocolObjectManager
 
     public IProtocolObject GetObject(string id)
     {
-        if (string.IsNullOrEmpty(id))
-        {
-            return null;
-        }
-
-        return ProtocolObjects[id];
+        return string.IsNullOrEmpty(id) ? null : ProtocolObjects[id];
     }
 
     public T GetObject<T>(string id) where T : IProtocolObject

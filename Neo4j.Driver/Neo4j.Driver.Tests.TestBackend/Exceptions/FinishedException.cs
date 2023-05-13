@@ -17,6 +17,14 @@
 
 using System;
 
-public class FrontendException : Exception
+namespace Neo4j.Driver.Tests.TestBackend;
+
+internal sealed class FinishedException : Exception
 {
+    public bool Healthy { get; }
+
+    public FinishedException(bool healthy = true)
+    {
+        Healthy = healthy;
+    }
 }

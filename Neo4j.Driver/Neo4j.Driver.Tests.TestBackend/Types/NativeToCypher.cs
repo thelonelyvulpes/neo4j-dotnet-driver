@@ -22,7 +22,7 @@ using System.Linq;
 
 namespace Neo4j.Driver.Tests.TestBackend;
 
-internal class NativeToCypherObject
+internal sealed class NativeToCypherObject
 {
     public string name { get; set; }
     public object data { get; set; }
@@ -53,7 +53,7 @@ internal static class NativeToCypher
         { typeof(ZonedDateTime), CypherDateTime },
         { typeof(LocalDateTime), CypherDateTime },
         { typeof(Duration), CypherDuration },
-        { typeof(Point), CypherTODO },
+        { typeof(Point), CypherTodo },
 
         { typeof(INode), CypherNode },
         { typeof(IRelationship), CypherRelationship },
@@ -62,106 +62,37 @@ internal static class NativeToCypher
 
     public static object Convert(object sourceObject)
     {
-        if (sourceObject is null)
+        return sourceObject switch
         {
-            return new NativeToCypherObject { name = "CypherNull" };
-        }
-
-        if (sourceObject as List<object> != null)
-        {
-            return FunctionMap[typeof(List<object>)]("CypherList", sourceObject);
-        }
-
-        if (sourceObject as Dictionary<string, object> != null)
-        {
-            return FunctionMap[typeof(Dictionary<string, object>)]("CypherMap", sourceObject);
-        }
-
-        if (sourceObject is bool)
-        {
-            return FunctionMap[typeof(bool)]("CypherBool", sourceObject);
-        }
-
-        if (sourceObject is long)
-        {
-            return FunctionMap[typeof(long)]("CypherInt", sourceObject);
-        }
-
-        if (sourceObject is double)
-        {
-            return FunctionMap[typeof(double)]("CypherFloat", sourceObject);
-        }
-
-        if (sourceObject is string)
-        {
-            return FunctionMap[typeof(string)]("CypherString", sourceObject);
-        }
-
-        if (sourceObject is byte[])
-        {
-            return FunctionMap[typeof(byte[])]("CypherByteArray", sourceObject);
-        }
-
-        if (sourceObject as LocalDate != null)
-        {
-            return FunctionMap[typeof(LocalDate)]("CypherDate", sourceObject);
-        }
-
-        if (sourceObject as OffsetTime != null)
-        {
-            return FunctionMap[typeof(OffsetTime)]("CypherTime", sourceObject);
-        }
-
-        if (sourceObject as LocalTime != null)
-        {
-            return FunctionMap[typeof(LocalTime)]("CypherTime", sourceObject);
-        }
-
-        if (sourceObject as ZonedDateTime != null)
-        {
-            return FunctionMap[typeof(ZonedDateTime)]("CypherDateTime", sourceObject);
-        }
-
-        if (sourceObject as LocalDateTime != null)
-        {
-            return FunctionMap[typeof(LocalDateTime)]("CypherDateTime", sourceObject);
-        }
-
-        if (sourceObject as Duration != null)
-        {
-            return FunctionMap[typeof(Duration)]("CypherDuration", sourceObject);
-        }
-
-        if (sourceObject as Point != null)
-        {
-            return FunctionMap[typeof(Point)]("CypherPoint", sourceObject);
-        }
-
-        if (sourceObject as INode != null)
-        {
-            return FunctionMap[typeof(INode)]("CypherNode", sourceObject);
-        }
-
-        if (sourceObject as IRelationship != null)
-        {
-            return FunctionMap[typeof(IRelationship)]("CypherRelationship", sourceObject);
-        }
-
-        if (sourceObject as IPath != null)
-        {
-            return FunctionMap[typeof(IPath)]("CypherPath", sourceObject);
-        }
-
-        throw new IOException(
-            $"Attempting to convert an unsupported object type to a CypherType: {sourceObject.GetType()}");
+            null => new NativeToCypherObject { name = "CypherNull" },
+            List<object> => FunctionMap[typeof(List<object>)]("CypherList", sourceObject),
+            Dictionary<string, object> => FunctionMap[typeof(Dictionary<string, object>)]("CypherMap", sourceObject),
+            bool => FunctionMap[typeof(bool)]("CypherBool", sourceObject),
+            long => FunctionMap[typeof(long)]("CypherInt", sourceObject),
+            double => FunctionMap[typeof(double)]("CypherFloat", sourceObject),
+            string => FunctionMap[typeof(string)]("CypherString", sourceObject),
+            byte[] => FunctionMap[typeof(byte[])]("CypherByteArray", sourceObject),
+            LocalDate => FunctionMap[typeof(LocalDate)]("CypherDate", sourceObject),
+            OffsetTime => FunctionMap[typeof(OffsetTime)]("CypherTime", sourceObject),
+            LocalTime => FunctionMap[typeof(LocalTime)]("CypherTime", sourceObject),
+            ZonedDateTime => FunctionMap[typeof(ZonedDateTime)]("CypherDateTime", sourceObject),
+            LocalDateTime => FunctionMap[typeof(LocalDateTime)]("CypherDateTime", sourceObject),
+            Duration => FunctionMap[typeof(Duration)]("CypherDuration", sourceObject),
+            Point => FunctionMap[typeof(Point)]("CypherPoint", sourceObject),
+            INode => FunctionMap[typeof(INode)]("CypherNode", sourceObject),
+            IRelationship => FunctionMap[typeof(IRelationship)]("CypherRelationship", sourceObject),
+            IPath => FunctionMap[typeof(IPath)]("CypherPath", sourceObject),
+            _ => throw new IOException(
+                $"Attempting to convert an unsupported object type to a CypherType: {sourceObject.GetType()}")
+        };
     }
 
-    public static NativeToCypherObject CypherSimple(string cypherType, object obj)
+    private static NativeToCypherObject CypherSimple(string cypherType, object obj)
     {
         return new NativeToCypherObject { name = cypherType, data = new NativeToCypherObject.DataType { value = obj } };
     }
 
-    public static NativeToCypherObject CypherMap(string cypherType, object obj)
+    private static NativeToCypherObject CypherMap(string cypherType, object obj)
     {
         var result = new Dictionary<string, object>();
 
@@ -174,7 +105,7 @@ internal static class NativeToCypher
             { name = cypherType, data = new NativeToCypherObject.DataType { value = result } };
     }
 
-    public static NativeToCypherObject CypherList(string cypherType, object obj)
+    private static NativeToCypherObject CypherList(string cypherType, object obj)
     {
         var result = new List<object>();
 
@@ -187,12 +118,12 @@ internal static class NativeToCypher
             { name = cypherType, data = new NativeToCypherObject.DataType { value = result } };
     }
 
-    public static NativeToCypherObject CypherTODO(string name, object obj)
+    private static NativeToCypherObject CypherTodo(string name, object obj)
     {
         throw new NotImplementedException($"NativeToCypher : {name} conversion is not implemented yet");
     }
 
-    public static NativeToCypherObject CypherNode(string cypherType, object obj)
+    private static NativeToCypherObject CypherNode(string cypherType, object obj)
     {
         var node = (INode)obj;
 
@@ -221,7 +152,7 @@ internal static class NativeToCypher
         return new NativeToCypherObject { name = "Node", data = cypherNode };
     }
 
-    public static NativeToCypherObject CypherRelationship(string cypherType, object obj)
+    private static NativeToCypherObject CypherRelationship(string cypherType, object obj)
     {
         var rel = (IRelationship)obj;
         Dictionary<string, object> cypherRel;
@@ -257,7 +188,7 @@ internal static class NativeToCypher
         return new NativeToCypherObject { name = "Relationship", data = cypherRel };
     }
 
-    public static NativeToCypherObject CypherPath(string cypherType, object obj)
+    private static NativeToCypherObject CypherPath(string cypherType, object obj)
     {
         var path = (IPath)obj;
         var cypherPath = new Dictionary<string, object>
