@@ -28,10 +28,9 @@ internal sealed class TestkitTcpServer : IDisposable
 {
     public TestkitTcpServer(IPAddress address, int port)
     {
-        Trace.WriteLine("Creating server.");
         Server = new TcpListener(address, port);
         Server.Start();
-        Trace.WriteLine("Server created.");
+        Trace.WriteLine(string.Empty);
     }
 
     private TcpListener Server { get; }
@@ -47,7 +46,6 @@ internal sealed class TestkitTcpServer : IDisposable
         var stream = connection.GetStream();
         stream.ReadTimeout = timeout;
         stream.WriteTimeout = timeout;
-        Trace.WriteLine("Connection accepted.");
         return connection;
     }
 
@@ -74,6 +72,7 @@ internal sealed class TestkitTcpServer : IDisposable
             finally
             {
                 Trace.WriteLine("Closing connection.");
+                Trace.WriteLine(string.Empty);
             }
         }
     }

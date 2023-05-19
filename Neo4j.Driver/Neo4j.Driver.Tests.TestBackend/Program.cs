@@ -53,31 +53,24 @@ public static class Program
 
     private static (IPAddress address, int port) ArgumentsValidation(string[] args)
     {
-        if (args.Length < 2)
+        if (!IPAddress.TryParse(args[0], out var address))
         {
-            throw new IOException(
-                $"Incorrect number of arguments passed in. Expecting Address Port, but got {args.Length} arguments");
+            throw new IOException($"Invalid IPAddress passed in parameter 1: {args[0]}.");
         }
 
         if (!int.TryParse(args[1], out var port) || port < 0)
         {
             throw new IOException(
-                $"Invalid port passed in parameter 2.  Should be unsigned integer but was: {args[1]}.");
-        }
-
-        if (!IPAddress.TryParse(args[0], out var address))
-        {
-            throw new IOException($"Invalid IPAddress passed in parameter 1. {args[0]}");
+                $"Invalid port passed in parameter 2. Should be unsigned integer but was: {args[1]}.");
         }
 
         if (args.Length > 2)
         {
             Trace.Listeners.Add(new TextWriterTraceListener(args[2]));
-            Trace.WriteLine("Logging to file: " + args[2]);
+            Trace.WriteLine($"Logging to file: {args[2]}.");
         }
 
-        Trace.WriteLine($"Starting TestBackend on {address}:{port}");
-
+        Trace.WriteLine($"Starting TestBackend on {address}:{port}.");
         return (address, port);
     }
 }

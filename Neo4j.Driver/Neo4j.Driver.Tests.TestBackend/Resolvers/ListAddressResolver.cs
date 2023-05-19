@@ -21,7 +21,7 @@ using System.Linq;
 
 namespace Neo4j.Driver.Tests.TestBackend;
 
-internal class ListAddressResolver : IServerAddressResolver
+internal sealed class ListAddressResolver : IServerAddressResolver
 {
     private readonly ServerAddress[] servers;
 
@@ -42,7 +42,7 @@ internal class ListAddressResolver : IServerAddressResolver
     public ISet<ServerAddress> Resolve(ServerAddress address)
     {
         var errorMessage =
-            "A ResolverResolutionCompleted request is expected straight after a ResolverResolutionRequired reponse is sent";
+            "A ResolverResolutionCompleted request is expected straight after a ResolverResolutionRequired response is sent";
 
         var response = new ProtocolResponse(
                 "ResolverResolutionRequired",

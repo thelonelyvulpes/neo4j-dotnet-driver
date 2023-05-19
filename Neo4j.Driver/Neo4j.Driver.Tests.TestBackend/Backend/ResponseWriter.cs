@@ -50,7 +50,7 @@ internal sealed class ResponseWriter
             return string.Empty;
         }
 
-        Trace.WriteLine($"Sending response: {response}\n");
+        Trace.WriteLine($"Sending response: {response}");
 
         await WriterTarget.WriteLineAsync(OpenTag);
         await WriterTarget.WriteLineAsync(response);

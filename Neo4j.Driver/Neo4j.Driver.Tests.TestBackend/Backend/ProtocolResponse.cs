@@ -31,6 +31,12 @@ internal sealed class ProtocolResponse
         data = dataType;
     }
 
+    public ProtocolResponse(string newName)
+    {
+        name = newName;
+        data = null;
+    }
+
     public string name { get; }
     public object data { get; set; }
 

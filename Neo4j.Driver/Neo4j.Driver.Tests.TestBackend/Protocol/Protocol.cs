@@ -122,7 +122,7 @@ internal abstract class IProtocolObject
 
     [JsonIgnore] protected ProtocolObjectManager ObjManager { get; set; }
 
-    public event EventHandler ProtocolEvent;
+    public Action ProtocolEvent;
 
     public void SetObjectManager(ProtocolObjectManager objManager)
     {
@@ -134,16 +134,15 @@ internal abstract class IProtocolObject
         uniqueId = id;
     }
 
-    public virtual async Task Process()
+    public virtual Task Process()
     {
-        await Task.CompletedTask;
+        return Task.CompletedTask;
     }
 
-    public virtual async Task
-        Process(
-            Controller controller) //Default is to not use the controller object. But option to override this method and use it if necessary.
+    //Default is to not use the controller object. But option to override this method and use it if necessary.
+    public virtual Task Process(Controller controller)
     {
-        await Process();
+        return Process();
     }
 
     public string Encode()
@@ -158,6 +157,6 @@ internal abstract class IProtocolObject
 
     protected void TriggerEvent()
     {
-        ProtocolEvent?.Invoke(this, EventArgs.Empty);
+        ProtocolEvent.Invoke();
     }
 }

@@ -17,7 +17,7 @@
 
 namespace Neo4j.Driver.Tests.TestBackend;
 
-public class TestkitConstants
+internal static class TestkitConstants
 {
     public static class NotificationsConfig
     {

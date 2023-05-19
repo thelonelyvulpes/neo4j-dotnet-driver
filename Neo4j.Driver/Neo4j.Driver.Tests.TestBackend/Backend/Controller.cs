@@ -28,7 +28,6 @@ internal sealed class Controller : IDisposable
 {
     public Controller(Stream conn)
     {
-        Trace.WriteLine("Controller initialising.");
         RequestReader = new RequestReader(conn);
         ResponseWriter = new ResponseWriter(
             new StreamWriter(conn, new UTF8Encoding(false))
@@ -56,16 +55,12 @@ internal sealed class Controller : IDisposable
         var keepProcessing = true;
         while (keepProcessing)
         {
-            var result = await RequestReader.ParseNextRequest();
+            var result = await RequestReader.ParseNextRequest(() => { keepProcessing = false; });
             if (result == null)
             {
-                Trace.WriteLine("No more requests to process");
+                Trace.WriteLine("No more requests to process.");
                 break;
             }
-            result.ProtocolEvent += (_, __) =>
-            {
-                keepProcessing = false;
-            };
             await result.Process(this);
             await SendResponse(result);
             Trace.Flush();
@@ -76,8 +71,6 @@ internal sealed class Controller : IDisposable
     {
         var restartConnection = restartInitialState;
         
-        Trace.WriteLine("Starting Controller.Process");
-
         var storedException = default(Exception);
 
         while (loopConditional(storedException))
@@ -119,7 +112,7 @@ internal sealed class Controller : IDisposable
 
     private async Task<IProtocolObject> TryConsumeStreamObjectOfType(Type type)
     {
-        var result = await RequestReader.ParseNextRequest();
+        var result = await RequestReader.ParseNextRequest(() => {});
         return result.GetType().Name != type.Name ? null : result;
     }
 

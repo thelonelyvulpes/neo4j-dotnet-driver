@@ -35,9 +35,8 @@ internal sealed class RequestReader : IDisposable
         _pipeReader = PipeReader.Create(stream);
     }
 
-    public async Task<IProtocolObject> ParseNextRequest()
+    public async Task<IProtocolObject> ParseNextRequest(Action action)
     {
-        Trace.WriteLine("Listening for next request");
         // Read _pipeReader until we read the open tag
         while (true)
         {
@@ -60,7 +59,7 @@ internal sealed class RequestReader : IDisposable
             var slice = buffer.Slice(start, end - start);
             var endOfmessage = end + CloseTag.Length;
 
-            var res = ParseProtocolObject(slice);
+            var res = ParseProtocolObject(slice,  action);
 
             _pipeReader.AdvanceTo(buffer.Slice(endOfmessage).Start);
             return res;
@@ -68,19 +67,26 @@ internal sealed class RequestReader : IDisposable
         }
     }
 
-    private static IProtocolObject ParseProtocolObject(ReadOnlySequence<byte> slice)
+    private static IProtocolObject ParseProtocolObject(ReadOnlySequence<byte> slice, Action action)
     {
+        string json;
         if (slice.IsSingleSegment)
         {
-            return ProtocolObjectFactory.CreateObject(Encoding.UTF8.GetString(slice.FirstSpan));
+            json = Encoding.UTF8.GetString(slice.FirstSpan);
         }
-
-        using var memory = MemoryPool<byte>.Shared.Rent((int)slice.Length);
-        slice.CopyTo(memory.Memory.Span);
-        return ProtocolObjectFactory.CreateObject(Encoding.UTF8.GetString(memory.Memory.Span));
+        else
+        {
+            using var memory = MemoryPool<byte>.Shared.Rent((int)slice.Length);
+            slice.CopyTo(memory.Memory.Span);
+            json = Encoding.UTF8.GetString(memory.Memory.Span);
+        }
+        Trace.WriteLine($"Received request: {json}.");
+        var result = ProtocolObjectFactory.CreateObject(json);
+        result.ProtocolEvent = action;
+        return result;
     }
 
-    private (int start, int end) FindIndexes(ReadOnlySequence<byte> buffer)
+    private static (int start, int end) FindIndexes(ReadOnlySequence<byte> buffer)
     {
         const byte openTag = (byte)'{';
 
