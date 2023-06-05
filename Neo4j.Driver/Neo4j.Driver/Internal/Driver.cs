@@ -29,7 +29,7 @@ internal sealed class Driver : IInternalDriver
 {
     private readonly DefaultBookmarkManager _bookmarkManager;
 
-    private readonly IConnectionProvider _connectionProvider;
+    internal readonly IConnectionProvider _connectionProvider;
     private readonly ILogger _logger;
     private readonly IMetrics _metrics;
     private readonly IAsyncRetryLogic _retryLogic;
@@ -196,6 +196,16 @@ internal sealed class Driver : IInternalDriver
         {
             return await session.VerifyConnectivityAsync().ConfigureAwait(false);
         }
+    }
+
+    public async Task<StreamRef> OpenCdcStreamAsync(StreamDetails details, Action<ContainerToBeRenamed> onRecord)
+    {
+        var database = "cdctest";
+
+        var connection = await _connectionProvider
+            .AcquireAsync(AccessMode.Read, database, new SessionConfig(), Bookmarks.Empty, false);
+
+        return await connection.OpenStream(details, onRecord);
     }
 
     //Non public facing api. Used for testing with testkit only

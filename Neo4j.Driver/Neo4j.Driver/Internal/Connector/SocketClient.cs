@@ -22,6 +22,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Neo4j.Driver.Internal.IO;
 using Neo4j.Driver.Internal.MessageHandling;
+using Neo4j.Driver.Internal.MessageHandling.V4;
 using Neo4j.Driver.Internal.Messaging;
 
 namespace Neo4j.Driver.Internal.Connector;
@@ -120,13 +121,51 @@ internal sealed class SocketClient : ISocketClient
             await ReceiveOneAsync(responsePipeline).ConfigureAwait(false);
         }
     }
+    
+    public async Task ReceiveAsync(StreamRef streamRef)
+    {
+        var responsePipeline = new ResponsePipeline(_logger);
+        responsePipeline.Enqueue(streamRef.RecordHandler);
+         try
+         {
+             var reader = _packstreamFactory.BuildReader(_format, _readBufferStream, _readerBuffers);
+             await _messageReader.ReadAsync(responsePipeline, reader, streamRef.CancellationToken).ConfigureAwait(false);
+         }
+         catch (OperationCanceledException)
+         {
+             //
+             _logger.Info("ReceiveAsync was cancelled.");
+         }
+         catch (Exception ex)
+         {
+             _logger?.Error(ex, $"Unable to read message from server {_uri}, connection will be terminated.");
+             await DisposeAsync().ConfigureAwait(false);
+             throw;
+         }
 
-    public async Task ReceiveOneAsync(IResponsePipeline responsePipeline)
+         // We force ProtocolException's to be thrown here to shortcut the communication with the server
+         try
+         {
+             responsePipeline.AssertNoProtocolViolation();
+         }
+         catch (ProtocolException exc)
+         {
+             _logger?.Warn(
+                 exc,
+                 "A bolt protocol error has occurred with server {0}, connection will be terminated.",
+                 _uri.ToString());
+
+             await DisposeAsync().ConfigureAwait(false);
+             throw;
+         }
+    }
+
+    public async Task ReceiveOneAsync(IResponsePipeline responsePipeline, CancellationToken cancellationToken = default)
     {
         try
         {
             var reader = _packstreamFactory.BuildReader(_format, _readBufferStream, _readerBuffers);
-            await _messageReader.ReadAsync(responsePipeline, reader).ConfigureAwait(false);
+            await _messageReader.ReadAsync(responsePipeline, reader, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex)
         {

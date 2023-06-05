@@ -230,6 +230,16 @@ internal sealed class BoltProtocolV3 : IBoltProtocol
         await connection.SyncAsync().ConfigureAwait(false);
     }
 
+    public Task<StreamRef> StreamAsync(IConnection socketConnection, StreamDetails streamDetails, Action<ContainerToBeRenamed> containerToBeRenamed)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task StopStreamAsync(SocketConnection socketConnection)
+    {
+        throw new NotImplementedException();
+    }
+
     // TODO: Refactor validation methods into a separate class or move to message classes so the checks aren't duplicated. 
     internal static void ValidateDatabase(IConnection connection, string database)
     {

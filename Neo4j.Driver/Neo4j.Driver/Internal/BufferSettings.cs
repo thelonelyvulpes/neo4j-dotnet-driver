@@ -15,6 +15,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Threading;
+
 namespace Neo4j.Driver.Internal;
 
 internal class BufferSettings
@@ -52,4 +54,5 @@ internal class BufferSettings
     public int DefaultWriteBufferSize { get; }
 
     public int MaxWriteBufferSize { get; }
+    public CancellationToken CancellationToken { get; set; }    
 }

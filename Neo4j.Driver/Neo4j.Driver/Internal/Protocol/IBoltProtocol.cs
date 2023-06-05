@@ -15,6 +15,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Neo4j.Driver.Internal.Connector;
@@ -61,4 +62,6 @@ internal interface IBoltProtocol
 
     Task CommitTransactionAsync(IConnection connection, IBookmarksTracker bookmarksTracker);
     Task RollbackTransactionAsync(IConnection connection);
+    Task<StreamRef> StreamAsync(IConnection socketConnection, StreamDetails streamDetails, Action<ContainerToBeRenamed> containerToBeRenamed);
+    Task StopStreamAsync(SocketConnection socketConnection);
 }

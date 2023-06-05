@@ -39,7 +39,8 @@ internal static class StreamExtensions
         byte[] buffer,
         int offset,
         int count,
-        int timeoutMs)
+        int timeoutMs,
+        CancellationToken cancellationToken)
     {
         if (timeoutMs <= 0)
         {
@@ -48,16 +49,16 @@ internal static class StreamExtensions
         }
 
         using var source = new CancellationTokenSource(TimeSpan.FromMilliseconds(timeoutMs));
-
+        var cts = CancellationTokenSource.CreateLinkedTokenSource(source.Token, cancellationToken);
         try
         {
 #if NET6_0_OR_GREATER
             // .netcore 3.0+ network streams support cancellation tokens.
-            return await stream.ReadAsync(buffer.AsMemory(offset, count), source.Token).ConfigureAwait(false);
+            return await stream.ReadAsync(buffer.AsMemory(offset, count), cts.Token).ConfigureAwait(false);
 #else
             // .net standard implementation relies on closing stream
             using var _ = source.Token.Register(stream.Close);
-            return await stream.ReadAsync(buffer, offset, count, source.Token).ConfigureAwait(false);
+            return await stream.ReadAsync(buffer, offset, count, cts.Token).ConfigureAwait(false);
 #endif
         }
         catch (Exception ex)

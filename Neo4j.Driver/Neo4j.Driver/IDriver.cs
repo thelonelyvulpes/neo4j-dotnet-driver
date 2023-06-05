@@ -17,6 +17,7 @@
 
 using System;
 using System.Threading.Tasks;
+using Neo4j.Driver.Internal;
 
 namespace Neo4j.Driver;
 
@@ -125,4 +126,12 @@ public interface IDriver : IDisposable, IAsyncDisposable
     /// <param name="authToken">Auth token to verify.</param>
     /// <returns> A task that represents the asynchronous operation. </returns>
     Task<bool> VerifyAuthenticationAsync(IAuthToken authToken);
+
+    Task<StreamRef> OpenCdcStreamAsync(StreamDetails details, Action<ContainerToBeRenamed> action);
+}
+
+public class StreamDetails
+{
+    public string From { get; init; }
+    public IDriver Driver { get; set; }
 }

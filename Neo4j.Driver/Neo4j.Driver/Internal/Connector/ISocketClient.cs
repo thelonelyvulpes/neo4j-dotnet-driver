@@ -27,11 +27,12 @@ namespace Neo4j.Driver.Internal.Connector;
 internal interface ISocketClient : IAsyncDisposable
 {
     BoltProtocolVersion Version { get; }
+    Task ReceiveAsync(StreamRef streamRef);
     bool IsOpen { get; }
     Task ConnectAsync(IDictionary<string, string> routingContext, CancellationToken token = default);
     Task SendAsync(IEnumerable<IRequestMessage> messages);
     Task ReceiveAsync(IResponsePipeline responsePipeline);
-    Task ReceiveOneAsync(IResponsePipeline responsePipeline);
+    Task ReceiveOneAsync(IResponsePipeline responsePipeline, CancellationToken cancellationToken = default);
     void SetReadTimeoutInSeconds(int seconds);
     void UseUtcEncoded();
 }

@@ -196,6 +196,24 @@ internal sealed class BoltProtocol : IBoltProtocol
         return _boltProtocolV3.RollbackTransactionAsync(connection);
     }
 
+    public async Task<StreamRef> StreamAsync(IConnection socketConnection,
+        StreamDetails streamDetails,
+        Action<ContainerToBeRenamed> containerToBeRenamed)
+    {
+        var message = new BeginStreamMessage(streamDetails);
+        var streamRef = new StreamRef(streamDetails, socketConnection, containerToBeRenamed);
+        
+        await socketConnection.EnqueueAsync(message, streamRef.InitialResponseHandler).ConfigureAwait(false);
+        await socketConnection.SyncAsync().ConfigureAwait(false);
+        return streamRef;
+    }
+
+    public async Task StopStreamAsync(SocketConnection socketConnection)
+    {
+        await socketConnection.EnqueueAsync(new EndStreamMessage(), NoOpResponseHandler.Instance).ConfigureAwait(false);
+        await socketConnection.SyncAsync().ConfigureAwait(false);
+    }
+
     private async Task AuthenticateWithLogonAsync(
         IConnection connection,
         string userAgent,

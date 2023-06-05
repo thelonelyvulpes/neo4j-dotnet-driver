@@ -15,6 +15,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Threading;
 using System.Threading.Tasks;
 using Neo4j.Driver.Internal.MessageHandling;
 
@@ -22,6 +23,6 @@ namespace Neo4j.Driver.Internal.IO;
 
 internal interface IMessageReader
 {
-    Task ReadAsync(IResponsePipeline pipeline, PackStreamReader reader);
+    Task ReadAsync(IResponsePipeline pipeline, PackStreamReader reader, CancellationToken cancellationToken = default);
     void SetReadTimeoutInMs(int ms);
 }

@@ -151,6 +151,7 @@ internal abstract class DelegatedConnection : IConnection
 
     public bool UtcEncodedDateTime => Delegate.UtcEncodedDateTime;
     public IAuthToken AuthToken => Delegate.AuthToken;
+    public BufferSettings BS => Delegate.BS;
 
     public void UpdateId(string newConnId)
     {
@@ -191,6 +192,21 @@ internal abstract class DelegatedConnection : IConnection
     public Task ValidateCredsAsync()
     {
         return Delegate.ValidateCredsAsync();
+    }
+
+    public Task<StreamRef> OpenStream(StreamDetails streamDetails, Action<ContainerToBeRenamed> onRecord)
+    {
+        return BoltProtocol.StreamAsync(this, streamDetails, onRecord);
+    }
+
+    public Task ReceiveRecords(StreamRef strea)
+    {
+        return Delegate.ReceiveRecords(strea);
+    }
+
+    public Task StopStreamAsync()
+    {
+        return Delegate.StopStreamAsync();
     }
 
     public Task LoginAsync(string userAgent, IAuthToken authToken, INotificationsConfig notificationsConfig)

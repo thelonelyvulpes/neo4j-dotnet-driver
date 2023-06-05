@@ -15,6 +15,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -103,6 +104,9 @@ internal interface IConnection : IConnectionDetails, IConnectionRunner
 
     void SetUseUtcEncodedDateTime();
     Task ValidateCredsAsync();
+    Task<StreamRef> OpenStream(StreamDetails details, Action<ContainerToBeRenamed> onRecord);
+    Task ReceiveRecords(StreamRef reDStreamRef);
+    Task StopStreamAsync();
 }
 
 internal interface IConnectionRunner
@@ -145,4 +149,5 @@ internal interface IConnectionDetails
     BoltProtocolVersion Version { get; }
     bool UtcEncodedDateTime { get; }
     IAuthToken AuthToken { get; }
+    BufferSettings BS { get; }
 }

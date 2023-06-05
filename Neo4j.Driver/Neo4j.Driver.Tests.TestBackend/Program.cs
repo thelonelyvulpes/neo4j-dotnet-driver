@@ -16,9 +16,11 @@
 // limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Net;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace Neo4j.Driver.Tests.TestBackend;
 
@@ -27,73 +29,70 @@ public class Program
     private static IPAddress Address;
     private static uint Port;
 
-    private static void Main(string[] args)
+    private static async Task Main(string[] args)
     {
         var consoleTraceListener = new TextWriterTraceListener(Console.Out);
         Trace.Listeners.Add(consoleTraceListener);
 
-        try
+        await using var driver = GraphDatabase.Driver("bolt://localhost:7687", AuthTokens.None);
+        await using (var session = driver.AsyncSession(x => x.WithDatabase("system")))
         {
-            ArgumentsValidation(args);
+            var cursor = await session.RunAsync("CREATE DATABASE cdctest OPTIONS {txLogEnrichment: \"FULL\"}");
+            await cursor.ConsumeAsync();
+        }
+        
+        await Task.Delay(2000);
 
-            using (var connection = new Connection(Address.ToString(), Port))
+        await using (var session = driver.AsyncSession(x => x.WithDatabase("cdctest")))
+        {
+            var cursor = await session.RunAsync("CREATE (:LAVEL {x: $i})", new { i = -1 });
+            await cursor.ConsumeAsync();
+        }
+
+        List<IRecord> cdcResult;
+        await using (var session = driver.AsyncSession(x => x.WithDatabase("cdctest")))
+        {
+            var cursor = await session.RunAsync("CALL cdc.earliest()");
+            cdcResult = await cursor.ToListAsync();
+        }
+
+        var streamDetails = new StreamDetails
+        {
+            From = cdcResult[0]["id"].As<string>(),
+        };
+        
+        Console.WriteLine($"Starting {streamDetails.From}");
+        
+        await using var stream = await driver.OpenCdcStreamAsync(
+            streamDetails,
+            x =>
             {
-                var controller = new Controller(connection);
-
-                try
-                {
-                    controller.Process(true, e => { return true; }).Wait();
-                }
-                catch (Exception ex)
-                {
-                    Trace.WriteLine(
-                        $"It looks like the ExceptionExtensions system has failed in an unexpected way. \n{ex}");
-                }
-                finally
-                {
-                    connection.StopServer();
-                }
+                Console.WriteLine("Received CDC: record");
+                Console.WriteLine(JsonConvert.SerializeObject(x, Formatting.Indented));
+            });
+        
+        var receive = stream.Receive();
+        Console.WriteLine("Opened stream");
+        var i = 0;
+        while (true)
+        {
+            var input = Console.ReadLine();
+            if (input == "c")
+            {
+                Console.WriteLine("Stopping Stream");
+                await stream.Stop();
+                break;
             }
-        }
-        catch (Exception ex)
-        {
-            Trace.WriteLine(ex.Message);
-            Trace.WriteLine($"Exception Details: \n {ex.StackTrace}");
-        }
-        finally
-        {
-            Trace.Flush();
-            Trace.Listeners.Remove(consoleTraceListener);
-            consoleTraceListener.Close();
-            Trace.Close();
-        }
-    }
-
-    private static void ArgumentsValidation(string[] args)
-    {
-        if (args.Length < 2)
-        {
-            throw new IOException(
-                $"Incorrect number of arguments passed in. Expecting Address Port, but got {args.Length} arguments");
+            
+            Console.WriteLine("Sending record");
+            await using (var session = driver.AsyncSession(x => x.WithDatabase("cdctest")))
+            {
+                var cursor = await session.RunAsync("CREATE (:LAVEL {x: $i})", new { i });
+                await cursor.ConsumeAsync();
+            }
+            i++;
         }
 
-        if (!uint.TryParse(args[1], out Port))
-        {
-            throw new IOException(
-                $"Invalid port passed in parameter 2.  Should be unsigned integer but was: {args[1]}.");
-        }
-
-        if (!IPAddress.TryParse(args[0], out Address))
-        {
-            throw new IOException($"Invalid IPAddress passed in parameter 1. {args[0]}");
-        }
-
-        if (args.Length > 2)
-        {
-            Trace.Listeners.Add(new TextWriterTraceListener(args[2]));
-            Trace.WriteLine("Logging to file: " + args[2]);
-        }
-
-        Trace.WriteLine($"Starting TestBackend on {Address}:{Port}");
+        Console.WriteLine("Fin.");
     }
 }

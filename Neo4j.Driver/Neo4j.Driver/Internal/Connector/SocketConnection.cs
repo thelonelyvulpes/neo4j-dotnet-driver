@@ -60,8 +60,15 @@ internal sealed class SocketConnection : IConnection
         _idPrefix = $"conn-{uri.Host}:{uri.Port}-";
         _id = $"{_idPrefix}{UniqueIdGenerator.GetId()}";
         _logger = new PrefixLogger(logger, FormatPrefix(_id));
-
-        _client = new SocketClient(uri, socketSettings, bufferSettings, _logger, null);
+        var bs = new BufferSettings(
+            bufferSettings.DefaultReadBufferSize,
+            bufferSettings.MaxReadBufferSize,
+            bufferSettings.DefaultWriteBufferSize,
+            bufferSettings.MaxWriteBufferSize);
+    
+        BS = bs;
+        
+        _client = new SocketClient(uri, socketSettings, bs, _logger, null);
         AuthToken = authToken;
         _userAgent = userAgent;
         _serverInfo = new ServerInfo(uri);
@@ -71,6 +78,8 @@ internal sealed class SocketConnection : IConnection
         AuthTokenManager = authTokenManager;
         _protocolFactory = BoltProtocolFactory.Default;
     }
+
+    public BufferSettings BS { get; set; }
 
     // for test only
     internal SocketConnection(
@@ -378,6 +387,21 @@ internal sealed class SocketConnection : IConnection
         {
             await ReAuthAsync(token).ConfigureAwait(false);
         }
+    }
+
+    public Task<StreamRef> OpenStream(StreamDetails streamDetails, Action<ContainerToBeRenamed> onRecord)
+    {
+        return BoltProtocol.StreamAsync(this, streamDetails, onRecord);
+    }
+
+    public Task ReceiveRecords(StreamRef reDStreamRef)
+    {
+        return _client.ReceiveAsync(reDStreamRef);
+    }
+
+    public Task StopStreamAsync()
+    {
+        return BoltProtocol.StopStreamAsync(this);
     }
 
     public Task LoginAsync(string userAgent, IAuthToken authToken, INotificationsConfig notificationsConfig)

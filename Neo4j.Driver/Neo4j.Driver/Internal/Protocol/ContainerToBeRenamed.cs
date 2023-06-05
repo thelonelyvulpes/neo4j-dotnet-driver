@@ -15,14 +15,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
+namespace Neo4j.Driver.Internal;
 
-namespace Neo4j.Driver.Internal.IO;
-
-internal interface IChunkReader
+public class ContainerToBeRenamed
 {
-    Task<int> ReadMessageChunksToBufferStreamAsync(Stream bufferStream, CancellationToken cancellationToken = default);
-    void SetTimeoutInMs(int ms);
+    public object[] Fields;
+
+    public ContainerToBeRenamed(object[] fields)
+    {
+        Fields = fields;
+    }
 }

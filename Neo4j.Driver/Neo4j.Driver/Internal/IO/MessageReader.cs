@@ -15,6 +15,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Threading;
 using System.Threading.Tasks;
 using Neo4j.Driver.Internal.MessageHandling;
 using Neo4j.Driver.Internal.Messaging;
@@ -37,9 +38,9 @@ internal sealed class MessageReader : IMessageReader
         _logger = logger;
     }
 
-    public async Task ReadAsync(IResponsePipeline pipeline, PackStreamReader reader)
+    public async Task ReadAsync(IResponsePipeline pipeline, PackStreamReader reader, CancellationToken cancellationToken = default)
     {
-        var messageCount = await _chunkReader.ReadMessageChunksToBufferStreamAsync(reader.Stream).ConfigureAwait(false);
+        var messageCount = await _chunkReader.ReadMessageChunksToBufferStreamAsync(reader.Stream, cancellationToken).ConfigureAwait(false);
         ConsumeMessages(pipeline, messageCount, reader);
     }
 
