@@ -386,4 +386,14 @@ public sealed class ConfigBuilder
         _config.NotificationsConfig = new NotificationsDisabledConfig();
         return this;
     }
+
+    public void WithMapping(IMapping mapping)
+    {
+        
+    }
+}
+
+public interface IMapping
+{
+    Type Type { get; }
 }
