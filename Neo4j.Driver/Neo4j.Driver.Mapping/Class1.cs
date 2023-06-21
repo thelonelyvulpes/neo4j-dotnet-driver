@@ -1,7 +1,5 @@
 ﻿namespace Neo4j.Driver.Mapping;
 
-
-
 public class MapRule
 {
 }
@@ -17,7 +15,16 @@ public class ExampleMapping
         var driver = GraphDatabase.Driver(
             "bolt://localhost:7687",
             AuthTokens.Basic("neo4j", "password"),
-            cfg => cfg.WithMapping(new MappingBuilder<ExampleRecord>()));
+            cfg => cfg.WithMapping(
+                new MappingBuilder<ExampleRecord>()
+                    .Map("name", (r, v) => r.Name = v)
+                    .Map("age", (ExampleRecord r, long v) => r.Age = (int)v)
+                    .Build()));
+
+        var task = driver
+            .ExecutableQuery("MATCH (n) RETURN n")
+            .Mapping<ExampleRecord>("n")
+            .ExecuteAsync();
     }
 }
 

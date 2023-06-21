@@ -1,4 +1,4 @@
-﻿// Copyright (c) "Neo4j"
+// Copyright (c) "Neo4j"
 // Neo4j Sweden AB [http://neo4j.com]
 // 
 // This file is part of Neo4j.
@@ -16,32 +16,8 @@
 // limitations under the License.
 
 using System;
-using System.Collections.Generic;
 
 namespace Neo4j.Driver;
-
-public class Mapping<T> : IMapping where T : new()
-{
-    public Type Type { get; } = typeof(T);
-    public Dictionary<string, Action<T, double>> DoubleMaps { get; } = new();
-    public Dictionary<string, Action<T, long>> LongMaps { get; } = new();
-    public Dictionary<string, Action<T, string>> StringMaps { get; } = new();
-
-    public void Map(string name, Action<T, double> map)
-    {
-        DoubleMaps.Add(name, map);
-    }
-
-    public void Map(string name, Action<T, long> map)
-    {
-        LongMaps.Add(name, map);
-    }
-
-    public void Map(string name, Action<T, string> map)
-    {
-        StringMaps.Add(name, map);
-    }
-}
 
 public class MappingBuilder<T> where T : new()
 {
@@ -63,5 +39,16 @@ public class MappingBuilder<T> where T : new()
     {
         Mapping.Map(name, map);
         return this;
+    }
+    
+    public Mapping<T> Build(MapValidationRules rules = null)
+    {
+        if (rules != null)
+        {
+            var validation = new MappingValidation<T>();
+            validation.Validate(Mapping, rules);
+        }
+        
+        return Mapping;
     }
 }

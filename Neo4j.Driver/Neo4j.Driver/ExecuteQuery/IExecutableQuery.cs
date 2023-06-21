@@ -54,6 +54,8 @@ public interface IExecutableQuery<TIn, TOut> : IConfiguredQuery<TIn, TOut>
     /// <returns>The same instance which can only be used to execute the query.</returns>
     IReducedExecutableQuery<TResult> WithStreamProcessor<TResult>(
         Func<IAsyncEnumerable<TIn>, Task<TResult>> streamProcessor);
+
+    IReducedExecutableQuery<TResult> Mapping<TResult>(string s) where TResult : new();
 }
 
 /// <summary>A query that can no longer be configured.</summary>
