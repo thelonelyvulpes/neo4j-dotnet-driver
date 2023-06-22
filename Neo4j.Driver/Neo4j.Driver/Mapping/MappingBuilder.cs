@@ -16,32 +16,56 @@
 // limitations under the License.
 
 using System;
+using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace Neo4j.Driver;
 
+public enum NameStrategy
+{
+    CamelCase
+}
+
 public class MappingBuilder<T> where T : new()
 {
-    public Mapping<T> Mapping { get; } = new();
+    NameStrategy NameStrategy { get; set; } = NameStrategy.CamelCase;
 
-    public MappingBuilder<T> Map<TField>(string name, Expression<Func<T, TField>> map, Func<long, TField> convert)
+    public MappingBuilder(NameStrategy nameStrategy)
+    {
+        NameStrategy = nameStrategy;
+    }
+    
+    public Mapping<T> Mapping { get; } = new();
+    public PropertyInfo[] Properties => typeof(T).GetProperties();
+    public FieldInfo[] Fields => typeof(T).GetFields();
+
+    public MappingBuilder<T> Map<TField>(Expression<Func<T, TField>> destination, string sourceKey,
+        Func<long, TField> converter)
     {
         // Mapping.Map(name, (t, l) => map.Compile()(t, convert(l)));
         return this;
     }
 
-    public MappingBuilder<T> Map(string name, Action<T, long> map)
+    public MappingBuilder<T> Map<TField>(
+        Expression<Func<T, TField>> destination,
+        string sourceKey = null,
+        Func<string, TField> converter = null)
     {
-        Mapping.Map(name, map);
+        var memberExpr = (MemberExpression)destination.Body;
+        var settable = Properties
+            .Single(x => x.Name == memberExpr.Member.Name)
+            .SetMethod
+            ?.IsPublic ?? false;
+
+        if (!settable)
+        {
+            throw new ArgumentException("Property is not settable");
+        }
+        // Mapping.Map(name, (t, l) => map.Compile()(t, convert(l)));
         return this;
     }
 
-    public MappingBuilder<T> Map(string name, Action<T, string> map)
-    {
-        Mapping.Map(name, map);
-        return this;
-    }
-    
     public Mapping<T> Build(MapValidationRules rules = null)
     {
         if (rules != null)
@@ -50,6 +74,13 @@ public class MappingBuilder<T> where T : new()
             validation.Validate(Mapping, rules);
         }
         
+        
+        
         return Mapping;
+    }
+
+    public MappingBuilder<T> Map<TField>(Expression<Func<T, TField>> map, )
+    {
+        return this;
     }
 }
