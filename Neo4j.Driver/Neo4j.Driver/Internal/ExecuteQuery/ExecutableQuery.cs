@@ -82,6 +82,20 @@ internal class ExecutableQuery<TIn, TOut> : IExecutableQuery<TIn, TOut>, IQueryR
         throw new InvalidOperationException("WithStreamProcessor cannot be called on nested queries");
     }
 
+    public IReducedExecutableQuery<TResult> Mapping<TResult>(string s) where TResult : new()
+    {
+        return new ReducedExecutableQuery<TOut, TResult, TResult>(this, () => new TResult(), (acc, next) =>
+        {
+            var property = typeof(TResult).GetProperty(s);
+            if (property != null)
+            {
+                property.SetValue(acc, next);
+            }
+
+            return acc;
+        }, x => x);
+    }
+
     public IConfiguredQuery<TIn, TOut> WithFilter(Func<TOut, bool> filter)
     {
         _filters.Add(filter);

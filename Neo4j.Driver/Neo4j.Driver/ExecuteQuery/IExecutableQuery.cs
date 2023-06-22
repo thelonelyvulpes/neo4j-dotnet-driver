@@ -55,7 +55,7 @@ public interface IExecutableQuery<TIn, TOut> : IConfiguredQuery<TIn, TOut>
     IReducedExecutableQuery<TResult> WithStreamProcessor<TResult>(
         Func<IAsyncEnumerable<TIn>, Task<TResult>> streamProcessor);
 
-    IReducedExecutableQuery<TResult> Mapping<TResult>(string s) where TResult : new();
+    IReducedExecutableQuery<TResult[]> Mapping<TResult>(string s) where TResult : new();
 }
 
 /// <summary>A query that can no longer be configured.</summary>

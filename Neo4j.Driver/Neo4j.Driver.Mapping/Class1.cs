@@ -12,10 +12,11 @@ public class ExampleMapping
         public int Age { get; set; }
         public int Height { get; }
     };
-    
+
+
     public void Setup()
     {
-        var destFirst = new MappingBuilder<ExampleRecord>()
+        var mapping = new MappingBuilder<ExampleRecord>()
             .Map(destination: x => x.Age, sourceKey: "age", converter: (long x) => (int)x)
             .Map(x => x.Name, "name")
             .Map(x => x.Height, "height")

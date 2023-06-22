@@ -29,13 +29,6 @@ public enum NameStrategy
 
 public class MappingBuilder<T> where T : new()
 {
-    NameStrategy NameStrategy { get; set; } = NameStrategy.CamelCase;
-
-    public MappingBuilder(NameStrategy nameStrategy)
-    {
-        NameStrategy = nameStrategy;
-    }
-    
     public Mapping<T> Mapping { get; } = new();
     public PropertyInfo[] Properties => typeof(T).GetProperties();
     public FieldInfo[] Fields => typeof(T).GetFields();
@@ -43,7 +36,15 @@ public class MappingBuilder<T> where T : new()
     public MappingBuilder<T> Map<TField>(Expression<Func<T, TField>> destination, string sourceKey,
         Func<long, TField> converter)
     {
-        // Mapping.Map(name, (t, l) => map.Compile()(t, convert(l)));
+        var memberExpr = (MemberExpression)destination.Body;
+        var settable = Properties
+                .Single(x => x.Name == memberExpr.Member.Name)
+                .SetMethod
+                ?.IsPublic ??
+            false;
+
+        var member = Properties.Single(x => x.Name == memberExpr.Member.Name);
+        
         return this;
     }
 
@@ -78,12 +79,10 @@ public class MappingBuilder<T> where T : new()
             validation.Validate(Mapping, rules);
         }
         
-        
-        
         return Mapping;
     }
 
-    public MappingBuilder<T> Map<TField>(Expression<Func<T, TField>> map, )
+    public MappingBuilder<T> Map<TField>(Expression<Func<T, TField>> map)
     {
         return this;
     }

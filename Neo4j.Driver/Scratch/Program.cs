@@ -17,9 +17,6 @@ using AutoMapper;
 //     .SetMethod
 //     .IsPublic);
 
-
-
-
 // Create Automapper mapping for Test and TestDto
 var config = new MapperConfiguration(cfg =>
 {
