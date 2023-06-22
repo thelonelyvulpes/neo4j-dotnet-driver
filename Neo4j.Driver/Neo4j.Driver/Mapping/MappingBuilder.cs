@@ -36,16 +36,34 @@ public class MappingBuilder<T> where T : new()
     public MappingBuilder<T> Map<TField>(Expression<Func<T, TField>> destination, string sourceKey,
         Func<long, TField> converter)
     {
-        var memberExpr = (MemberExpression)destination.Body;
-        var settable = Properties
-                .Single(x => x.Name == memberExpr.Member.Name)
-                .SetMethod
-                ?.IsPublic ??
-            false;
+        if (destination.Body is not MemberExpression memberExpression)
+        {
+            throw new ArgumentException("Expression must be a member expression");
+        }
 
-        var member = Properties.Single(x => x.Name == memberExpr.Member.Name);
+        var item = FindProperty(memberExpression);
         
         return this;
+    }
+
+    private PropertyInfo FindProperty(MemberExpression memberExpression)
+    {
+        PropertyInfo item = null;
+        foreach (var propertyInfo in Properties)
+        {
+            if (propertyInfo.Name == memberExpression.Member.Name)
+            {
+                item = propertyInfo;
+                break;
+            }
+        }
+
+        if (item == null)
+        {
+            throw new Exception("property doesn't exist");
+        }
+        
+        return item;
     }
 
     public MappingBuilder<T> Map<TField>(
@@ -62,7 +80,6 @@ public class MappingBuilder<T> where T : new()
         // Auto mapper suggests not to validate against if a property is settable or not
         // We can use this as a guideline for our own mapping or go the other way
         // https: //github.com/AutoMapper/AutoMapper/issues/1837
-
         if (!settable)
         {
             throw new ArgumentException("Property is not settable");
