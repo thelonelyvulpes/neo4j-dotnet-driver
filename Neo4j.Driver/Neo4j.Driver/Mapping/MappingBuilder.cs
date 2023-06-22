@@ -27,7 +27,7 @@ public enum NameStrategy
     CamelCase
 }
 
-public class MappingBuilder<T> where T : new()
+public sealed class MappingBuilder<T> where T : new()
 {
     public Mapping<T> Mapping { get; } = new();
     public PropertyInfo[] Properties => typeof(T).GetProperties();
@@ -48,22 +48,14 @@ public class MappingBuilder<T> where T : new()
 
     private PropertyInfo FindProperty(MemberExpression memberExpression)
     {
-        PropertyInfo item = null;
         foreach (var propertyInfo in Properties)
         {
             if (propertyInfo.Name == memberExpression.Member.Name)
             {
-                item = propertyInfo;
-                break;
+                return propertyInfo;
             }
         }
-
-        if (item == null)
-        {
-            throw new Exception("property doesn't exist");
-        }
-        
-        return item;
+        throw new Exception("property doesn't exist");
     }
 
     public MappingBuilder<T> Map<TField>(
