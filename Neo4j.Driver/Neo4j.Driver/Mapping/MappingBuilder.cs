@@ -58,6 +58,10 @@ public class MappingBuilder<T> where T : new()
             .SetMethod
             ?.IsPublic ?? false;
 
+        // Auto mapper suggests not to validate against if a property is settable or not
+        // We can use this as a guideline for our own mapping or go the other way
+        // https: //github.com/AutoMapper/AutoMapper/issues/1837
+
         if (!settable)
         {
             throw new ArgumentException("Property is not settable");

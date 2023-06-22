@@ -10,13 +10,15 @@ public class ExampleMapping
     {
         public string Name { get; set; }
         public int Age { get; set; }
+        public int Height { get; }
     };
     
     public void Setup()
     {
-        var destFirst = new MappingBuilder<ExampleRecord>(unspecifiedNameKeyStrategy: NameStrategy.CamelCase )
+        var destFirst = new MappingBuilder<ExampleRecord>()
             .Map(destination: x => x.Age, sourceKey: "age", converter: (long x) => (int)x)
             .Map(x => x.Name, "name")
+            .Map(x => x.Height, "height")
             .Build();
 
         // An example of how to use the mapping
