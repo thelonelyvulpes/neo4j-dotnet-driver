@@ -2,15 +2,21 @@
 
 using System.Linq.Expressions;
 
-Expression<Func<int, bool>> expr = i => i < 5;
+Expression<Func<Test, int>> expr = t => t.Id;
+// Get which property is being accessed
+var memberExpr = (MemberExpression)expr.Body;
+Console.WriteLine(memberExpr.Member.Name);
+Console.WriteLine(memberExpr.Type);
+// Results in a Runtime error if the property is not public
+Console.WriteLine(memberExpr
+    .Member
+    .DeclaringType
+    .GetProperties()
+    .Single(x => x.Name == memberExpr.Member.Name)
+    .SetMethod
+    .IsPublic);
 
-
-Console.WriteLine(expr.Name);
-Console.WriteLine(expr.Type);
-Console.WriteLine(expr.Parameters);
-Console.WriteLine(expr.NodeType);
-Console.WriteLine(expr.TailCall);
-Console.WriteLine(expr.Body);
-Console.WriteLine();
-Console.WriteLine(expr.Body.NodeType);
-Console.WriteLine(expr.Body.Type);
+class Test
+{
+    public int Id { get; set; }
+}

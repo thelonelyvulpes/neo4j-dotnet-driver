@@ -17,8 +17,7 @@ public class ExampleMapping
             AuthTokens.Basic("neo4j", "password"),
             cfg => cfg.WithMapping(
                 new MappingBuilder<ExampleRecord>()
-                    .Map("name", (r, v) => r.Name = v)
-                    .Map("age", (ExampleRecord r, long v) => r.Age = (int)v)
+                    .Map("age", x => x.Age, x => (int)x)
                     .Build()));
 
         var task = driver

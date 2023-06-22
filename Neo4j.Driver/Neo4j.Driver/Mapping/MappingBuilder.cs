@@ -16,6 +16,7 @@
 // limitations under the License.
 
 using System;
+using System.Linq.Expressions;
 
 namespace Neo4j.Driver;
 
@@ -23,9 +24,9 @@ public class MappingBuilder<T> where T : new()
 {
     public Mapping<T> Mapping { get; } = new();
 
-    public MappingBuilder<T> Map(string name, Action<T, double> map)
+    public MappingBuilder<T> Map<TField>(string name, Expression<Func<T, TField>> map, Func<long, TField> convert)
     {
-        Mapping.Map(name, map);
+        // Mapping.Map(name, (t, l) => map.Compile()(t, convert(l)));
         return this;
     }
 
