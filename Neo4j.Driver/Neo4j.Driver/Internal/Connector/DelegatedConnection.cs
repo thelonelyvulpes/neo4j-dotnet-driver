@@ -58,6 +58,18 @@ internal abstract class DelegatedConnection : IConnection
         }
     }
 
+    public async Task Sync2Async()
+    {
+        try
+        {
+            await Delegate.Sync2Async().ConfigureAwait(false);
+        }
+        catch (Exception e)
+        {
+            await OnErrorAsync(e).ConfigureAwait(false);
+        }
+    }
+
     public async Task SendAsync()
     {
         try
@@ -199,9 +211,9 @@ internal abstract class DelegatedConnection : IConnection
         return BoltProtocol.StreamAsync(this, streamDetails, onRecord);
     }
 
-    public Task ReceiveRecords(StreamRef strea)
+    public Task ReceiveRecords(StreamRef strea, bool blah)
     {
-        return Delegate.ReceiveRecords(strea);
+        return Delegate.ReceiveRecords(strea, blah);
     }
 
     public Task StopStreamAsync()

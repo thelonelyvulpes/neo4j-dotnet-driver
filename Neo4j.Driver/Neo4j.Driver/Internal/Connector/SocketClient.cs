@@ -121,7 +121,7 @@ internal sealed class SocketClient : ISocketClient
             await ReceiveOneAsync(responsePipeline).ConfigureAwait(false);
         }
     }
-    
+
     public async Task ReceiveAsync(StreamRef streamRef)
     {
         var responsePipeline = new ResponsePipeline(_logger);

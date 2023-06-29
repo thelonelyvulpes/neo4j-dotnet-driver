@@ -211,7 +211,7 @@ internal sealed class BoltProtocol : IBoltProtocol
     public async Task StopStreamAsync(SocketConnection socketConnection)
     {
         await socketConnection.EnqueueAsync(new EndStreamMessage(), NoOpResponseHandler.Instance).ConfigureAwait(false);
-        await socketConnection.SyncAsync().ConfigureAwait(false);
+        await socketConnection.Sync2Async().ConfigureAwait(false);
     }
 
     private async Task AuthenticateWithLogonAsync(

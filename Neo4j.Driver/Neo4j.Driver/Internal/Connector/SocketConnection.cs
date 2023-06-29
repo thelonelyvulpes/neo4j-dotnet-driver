@@ -211,6 +211,13 @@ internal sealed class SocketConnection : IConnection
         await ReceiveAsync().ConfigureAwait(false);
     }
 
+    public async Task Sync2Async()
+    {
+        _responsePipeline.TaintRecords();
+        await SendAsync().ConfigureAwait(false);
+        await ReceiveAsync().ConfigureAwait(false);
+    }
+
     public async Task SendAsync()
     {
         if (_messages.Count == 0)
@@ -325,6 +332,10 @@ internal sealed class SocketConnection : IConnection
 
         try
         {
+            if (message == EndStreamMessage.Instance)
+            {
+                _messages.Clear();
+            }
             _messages.Enqueue(message);
             _responsePipeline.Enqueue(handler);
         }
@@ -394,9 +405,15 @@ internal sealed class SocketConnection : IConnection
         return BoltProtocol.StreamAsync(this, streamDetails, onRecord);
     }
 
-    public Task ReceiveRecords(StreamRef reDStreamRef)
+    public async Task ReceiveRecords(StreamRef reDStreamRef, bool blah)
     {
-        return _client.ReceiveAsync(reDStreamRef);
+        if (blah)
+        {
+            _messages.Enqueue(new ResumeStreamMessage());
+            await SendAsync();
+        }
+        
+        await _client.ReceiveAsync(reDStreamRef);
     }
 
     public Task StopStreamAsync()

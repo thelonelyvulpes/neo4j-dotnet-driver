@@ -78,6 +78,7 @@ internal interface IConnection : IConnectionDetails, IConnectionRunner
 
     // send all and receive all
     Task SyncAsync();
+    Task Sync2Async();
 
     // send all
     Task SendAsync();
@@ -105,7 +106,7 @@ internal interface IConnection : IConnectionDetails, IConnectionRunner
     void SetUseUtcEncodedDateTime();
     Task ValidateCredsAsync();
     Task<StreamRef> OpenStream(StreamDetails details, Action<ContainerToBeRenamed> onRecord);
-    Task ReceiveRecords(StreamRef reDStreamRef);
+    Task ReceiveRecords(StreamRef reDStreamRef, bool resume);
     Task StopStreamAsync();
 }
 

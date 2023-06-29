@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
 using Neo4j.Driver.Internal.Messaging;
 
 namespace Neo4j.Driver.Internal.MessageHandling;
@@ -67,8 +68,16 @@ internal sealed class ResponsePipeline : IResponsePipeline
         _error?.EnsureThrownIf<ProtocolException>();
     }
 
+    public void TaintRecords()
+    {
+        Interlocked.CompareExchange(ref TaintedRecords, 1, 0);
+    }
+
+    public int TaintedRecords;
+
     public void OnSuccess(IDictionary<string, object> metadata)
     {
+        Interlocked.CompareExchange(ref TaintedRecords, 0, 1);
         LogSuccess(metadata);
         var handler = Dequeue();
         handler.OnSuccess(metadata);
@@ -78,11 +87,15 @@ internal sealed class ResponsePipeline : IResponsePipeline
     {
         LogRecord(fieldValues);
         var handler = Peek();
-        handler.OnRecord(fieldValues);
+        if (Interlocked.CompareExchange(ref TaintedRecords, 1, 1) == 0)
+        {
+            handler.OnRecord(fieldValues);
+        }
     }
 
     public void OnFailure(string code, string message)
     {
+        Interlocked.CompareExchange(ref TaintedRecords, 0, 1);
         LogFailure(code, message);
         var handler = Dequeue();
         _error = new ResponsePipelineError(ErrorExtensions.ParseServerException(code, message));

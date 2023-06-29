@@ -17,26 +17,18 @@
 
 using System;
 using System.Collections.Generic;
+using Neo4j.Driver.Internal.IO;
 
-namespace Neo4j.Driver.Internal.MessageHandling;
+namespace Neo4j.Driver.Internal;
 
-internal interface IResponsePipeline
+internal class ResumeStreamSerializer : WriteOnlySerializer
 {
-    bool HasNoPendingMessages { get; }
-    bool IsHealthy(out Exception error);
+    public override IEnumerable<Type> WritableTypes => new[] { typeof(ResumeStreamMessage) };
+    public static readonly IPackStreamSerializer Instance = new ResumeStreamSerializer();
 
-    void Enqueue(IResponseHandler handler);
-
-    void OnSuccess(IDictionary<string, object> metadata);
-
-    void OnRecord(object[] fieldValues);
-
-    void OnFailure(string code, string message);
-
-    void OnIgnored();
-
-    void AssertNoFailure();
-
-    void AssertNoProtocolViolation();
-    void TaintRecords();
+    public override void Serialize(PackStreamWriter writer, object value)
+    {
+        writer.WriteStructHeader(1, 0xFD);
+        writer.WriteLong(2);
+    }
 }

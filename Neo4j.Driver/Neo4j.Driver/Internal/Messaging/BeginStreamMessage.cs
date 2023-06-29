@@ -49,14 +49,17 @@ internal sealed class BeginStreamMessageSerializer : WriteOnlySerializer
             throw new ArgumentException($"Can't serialize message '{value?.GetType().Name}' as {nameof(BeginStreamMessage)}.");
         }
         
-        writer.WriteStructHeader(1, 0xFF);
+        writer.WriteStructHeader(2, 0xFF);
         writer.WriteString(msg.fromId);
+        writer.WriteLong(2);
     }
 }
 
 internal sealed class EndStreamMessage : IRequestMessage
 {
+    
     public IPackStreamSerializer Serializer => EndStreamMessageSerializer.Instance;
+    public static IRequestMessage Instance = new EndStreamMessage();
 }
 
 internal class EndStreamMessageSerializer : WriteOnlySerializer

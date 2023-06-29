@@ -34,25 +34,13 @@ public class Program
         var consoleTraceListener = new TextWriterTraceListener(Console.Out);
         Trace.Listeners.Add(consoleTraceListener);
 
-        await using var driver = GraphDatabase.Driver("bolt://localhost:7687", AuthTokens.None);
-        await using (var session = driver.AsyncSession(x => x.WithDatabase("system")))
-        {
-            var cursor = await session.RunAsync("CREATE DATABASE cdctest OPTIONS {txLogEnrichment: \"FULL\"}");
-            await cursor.ConsumeAsync();
-        }
-        
-        await Task.Delay(2000);
-
-        await using (var session = driver.AsyncSession(x => x.WithDatabase("cdctest")))
-        {
-            var cursor = await session.RunAsync("CREATE (:LAVEL {x: $i})", new { i = -1 });
-            await cursor.ConsumeAsync();
-        }
+        await using var driver =
+            GraphDatabase.Driver("bolt://localhost:7687", AuthTokens.None, x => x.WithLogger(new SimpleLogger()));
 
         List<IRecord> cdcResult;
         await using (var session = driver.AsyncSession(x => x.WithDatabase("cdctest")))
         {
-            var cursor = await session.RunAsync("CALL cdc.earliest()");
+            var cursor = await session.RunAsync("CALL cdc.current()");
             cdcResult = await cursor.ToListAsync();
         }
 
@@ -67,32 +55,31 @@ public class Program
             streamDetails,
             x =>
             {
-                Console.WriteLine("Received CDC: record");
-                Console.WriteLine(JsonConvert.SerializeObject(x, Formatting.Indented));
+                Console.WriteLine("recv");
+                recvCounter++;
             });
         
         var receive = stream.Receive();
         Console.WriteLine("Opened stream");
-        var i = 0;
-        while (true)
+        await using (var session = driver.AsyncSession(x => x.WithDatabase("cdctest")))
         {
-            var input = Console.ReadLine();
-            if (input == "c")
+            while (i < 3)
             {
-                Console.WriteLine("Stopping Stream");
-                await stream.Stop();
-                break;
-            }
-            
-            Console.WriteLine("Sending record");
-            await using (var session = driver.AsyncSession(x => x.WithDatabase("cdctest")))
-            {
-                var cursor = await session.RunAsync("CREATE (:LAVEL {x: $i})", new { i });
+                var cursor = await session.RunAsync(
+                    // "UNWIND [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as i " +
+                    "CREATE (:LABEL {x: $i})", new { i });
                 await cursor.ConsumeAsync();
+                i++;
             }
-            i++;
         }
-
+        
+        await Task.Delay(1000);
+        Console.WriteLine("Stopping stream");
+        await stream.Stop();
+        Console.WriteLine($"Received {recvCounter} records");
         Console.WriteLine("Fin.");
     }
+
+    private static int i;
+    static int recvCounter = 0;
 }

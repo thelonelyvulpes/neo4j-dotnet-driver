@@ -37,7 +37,7 @@ public sealed class StreamRef : IAsyncDisposable
         _streamDetails = streamDetails;
         _socketConnection = socketConnection;
         InitialResponseHandler = NoOpResponseHandler.Instance;
-        RecordHandler = new RecordStreamHandler(onRecord);
+        RecordHandler = new RecordStreamHandler(onRecord, OnSuccess);
         cts = new CancellationTokenSource();
     }
 
@@ -48,7 +48,9 @@ public sealed class StreamRef : IAsyncDisposable
         {
             while (!cts.IsCancellationRequested)
             {
-                await _socketConnection.ReceiveRecords(this);
+                var p = PullMore;
+                PullMore = false;
+                await _socketConnection.ReceiveRecords(this, p);
             }
         }
         catch (TaskCanceledException)
@@ -56,6 +58,14 @@ public sealed class StreamRef : IAsyncDisposable
             // its fine.
         }
     }
+
+    private void OnSuccess(IDictionary<string, object> metadata)
+    {
+        if (metadata.TryGetValue("has_more", out var hasMore) && hasMore is true)
+            PullMore = true;
+    }
+
+    public bool PullMore { get; set; }
 
     public async Task Stop()
     {
@@ -77,14 +87,17 @@ public sealed class StreamRef : IAsyncDisposable
 internal class RecordStreamHandler : IResponseHandler
 {
     private readonly Action<ContainerToBeRenamed> _onRecord;
+    private readonly Action<IDictionary<string, object>> _onSuccess;
 
-    public RecordStreamHandler(Action<ContainerToBeRenamed> onRecord)
+    public RecordStreamHandler(Action<ContainerToBeRenamed> onRecord, Action<IDictionary<string, object>> onSuccess)
     {
         _onRecord = onRecord;
+        _onSuccess = onSuccess;
     }
 
     public void OnSuccess(IDictionary<string, object> metadata)
     {
+        _onSuccess(metadata);
     }
 
     public void OnRecord(object[] fieldValues)

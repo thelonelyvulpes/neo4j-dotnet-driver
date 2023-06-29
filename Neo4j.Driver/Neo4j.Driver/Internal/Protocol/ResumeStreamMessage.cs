@@ -15,28 +15,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
-using System.Collections.Generic;
+using Neo4j.Driver.Internal.IO;
+using Neo4j.Driver.Internal.Messaging;
 
-namespace Neo4j.Driver.Internal.MessageHandling;
+namespace Neo4j.Driver.Internal;
 
-internal interface IResponsePipeline
+internal class ResumeStreamMessage : IRequestMessage
 {
-    bool HasNoPendingMessages { get; }
-    bool IsHealthy(out Exception error);
-
-    void Enqueue(IResponseHandler handler);
-
-    void OnSuccess(IDictionary<string, object> metadata);
-
-    void OnRecord(object[] fieldValues);
-
-    void OnFailure(string code, string message);
-
-    void OnIgnored();
-
-    void AssertNoFailure();
-
-    void AssertNoProtocolViolation();
-    void TaintRecords();
+    public IPackStreamSerializer Serializer => ResumeStreamSerializer.Instance;
 }
