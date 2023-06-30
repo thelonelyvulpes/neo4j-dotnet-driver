@@ -49,9 +49,8 @@ internal sealed class BeginStreamMessageSerializer : WriteOnlySerializer
             throw new ArgumentException($"Can't serialize message '{value?.GetType().Name}' as {nameof(BeginStreamMessage)}.");
         }
         
-        writer.WriteStructHeader(2, 0xFF);
+        writer.WriteStructHeader(1, 0xFF);
         writer.WriteString(msg.fromId);
-        writer.WriteLong(2);
     }
 }
 

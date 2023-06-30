@@ -43,12 +43,12 @@ internal class SimpleLogger : ILogger
         return true;
     }
 
-    public bool IsTraceEnabled()
+    public virtual bool IsTraceEnabled()
     {
         return true;
     }
 
-    public void Trace(string message, params object[] args)
+    public virtual void Trace(string message, params object[] args)
     {
         Console.WriteLine($"[DRIVER-TRACE][{Now}]{message}", args);
     }

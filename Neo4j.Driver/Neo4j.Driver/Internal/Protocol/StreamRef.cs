@@ -39,6 +39,7 @@ public sealed class StreamRef : IAsyncDisposable
         InitialResponseHandler = NoOpResponseHandler.Instance;
         RecordHandler = new RecordStreamHandler(onRecord, OnSuccess);
         cts = new CancellationTokenSource();
+        PullMore = false;
     }
 
     private readonly CancellationTokenSource cts;

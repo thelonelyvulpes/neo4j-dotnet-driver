@@ -204,13 +204,13 @@ internal sealed class BoltProtocol : IBoltProtocol
         var streamRef = new StreamRef(streamDetails, socketConnection, containerToBeRenamed);
         
         await socketConnection.EnqueueAsync(message, streamRef.InitialResponseHandler).ConfigureAwait(false);
-        await socketConnection.SyncAsync().ConfigureAwait(false);
+        await socketConnection.EnqueueAsync(new PullMessage(2), streamRef.RecordHandler).ConfigureAwait(false);
+        await socketConnection.SendAsync().ConfigureAwait(false);
         return streamRef;
     }
 
     public async Task StopStreamAsync(SocketConnection socketConnection)
     {
-        await socketConnection.EnqueueAsync(new EndStreamMessage(), NoOpResponseHandler.Instance).ConfigureAwait(false);
         await socketConnection.Sync2Async().ConfigureAwait(false);
     }
 

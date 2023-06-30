@@ -63,5 +63,5 @@ internal interface IBoltProtocol
     Task CommitTransactionAsync(IConnection connection, IBookmarksTracker bookmarksTracker);
     Task RollbackTransactionAsync(IConnection connection);
     Task<StreamRef> StreamAsync(IConnection socketConnection, StreamDetails streamDetails, Action<ContainerToBeRenamed> containerToBeRenamed);
-    Task StopStreamAsync(SocketConnection socketConnection);
+    Task    StopStreamAsync(SocketConnection socketConnection);
 }

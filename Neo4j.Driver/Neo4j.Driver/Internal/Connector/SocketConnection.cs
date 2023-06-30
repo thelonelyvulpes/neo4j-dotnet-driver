@@ -214,6 +214,7 @@ internal sealed class SocketConnection : IConnection
     public async Task Sync2Async()
     {
         _responsePipeline.TaintRecords();
+        await EnqueueAsync(new EndStreamMessage(), NoOpResponseHandler.Instance).ConfigureAwait(false);
         await SendAsync().ConfigureAwait(false);
         await ReceiveAsync().ConfigureAwait(false);
     }
@@ -409,11 +410,11 @@ internal sealed class SocketConnection : IConnection
     {
         if (blah)
         {
-            _messages.Enqueue(new ResumeStreamMessage());
+            await EnqueueAsync(new PullMessage(2), reDStreamRef.RecordHandler);
             await SendAsync();
         }
         
-        await _client.ReceiveAsync(reDStreamRef);
+        await _client.ReceiveAsync(_responsePipeline);
     }
 
     public Task StopStreamAsync()

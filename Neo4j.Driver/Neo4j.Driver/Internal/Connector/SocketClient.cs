@@ -125,7 +125,6 @@ internal sealed class SocketClient : ISocketClient
     public async Task ReceiveAsync(StreamRef streamRef)
     {
         var responsePipeline = new ResponsePipeline(_logger);
-        responsePipeline.Enqueue(streamRef.RecordHandler);
          try
          {
              var reader = _packstreamFactory.BuildReader(_format, _readBufferStream, _readerBuffers);

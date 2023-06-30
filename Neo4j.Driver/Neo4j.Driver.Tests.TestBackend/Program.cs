@@ -20,7 +20,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 
 namespace Neo4j.Driver.Tests.TestBackend;
 
@@ -35,7 +34,7 @@ public class Program
         Trace.Listeners.Add(consoleTraceListener);
 
         await using var driver =
-            GraphDatabase.Driver("bolt://localhost:7687", AuthTokens.None, x => x.WithLogger(new SimpleLogger()));
+            GraphDatabase.Driver("bolt://localhost:7687", AuthTokens.None, x => x.WithLogger(new MySimpleLogger()));
 
         List<IRecord> cdcResult;
         await using (var session = driver.AsyncSession(x => x.WithDatabase("cdctest")))
@@ -82,4 +81,16 @@ public class Program
 
     private static int i;
     static int recvCounter = 0;
+}
+
+internal class MySimpleLogger : SimpleLogger
+{
+    public override void Trace(string message, params object[] args)
+    {
+    }
+
+    public override bool IsTraceEnabled()
+    {
+        return false;
+    }
 }

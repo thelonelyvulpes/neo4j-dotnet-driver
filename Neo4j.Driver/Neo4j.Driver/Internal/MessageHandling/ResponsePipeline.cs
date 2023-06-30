@@ -71,6 +71,7 @@ internal sealed class ResponsePipeline : IResponsePipeline
     public void TaintRecords()
     {
         Interlocked.CompareExchange(ref TaintedRecords, 1, 0);
+        Dequeue();
     }
 
     public int TaintedRecords;
