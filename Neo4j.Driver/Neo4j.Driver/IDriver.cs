@@ -16,6 +16,8 @@
 // limitations under the License.
 
 using System;
+using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Neo4j.Driver.Internal;
 
@@ -127,11 +129,66 @@ public interface IDriver : IDisposable, IAsyncDisposable
     /// <returns> A task that represents the asynchronous operation. </returns>
     Task<bool> VerifyAuthenticationAsync(IAuthToken authToken);
 
-    Task<StreamRef> OpenCdcStreamAsync(StreamDetails details, Action<ContainerToBeRenamed> action);
+    Task<StreamRef> OpenStream(StreamDetails details, Action<ContainerToBeRenamed> action);
+    Task<StreamRef> OpenStream(StreamDetails details);
+
+    IStreamable ChangeStream(string mydb, FromSelector from);
+    IStreamable ChangeStream(string mydb, string from);
+}
+
+public interface IStreamable
+{   
+    IStreamable FromChange(string s);
+    IStreamable FromChange(FromSelector current);
+    IStreamable WithTimeout(TimeSpan fromSeconds);
+    IStreamable OnRecord(Action<object> action);
+    Task<StreamResult> ExecuteAsync(CancellationToken cancellationToken);
+    IStreamable StreamProcessor(Func<IAsyncEnumerable<ContainerToBeRenamed>, Task> action);
+    IStreamable WithAutoRecovery();
+    IStreamable WithLabel(string label);
+    IStreamable WithAssertFullyEnriched();
+    IStreamable WithSelector(ChangeSelector changeSelector);
+}
+
+public class ChangeSelector
+{
+    public EntitySelector Select;
+    public ChangeOperation Operation;
+    public string ElementId;
+    public Dictionary<string, string> Key;
+    public List<string> Labels;
+    public List<string> ChangesTo;
+
+    public enum ChangeOperation
+    {
+        
+    }
+
+
+    public enum EntitySelector
+    {
+        All, Node, Relationship
+    }
+}
+
+
+public class StreamResult
+{
+    public int TotalRecordsReceived { get; set; }
+    public string LastToken { get; set; }
+    public string FirstToken { get; set; }
+    public int Resets { get; set; }
+}
+
+public enum FromSelector
+{
+    Current,
+    Earliest
 }
 
 public class StreamDetails
 {
     public string From { get; init; }
     public IDriver Driver { get; set; }
+    public CancellationToken CancellationToken { get; set; }
 }

@@ -198,7 +198,7 @@ internal sealed class Driver : IInternalDriver
         }
     }
 
-    public async Task<StreamRef> OpenCdcStreamAsync(StreamDetails details, Action<ContainerToBeRenamed> onRecord)
+    public async Task<StreamRef> OpenStream(StreamDetails details, Action<ContainerToBeRenamed> onRecord)
     {
         var database = "cdctest";
 
@@ -206,6 +206,21 @@ internal sealed class Driver : IInternalDriver
             .AcquireAsync(AccessMode.Read, database, new SessionConfig(), Bookmarks.Empty, false);
 
         return await connection.OpenStream(details, onRecord);
+    }
+
+    public Task<StreamRef> OpenStream(StreamDetails details)
+    {
+        throw new NotImplementedException();
+    }
+
+    public IStreamable ChangeStream(string mydb, FromSelector from)
+    {
+        throw new NotImplementedException();
+    }
+
+    public IStreamable ChangeStream(string mydb, string from)
+    {
+        throw new NotImplementedException();
     }
 
     //Non public facing api. Used for testing with testkit only

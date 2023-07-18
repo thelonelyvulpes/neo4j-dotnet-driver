@@ -24,7 +24,7 @@ using Neo4j.Driver.Internal.MessageHandling;
 
 namespace Neo4j.Driver.Internal;
 
-public sealed class StreamRef : IAsyncDisposable
+public sealed class StreamRef : IAsyncDisposable, IAsyncEnumerable<ContainerToBeRenamed>
 {
     private readonly StreamDetails _streamDetails;
     private readonly IConnection _socketConnection;
@@ -37,13 +37,32 @@ public sealed class StreamRef : IAsyncDisposable
         _streamDetails = streamDetails;
         _socketConnection = socketConnection;
         InitialResponseHandler = NoOpResponseHandler.Instance;
-        RecordHandler = new RecordStreamHandler(onRecord, OnSuccess);
+        OnRecord = onRecord;
+        RecordHandler = new RecordStreamHandler(ProcessRecord, OnSuccess);
         cts = new CancellationTokenSource();
         PullMore = false;
     }
 
+    internal StreamRef(StreamDetails streamDetails, IConnection socketConnection)
+    {
+        _streamDetails = streamDetails;
+        _socketConnection = socketConnection;
+        InitialResponseHandler = NoOpResponseHandler.Instance;
+        RecordHandler = new RecordStreamHandler(ProcessRecord, OnSuccess);
+        cts = new CancellationTokenSource();
+        PullMore = false;
+    }
+
+    private void ProcessRecord(ContainerToBeRenamed obj)
+    {
+        OnRecord(obj);
+        LastToken = obj.ToString();
+    }
+
+    public Action<ContainerToBeRenamed> OnRecord { get; set; }
+
     private readonly CancellationTokenSource cts;
-    public async Task Receive()
+    public async Task<string> Receive(CancellationToken ct)
     {
         try
         {
@@ -58,6 +77,28 @@ public sealed class StreamRef : IAsyncDisposable
         {
             // its fine.
         }
+
+        return LastToken;
+    }
+    
+    public async Task<string> ReceiveAsync(Action<ContainerToBeRenamed> onRecord, CancellationToken ct)
+    {
+        OnRecord = onRecord;   
+        try
+        {
+            while (!cts.IsCancellationRequested)
+            {
+                var p = PullMore;
+                PullMore = false;
+                await _socketConnection.ReceiveRecords(this, p);
+            }
+        }
+        catch (TaskCanceledException)
+        {
+            // its fine.
+        }
+
+        return LastToken;
     }
 
     private void OnSuccess(IDictionary<string, object> metadata)
@@ -67,6 +108,7 @@ public sealed class StreamRef : IAsyncDisposable
     }
 
     public bool PullMore { get; set; }
+    public string LastToken { get; set; }
 
     public async Task Stop()
     {
@@ -78,6 +120,16 @@ public sealed class StreamRef : IAsyncDisposable
     {
         cts.Dispose();
         await _socketConnection.CloseAsync();
+    }
+
+    public IAsyncEnumerable<ContainerToBeRenamed> AsyncIterate()
+    {
+        throw new NotImplementedException();
+    }
+
+    public IAsyncEnumerator<ContainerToBeRenamed> GetAsyncEnumerator(CancellationToken cancellationToken = new CancellationToken())
+    {
+        throw new NotImplementedException();
     }
 }
 
