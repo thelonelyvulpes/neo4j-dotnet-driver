@@ -16,6 +16,7 @@
 // limitations under the License.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
@@ -58,13 +59,34 @@ public class Program
     {
         var streamDetails = new StreamDetails
         {
-            From = firstId,
+            From = firstId
         };
 
-        await using var stream = await driver.OpenStream(streamDetails);
-        await foreach (var record in stream.WithCancellation(cancellationToken))
+        await using var stream = await driver.OpenStreamAsync(streamDetails);
+        await foreach (var record in stream)
+        { // set lsat id
+            
+        }
+
+        return stream.LastId;
+        // can access lastId
+    }
+
+    public static void Stream(string fromId, IDriver driver, CancellationToken cancellationToken)
+    {
+        var streamDetails = new StreamDetails
         {
-            Console.WriteLine(record);
+            From = fromId,
+            CancellationToken = cancellationToken
+        };
+        
+        using var session = driver.Session(x => x.WithDatabase("cdc"));
+        using var handle = session.CreateCdcHandle(streamDetails);
+        foreach (var record in (IEnumerable)handle)
+        {
+            if (cancellationToken.IsCancellationRequested)
+                break;
+            
         }
     }
 
@@ -75,7 +97,7 @@ public class Program
             From = firstId,
         };
     
-        await using var stream = await driver.OpenStream(streamDetails);
+        await using var stream = await driver.OpenStreamAsync(streamDetails);
         
         var lastToken = await stream.ReceiveAsync(
             record =>
@@ -90,10 +112,7 @@ public class Program
         CancellationToken cancellationToken = default)
     {
         var streamReport = await driver.ChangeStream("mydb", "mychange")
-            // Pick your selectors.
             .WithSelector(new ChangeSelector())
-            
-            // Use async enumerable if that is your thing
             .StreamProcessor(async iter =>
                 {
                     await foreach (var record in iter.WithCancellation(cancellationToken))
@@ -101,19 +120,7 @@ public class Program
                         Console.WriteLine(record);
                     }
                 })
-            // Or process a record.
-            .OnRecord(
-                x =>
-                {
-                    Console.WriteLine(x);
-                })
-            // Timeout if a record isn't received in a given timeout
-            .WithTimeout(TimeSpan.FromSeconds(10))
-            // On timeout or error, reset the connection and try again
             .WithAutoRecovery()
-            // Don't stream partially enriched records.
-            .WithAssertFullyEnriched()
-            // Run until cancelled.
             .ExecuteAsync(cancellationToken);
         
         // See where we started and got to

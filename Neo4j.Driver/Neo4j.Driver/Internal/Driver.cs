@@ -198,7 +198,7 @@ internal sealed class Driver : IInternalDriver
         }
     }
 
-    public async Task<StreamRef> OpenStream(StreamDetails details, Action<ContainerToBeRenamed> onRecord)
+    public async Task<StreamRef> OpenStreamAsync(StreamDetails details, Action<ContainerToBeRenamed> onRecord)
     {
         var database = "cdctest";
 
@@ -208,7 +208,7 @@ internal sealed class Driver : IInternalDriver
         return await connection.OpenStream(details, onRecord);
     }
 
-    public Task<StreamRef> OpenStream(StreamDetails details)
+    public Task<StreamRef> OpenStreamAsync(StreamDetails details)
     {
         throw new NotImplementedException();
     }

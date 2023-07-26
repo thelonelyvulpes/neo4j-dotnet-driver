@@ -129,8 +129,8 @@ public interface IDriver : IDisposable, IAsyncDisposable
     /// <returns> A task that represents the asynchronous operation. </returns>
     Task<bool> VerifyAuthenticationAsync(IAuthToken authToken);
 
-    Task<StreamRef> OpenStream(StreamDetails details, Action<ContainerToBeRenamed> action);
-    Task<StreamRef> OpenStream(StreamDetails details);
+    Task<StreamRef> OpenStreamAsync(StreamDetails details, Action<ContainerToBeRenamed> action);
+    Task<StreamRef> OpenStreamAsync(StreamDetails details);
 
     IStreamable ChangeStream(string mydb, FromSelector from);
     IStreamable ChangeStream(string mydb, string from);

@@ -56,7 +56,7 @@ public sealed class StreamRef : IAsyncDisposable, IAsyncEnumerable<ContainerToBe
     private void ProcessRecord(ContainerToBeRenamed obj)
     {
         OnRecord(obj);
-        LastToken = obj.ToString();
+        LastId = obj.ToString();
     }
 
     public Action<ContainerToBeRenamed> OnRecord { get; set; }
@@ -78,7 +78,7 @@ public sealed class StreamRef : IAsyncDisposable, IAsyncEnumerable<ContainerToBe
             // its fine.
         }
 
-        return LastToken;
+        return LastId;
     }
     
     public async Task<string> ReceiveAsync(Action<ContainerToBeRenamed> onRecord, CancellationToken ct)
@@ -98,7 +98,7 @@ public sealed class StreamRef : IAsyncDisposable, IAsyncEnumerable<ContainerToBe
             // its fine.
         }
 
-        return LastToken;
+        return LastId;
     }
 
     private void OnSuccess(IDictionary<string, object> metadata)
@@ -108,7 +108,7 @@ public sealed class StreamRef : IAsyncDisposable, IAsyncEnumerable<ContainerToBe
     }
 
     public bool PullMore { get; set; }
-    public string LastToken { get; set; }
+    public string LastId { get; set; }
 
     public async Task Stop()
     {

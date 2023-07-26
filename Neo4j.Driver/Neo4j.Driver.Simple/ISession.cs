@@ -190,4 +190,6 @@ public interface ISession : IQueryRunner
     /// </param>
     /// <returns>A stream of result values and associated metadata.</returns>
     IResult Run(Query query, Action<TransactionConfigBuilder> action);
+
+    IDisposable CreateCdcHandle(StreamDetails streamDetails);
 }
