@@ -1,4 +1,4 @@
-// Copyright (c) "Neo4j"
+﻿// Copyright (c) "Neo4j"
 // Neo4j Sweden AB [http://neo4j.com]
 // 
 // This file is part of Neo4j.
@@ -16,25 +16,18 @@
 // limitations under the License.
 
 using System;
-using System.Threading.Tasks;
+using System.Collections.Generic;
+using Neo4j.Driver.Internal.IO;
 
 namespace Neo4j.Driver.Internal;
 
-internal interface IInternalAsyncSession : IAsyncSession
+internal sealed class DetachMessageSerializer : WriteOnlySerializer
 {
-    Task<IAsyncTransaction> BeginTransactionAsync(
-        Action<TransactionConfigBuilder> action,
-        bool disposeUnconsumedSessionResult);
+    public override IEnumerable<Type> WritableTypes => new[] { typeof(DetachMessage) };
+    public static readonly DetachMessageSerializer Instance = new();
 
-    Task<IAsyncTransaction> BeginTransactionAsync(
-        AccessMode mode,
-        Action<TransactionConfigBuilder> action,
-        bool disposeUnconsumedSessionResult);
-
-    Task<IResultCursor> RunAsync(
-        Query query,
-        Action<TransactionConfigBuilder> action,
-        bool disposeUnconsumedSessionResult);
-
-    void NewSession(string sessionId);
+    public override void Serialize(PackStreamWriter writer, object value)
+    {
+        writer.WriteStructHeader(0, MessageFormat.MsgDetachSession);
+    }
 }

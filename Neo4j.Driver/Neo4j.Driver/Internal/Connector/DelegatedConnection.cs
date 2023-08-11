@@ -254,6 +254,26 @@ internal abstract class DelegatedConnection : IConnection
         return BoltProtocol.RollbackTransactionAsync(this);
     }
 
+    public Task BeginSession(SessionParameters sessionParameters)
+    {
+        return BoltProtocol.BeginSession(this, sessionParameters);
+    }
+
+    public Task AttachSession(SessionContainer sessionRef)
+    {
+        return BoltProtocol.AttachSession(this, sessionRef);
+    }
+
+    public Task DetachSession(SessionContainer sessionRef)
+    {
+        return BoltProtocol.DetachSession(this, sessionRef);
+    }
+
+    public Task CloseSession(SessionContainer sessionRef)
+    {
+        return BoltProtocol.CloseSession(this, sessionRef);
+    }
+
     internal virtual Task OnErrorAsync(Exception error)
     {
         return Task.CompletedTask;

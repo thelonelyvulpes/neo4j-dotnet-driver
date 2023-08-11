@@ -56,6 +56,11 @@ internal interface IBoltProtocolHandlerFactory
         IResultCursorBuilder streamBuilder,
         SummaryBuilder summaryBuilder,
         IBookmarksTracker bookmarksTracker);
+
+    BeginSessionResponseHandler NewBeginSessionHandler(SessionParameters sp);
+    AttachSessionResponseHandler NewAttachSessionHandler(SessionContainer sessionRef);
+    IResponseHandler DetachSessionResponseHandler(IConnection connection, SessionContainer sessionRef);
+    IResponseHandler CloseSessionResponseHandler(IConnection connection, SessionContainer sessionRef);
 }
 
 internal class BoltProtocolHandlerFactory : IBoltProtocolHandlerFactory
@@ -123,5 +128,25 @@ internal class BoltProtocolHandlerFactory : IBoltProtocolHandlerFactory
         IBookmarksTracker bookmarksTracker)
     {
         return new PullAllResponseHandler(streamBuilder, summaryBuilder, bookmarksTracker);
+    }
+
+    public BeginSessionResponseHandler NewBeginSessionHandler(SessionParameters sp)
+    {
+        return new BeginSessionResponseHandler(sp);
+    }
+
+    public AttachSessionResponseHandler NewAttachSessionHandler(SessionContainer sessionRef)
+    {
+        return new AttachSessionResponseHandler(sessionRef);
+    }
+
+    public IResponseHandler DetachSessionResponseHandler(IConnection connection, SessionContainer sessionRef)
+    {
+        return new DetachSessionResponseHandler(connection, sessionRef);
+    }
+
+    public IResponseHandler CloseSessionResponseHandler(IConnection connection, SessionContainer sessionRef)
+    {
+        return new CloseSessionResponseHandler(connection, sessionRef);
     }
 }

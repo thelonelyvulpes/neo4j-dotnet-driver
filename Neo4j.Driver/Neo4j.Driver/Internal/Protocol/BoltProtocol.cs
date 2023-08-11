@@ -196,6 +196,42 @@ internal sealed class BoltProtocol : IBoltProtocol
         return _boltProtocolV3.RollbackTransactionAsync(connection);
     }
 
+    public Task BeginSession(IConnection connection, SessionParameters sessionParameters)
+    {
+        var beginSessionMessage = _protocolMessageFactory.NewBeginSessionMessage(connection, sessionParameters);
+        var sessionResponseHandler = _protocolHandlerFactory.NewBeginSessionHandler(sessionParameters);
+        return connection.EnqueueAsync(beginSessionMessage, sessionResponseHandler);
+    }
+
+    public Task AttachSession(IConnection connection, SessionContainer sessionRef)
+    {
+        Console.WriteLine($"Attaching session: {sessionRef.SessionId}.");
+        var attachToSessionMessage = _protocolMessageFactory.AttachToSessionMessage(connection, sessionRef);
+        var attachResponseHandler = _protocolHandlerFactory.NewAttachSessionHandler(sessionRef);
+        return connection.EnqueueAsync(attachToSessionMessage, attachResponseHandler);
+    }
+
+    public async Task DetachSession(IConnection connection, SessionContainer sessionRef)
+    {
+        Console.WriteLine("detaching session");
+        var detachSessionMessage = _protocolMessageFactory.DetachSessionMessage(connection, sessionRef);
+        var detachSessionReponseHandler = _protocolHandlerFactory.DetachSessionResponseHandler(connection, sessionRef);
+        await connection.EnqueueAsync(detachSessionMessage, detachSessionReponseHandler);
+        await connection.SyncAsync();
+    }
+
+    public async Task CloseSession(IConnection connection, SessionContainer sessionRef)
+    {
+        Console.WriteLine("closing session");
+        var attachToSessionMessage = _protocolMessageFactory.AttachToSessionMessage(connection, sessionRef);
+        var attachResponseHandler = _protocolHandlerFactory.NewAttachSessionHandler(sessionRef);
+        await connection.EnqueueAsync(attachToSessionMessage, attachResponseHandler);
+        var closeSessionMessage = _protocolMessageFactory.CloseSessionMessage(connection, sessionRef);
+        var closeSessionReponseHandler = _protocolHandlerFactory.CloseSessionResponseHandler(connection, sessionRef);
+        await connection.EnqueueAsync(closeSessionMessage, closeSessionReponseHandler);
+        await connection.SyncAsync().ConfigureAwait(false);
+    }
+
     private async Task AuthenticateWithLogonAsync(
         IConnection connection,
         string userAgent,

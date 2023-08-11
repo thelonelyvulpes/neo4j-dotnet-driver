@@ -16,17 +16,24 @@
 // limitations under the License.
 
 using System;
-using System.Threading.Tasks;
+using System.Collections;
+using System.Collections.Generic;
+using Neo4j.Driver.Internal.IO;
 
-namespace Neo4j.Driver.Tests.TestBackend;
+namespace Neo4j.Driver.Internal;
 
-public class Program
+internal class AttachMessageSerializer : WriteOnlySerializer
 {
-    private static async Task Main(string[] args)
+    public override IEnumerable<Type> WritableTypes => new[] { typeof(AttachMessage) };
+    public static readonly AttachMessageSerializer Instance = new();
+
+    public override void Serialize(PackStreamWriter writer, object value)
     {
-        await using var driver = GraphDatabase.Driver("bolt://127.0.0.1:7687", AuthTokens.None);
-        await using var session = driver.AsyncSession();
-        await session.ExecuteReadAsync(x => x.RunAsync("RETURN 1 AS n"));
-        await session.ExecuteReadAsync(x => x.RunAsync("RETURN 1 AS n"));
+        var msg = value.CastOrThrow<AttachMessage>();
+        writer.WriteStructHeader(1, MessageFormat.MsgAttachSession);
+        writer.WriteDictionary(new Dictionary<string, object>()
+        {
+            ["sid"] = msg.SessionId
+        } as IDictionary<string, object>);
     }
 }

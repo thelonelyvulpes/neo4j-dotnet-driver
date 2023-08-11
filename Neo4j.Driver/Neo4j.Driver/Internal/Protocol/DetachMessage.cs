@@ -1,4 +1,4 @@
-// Copyright (c) "Neo4j"
+﻿// Copyright (c) "Neo4j"
 // Neo4j Sweden AB [http://neo4j.com]
 // 
 // This file is part of Neo4j.
@@ -15,26 +15,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
-using System.Threading.Tasks;
+using Neo4j.Driver.Internal.IO;
+using Neo4j.Driver.Internal.Messaging;
 
 namespace Neo4j.Driver.Internal;
 
-internal interface IInternalAsyncSession : IAsyncSession
+internal class DetachMessage : IRequestMessage
 {
-    Task<IAsyncTransaction> BeginTransactionAsync(
-        Action<TransactionConfigBuilder> action,
-        bool disposeUnconsumedSessionResult);
+    public DetachMessage(BoltProtocolVersion connectionVersion, SessionContainer sessionRef)
+    {
+    }
 
-    Task<IAsyncTransaction> BeginTransactionAsync(
-        AccessMode mode,
-        Action<TransactionConfigBuilder> action,
-        bool disposeUnconsumedSessionResult);
-
-    Task<IResultCursor> RunAsync(
-        Query query,
-        Action<TransactionConfigBuilder> action,
-        bool disposeUnconsumedSessionResult);
-
-    void NewSession(string sessionId);
+    public IPackStreamSerializer Serializer => DetachMessageSerializer.Instance;
 }

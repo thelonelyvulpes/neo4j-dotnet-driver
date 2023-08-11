@@ -81,12 +81,14 @@ internal partial class AsyncSession : IResultResourceHandler, ITransactionResour
     }
 
     /// <summary>Called back when transaction is closed</summary>
-    public Task OnTransactionDisposeAsync(Bookmarks bookmarks, string database)
+    public async Task OnTransactionDisposeAsync(Bookmarks bookmarks, string database)
     {
+        await _connection.DetachSession(_serverSessionId);
+        
         UpdateBookmarks(bookmarks, new DatabaseInfo(database));
         _transaction = null;
 
-        return DisposeConnectionAsync();
+        await DisposeConnectionAsync().ConfigureAwait(false);
     }
 
     /// <summary>Clean any transaction reference. If transaction result is not committed, then rollback the transaction.</summary>
@@ -118,7 +120,24 @@ internal partial class AsyncSession : IResultResourceHandler, ITransactionResour
         }
         finally
         {
-            await DisposeConnectionAsync().ConfigureAwait(false);
+            try
+            {
+                if (_serverSessionId != null && _connection != null)
+                {
+                    try
+                    {
+                        await _connection.CloseSession(_serverSessionId);
+                    }
+                    finally
+                    {
+                        _serverSessionId = null;
+                    }
+                }
+            }
+            finally
+            {
+                await DisposeConnectionAsync().ConfigureAwait(false);
+            }
         }
     }
 

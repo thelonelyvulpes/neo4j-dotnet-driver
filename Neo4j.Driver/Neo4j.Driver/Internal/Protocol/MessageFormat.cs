@@ -53,6 +53,12 @@ internal sealed class MessageFormat
     //5.1+
     public const byte MsgLogon = 0x6A;
     public const byte MsgLogoff = 0x6B;
+    
+    // 5.3+
+    public const byte MsgBeginSession = 0x29;
+    public const byte MsgAttachSession = 0x2A;
+    public const byte MsgDetachSession = 0x2B;
+    public const byte MsgCloseSession = 0x2C;
 
     private readonly Dictionary<byte, IPackStreamSerializer> _readerStructHandlers = new();
     private readonly Dictionary<Type, IPackStreamSerializer> _writerStructHandlers = new();

@@ -21,7 +21,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Neo4j.Driver.Internal.Connector;
 using static Neo4j.Driver.Internal.Logging.DriverLoggerUtil;
-using static Neo4j.Driver.Internal.Util.ConfigBuilders;
 
 namespace Neo4j.Driver.Internal;
 
@@ -53,6 +52,7 @@ internal partial class AsyncSession : AsyncQueryRunner, IInternalAsyncSession
     private Task<IResultCursor> _result; // last session run result if any
 
     private AsyncTransaction _transaction;
+    private SessionContainer _serverSessionId;
 
     public AsyncSession(
         IConnectionProvider provider,
@@ -191,6 +191,16 @@ internal partial class AsyncSession : AsyncQueryRunner, IInternalAsyncSession
 
         _result = result;
         return result;
+    }
+
+    public void NewSession(string sessionId)
+    {
+        Console.WriteLine("session id: " + sessionId);
+        _serverSessionId = new SessionContainer
+        {
+            SessionId = sessionId,
+            DriverSession = this
+        };
     }
 
     private TransactionConfig BuildTransactionConfig(Action<TransactionConfigBuilder> action)
@@ -343,6 +353,22 @@ internal partial class AsyncSession : AsyncQueryRunner, IInternalAsyncSession
         if (_useBookmarkManager)
         {
             LastBookmarks = await GetBookmarksAsync().ConfigureAwait(false);
+        }
+
+        if (_serverSessionId == null)
+        {
+            await _connection.BeginSession(
+                new SessionParameters
+                {
+                    Database = _database,
+                    Timeout = TimeSpan.FromMinutes(30),
+                    DriverSession = this,
+                    ImpersonatedUser = SessionConfig.ImpersonatedUser
+                });
+        }
+        else
+        {
+            await _connection.AttachSession(_serverSessionId);
         }
 
         var tx = new AsyncTransaction(

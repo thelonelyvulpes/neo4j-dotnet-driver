@@ -133,6 +133,11 @@ internal interface IConnectionRunner
     Task<IResultCursor> RunInExplicitTransactionAsync(Query query, bool reactive, long fetchSize);
     Task CommitTransactionAsync(IBookmarksTracker bookmarksTracker);
     Task RollbackTransactionAsync();
+
+    Task BeginSession(SessionParameters sessionParameters);
+    Task AttachSession(SessionContainer sessionRef);
+    Task DetachSession(SessionContainer sessionRef);
+    Task CloseSession(SessionContainer sessionRef);
 }
 
 internal interface IConnectionDetails

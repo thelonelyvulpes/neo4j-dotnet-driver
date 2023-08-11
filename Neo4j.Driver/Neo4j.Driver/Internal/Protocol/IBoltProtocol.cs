@@ -15,6 +15,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Neo4j.Driver.Internal.Connector;
@@ -61,4 +62,23 @@ internal interface IBoltProtocol
 
     Task CommitTransactionAsync(IConnection connection, IBookmarksTracker bookmarksTracker);
     Task RollbackTransactionAsync(IConnection connection);
+
+    Task BeginSession(IConnection connection, SessionParameters sessionParameters);
+    Task AttachSession(IConnection connection, SessionContainer sessionRef);
+    Task DetachSession(IConnection connection, SessionContainer sessionRef);
+    Task CloseSession(IConnection connection, SessionContainer sessionRef);
+}
+
+internal class SessionParameters
+{
+    public IInternalAsyncSession DriverSession { get; set; }
+    public string Database { get; set; }
+    public string ImpersonatedUser { get; set; }
+    public TimeSpan Timeout { get; set; }
+}
+
+internal class SessionContainer
+{
+    public string SessionId { get; set; }
+    public IInternalAsyncSession DriverSession { get; set; }
 }

@@ -436,6 +436,26 @@ internal sealed class SocketConnection : IConnection
         return BoltProtocol.RollbackTransactionAsync(this);
     }
 
+    public Task BeginSession(SessionParameters sessionParameters)
+    {
+        return BoltProtocol.BeginSession(this, sessionParameters);
+    }
+
+    public Task AttachSession(SessionContainer sessionRef)
+    {
+        return BoltProtocol.AttachSession(this, sessionRef);
+    }
+
+    public Task DetachSession(SessionContainer sessionRef)
+    {
+        return BoltProtocol.DetachSession(this, sessionRef);
+    }
+
+    public Task CloseSession(SessionContainer sessionRef)
+    {
+        return BoltProtocol.CloseSession(this, sessionRef);
+    }
+
     private Task HandleAuthErrorAsync(IResponsePipeline responsePipeline)
     {
         return responsePipeline.IsHealthy(out var error)

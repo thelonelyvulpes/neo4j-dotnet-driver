@@ -18,6 +18,7 @@
 using System;
 using Neo4j.Driver.Internal.Auth;
 using Neo4j.Driver.Internal.Connector;
+using Neo4j.Driver.Internal.MessageHandling;
 using Neo4j.Driver.Internal.Messaging;
 
 namespace Neo4j.Driver.Internal;
@@ -54,6 +55,11 @@ internal interface IBoltProtocolMessageFactory
         TransactionConfig config,
         AccessMode mode,
         INotificationsConfig notificationsConfig);
+
+    BeginSessionMessage NewBeginSessionMessage(IConnection connection, SessionParameters sessionParameters);
+    AttachMessage AttachToSessionMessage(IConnection connection, SessionContainer sessionRef);
+    DetachMessage DetachSessionMessage(IConnection connection, SessionContainer sessionRef);
+    CloseSessionMessage CloseSessionMessage(IConnection connection, SessionContainer sessionRef);
 }
 
 internal class BoltProtocolMessageFactory : IBoltProtocolMessageFactory
@@ -61,7 +67,7 @@ internal class BoltProtocolMessageFactory : IBoltProtocolMessageFactory
     internal static readonly BoltProtocolMessageFactory Instance = new();
 
     public RunWithMetadataMessage NewRunWithMetadataMessage(
-        IConnection connection,
+        IConnection connection, 
         AutoCommitParams autoCommitParams,
         INotificationsConfig notificationsConfig)
     {
@@ -161,5 +167,25 @@ internal class BoltProtocolMessageFactory : IBoltProtocolMessageFactory
             mode,
             connection.SessionConfig,
             notificationsConfig);
+    }
+
+    public BeginSessionMessage NewBeginSessionMessage(IConnection connection, SessionParameters sessionParameters)
+    {
+        return new BeginSessionMessage(connection.Version, sessionParameters);
+    }
+
+    public AttachMessage AttachToSessionMessage(IConnection connection, SessionContainer sessionRef)
+    {
+        return new AttachMessage(connection.Version, sessionRef);
+    }
+
+    public DetachMessage DetachSessionMessage(IConnection connection, SessionContainer sessionRef)
+    {
+        return new DetachMessage(connection.Version, sessionRef);
+    }
+
+    public CloseSessionMessage CloseSessionMessage(IConnection connection, SessionContainer sessionRef)
+    {
+        return new CloseSessionMessage(connection.Version, sessionRef);
     }
 }

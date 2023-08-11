@@ -230,6 +230,26 @@ internal sealed class BoltProtocolV3 : IBoltProtocol
         await connection.SyncAsync().ConfigureAwait(false);
     }
 
+    public Task BeginSession(IConnection connection, SessionParameters sessionParameters)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task AttachSession(IConnection connection, SessionContainer sessionRef)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task DetachSession(IConnection connection, SessionContainer sessionRef)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task CloseSession(IConnection connection, SessionContainer sessionRef)
+    {
+        throw new NotImplementedException();
+    }
+
     // TODO: Refactor validation methods into a separate class or move to message classes so the checks aren't duplicated. 
     internal static void ValidateDatabase(IConnection connection, string database)
     {

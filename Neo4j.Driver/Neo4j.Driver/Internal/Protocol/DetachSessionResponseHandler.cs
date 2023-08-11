@@ -1,4 +1,4 @@
-// Copyright (c) "Neo4j"
+﻿// Copyright (c) "Neo4j"
 // Neo4j Sweden AB [http://neo4j.com]
 // 
 // This file is part of Neo4j.
@@ -16,25 +16,34 @@
 // limitations under the License.
 
 using System;
-using System.Threading.Tasks;
+using System.Collections.Generic;
+using Neo4j.Driver.Internal.Connector;
+using Neo4j.Driver.Internal.MessageHandling;
 
 namespace Neo4j.Driver.Internal;
 
-internal interface IInternalAsyncSession : IAsyncSession
+internal class DetachSessionResponseHandler : IResponseHandler
 {
-    Task<IAsyncTransaction> BeginTransactionAsync(
-        Action<TransactionConfigBuilder> action,
-        bool disposeUnconsumedSessionResult);
+    public DetachSessionResponseHandler(IConnection connection, SessionContainer sessionRef)
+    {
+        
+    }
 
-    Task<IAsyncTransaction> BeginTransactionAsync(
-        AccessMode mode,
-        Action<TransactionConfigBuilder> action,
-        bool disposeUnconsumedSessionResult);
+    public void OnSuccess(IDictionary<string, object> metadata)
+    {
+        Console.WriteLine("Successfully detached session.");
+    }
 
-    Task<IResultCursor> RunAsync(
-        Query query,
-        Action<TransactionConfigBuilder> action,
-        bool disposeUnconsumedSessionResult);
+    public void OnRecord(object[] fieldValues)
+    {
+    }
 
-    void NewSession(string sessionId);
+    public void OnFailure(IResponsePipelineError error)
+    {
+        throw new AggregateException(error.Exception);
+    }
+
+    public void OnIgnored()
+    {
+    }
 }
