@@ -42,6 +42,7 @@ internal class ResultCursorBuilder : IResultCursorBuilder
     private long _queryId;
 
     private volatile int _state;
+    private int _count;
 
     public ResultCursorBuilder(
         SummaryBuilder summaryBuilder,
@@ -83,7 +84,7 @@ internal class ResultCursorBuilder : IResultCursorBuilder
             await _advanceFunction().ConfigureAwait(false);
         }
 
-        return _fields ?? new string[0];
+        return _fields ?? Array.Empty<string>();
     }
 
     public async Task<IRecord> NextRecordAsync()
@@ -96,7 +97,8 @@ internal class ResultCursorBuilder : IResultCursorBuilder
 
         if (_records.TryDequeue(out var record))
         {
-            _autoPullHandler.TryEnableAutoPull(_records.Count);
+            var count = Interlocked.Decrement(ref _count);
+            _autoPullHandler.TryEnableAutoPull(count);
             if (CurrentState < State.Completed && _autoPullHandler.AutoPull)
             {
                 await _advanceFunction().ConfigureAwait(false);
@@ -112,6 +114,7 @@ internal class ResultCursorBuilder : IResultCursorBuilder
 
         if (_records.TryDequeue(out record))
         {
+            Interlocked.Decrement(ref _count);
             return record;
         }
 
@@ -152,7 +155,8 @@ internal class ResultCursorBuilder : IResultCursorBuilder
     public void PushRecord(object[] fieldValues)
     {
         _records.Enqueue(new Record(_fields, fieldValues));
-        _autoPullHandler.TryDisableAutoPull(_records.Count);
+        var count = Interlocked.Increment(ref _count);
+        _autoPullHandler.TryDisableAutoPull(count);
 
         UpdateState(State.RecordsStreaming);
     }
