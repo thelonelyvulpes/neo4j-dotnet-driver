@@ -79,15 +79,15 @@ internal interface IConnection : IConnectionDetails, IConnectionRunner
     Task SyncAsync();
 
     // send all
-    Task SendAsync();
+    ValueTask SendAsync();
 
     // receive one
-    Task ReceiveOneAsync();
+    ValueTask ReceiveOneAsync();
 
-    Task EnqueueAsync(IRequestMessage message, IResponseHandler handler);
+    ValueTask EnqueueAsync(IRequestMessage message, IResponseHandler handler);
 
     // Enqueue a reset message
-    Task ResetAsync();
+    ValueTask ResetAsync();
 
     /// <summary>Close and release related resources</summary>
     Task DestroyAsync();

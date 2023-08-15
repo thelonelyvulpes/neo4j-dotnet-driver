@@ -33,12 +33,13 @@ internal class ConsumableResultCursor : IInternalResultCursor, IAsyncEnumerator<
 
     public ValueTask<bool> MoveNextAsync()
     {
-        return new ValueTask<bool>(FetchAsync());
+        AssertNotConsumed();
+        return _cursor.VFetchAsync();
     }
 
     public ValueTask DisposeAsync()
     {
-        return new ValueTask(Task.CompletedTask);
+        return new ValueTask();
     }
 
     public Task<string[]> KeysAsync()
@@ -78,6 +79,12 @@ internal class ConsumableResultCursor : IInternalResultCursor, IAsyncEnumerator<
     public void Cancel()
     {
         _cursor.Cancel();
+    }
+
+    public ValueTask<bool> VFetchAsync()
+    {
+        AssertNotConsumed();
+        return _cursor.VFetchAsync();
     }
 
     public IAsyncEnumerator<IRecord> GetAsyncEnumerator(CancellationToken cancellationToken = default)

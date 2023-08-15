@@ -41,7 +41,7 @@ internal sealed class MessageWriter : IMessageWriter
         _chunkWriter.CloseChunk();
     }
 
-    public Task FlushAsync()
+    public ValueTask FlushAsync()
     {
         return _chunkWriter.SendAsync();
     }

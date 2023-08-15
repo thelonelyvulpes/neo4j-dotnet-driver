@@ -60,7 +60,7 @@ internal sealed class BoltProtocol : IBoltProtocol
         return _boltProtocolV3.LogoutAsync(connection);
     }
 
-    public Task ResetAsync(IConnection connection)
+    public ValueTask ResetAsync(IConnection connection)
     {
         return _boltProtocolV3.ResetAsync(connection);
     }
@@ -271,7 +271,7 @@ internal sealed class BoltProtocol : IBoltProtocol
 
     // Internal for tests.
 
-    internal Func<IResultStreamBuilder, long, long, Task> RequestMore(
+    internal Func<IResultStreamBuilder, long, long, ValueTask> RequestMore(
         IConnection connection,
         SummaryBuilder summaryBuilder,
         IBookmarksTracker bookmarksTracker)

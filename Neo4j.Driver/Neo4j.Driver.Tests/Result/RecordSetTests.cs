@@ -116,6 +116,16 @@ namespace Neo4j.Driver.Tests
         {
         }
 
+        public async ValueTask<bool> VFetchAsync()
+        {
+            return await FetchAsync();
+        }
+
+        public ValueTask<bool> ValueFetchAsync()
+        {
+            return new ValueTask<bool>();
+        }
+
         public IAsyncEnumerator<IRecord> GetAsyncEnumerator(CancellationToken cancellationToken = new())
         {
             return this;

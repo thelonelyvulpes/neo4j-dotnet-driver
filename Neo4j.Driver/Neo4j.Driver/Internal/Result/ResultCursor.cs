@@ -36,10 +36,30 @@ internal class ResultCursor : IInternalResultCursor, IAsyncEnumerator<IRecord>
     {
         _resultStream = resultStream ?? throw new ArgumentNullException(nameof(resultStream));
     }
-
-    ValueTask<bool> IAsyncEnumerator<IRecord>.MoveNextAsync()
+    
+    async ValueTask<bool> IAsyncEnumerator<IRecord>.MoveNextAsync()
     {
-        return new ValueTask<bool>(FetchAsync());
+        if (_peeked != null)
+        {
+            _current = _peeked;
+            _peeked = null;
+        }
+        else
+        {
+            try
+            {
+                _current = await _resultStream.NextRecordAsync().ConfigureAwait(false);
+            }
+            finally
+            {
+                if (_current == null)
+                {
+                    _atEnd = true;
+                }
+            }
+        }
+
+        return _current != null;
     }
 
     public ValueTask DisposeAsync()
@@ -52,7 +72,7 @@ internal class ResultCursor : IInternalResultCursor, IAsyncEnumerator<IRecord>
     {
         if (_keys == null)
         {
-            _keys = _resultStream.GetKeysAsync();
+            _keys = _resultStream.GetKeysAsync().AsTask();
         }
 
         return _keys;
@@ -63,13 +83,13 @@ internal class ResultCursor : IInternalResultCursor, IAsyncEnumerator<IRecord>
         if (_summary == null)
         {
             Cancel();
-            _summary = _resultStream.ConsumeAsync();
+            _summary = _resultStream.ConsumeAsync().AsTask();
         }
         else
         {
             if (_summary.IsFaulted)
             {
-                _summary = _resultStream.ConsumeAsync();
+                _summary = _resultStream.ConsumeAsync().AsTask();
             }
         }
 
@@ -99,7 +119,32 @@ internal class ResultCursor : IInternalResultCursor, IAsyncEnumerator<IRecord>
         return _peeked;
     }
 
-    public async Task<bool> FetchAsync()
+    public Task<bool> FetchAsync()
+    {
+        return VFetchAsync().AsTask();
+    }
+
+    public IRecord Current
+    {
+        get
+        {
+            if (!_atEnd && _current == null && _peeked == null)
+            {
+                throw new InvalidOperationException("Tried to access Current without calling FetchAsync.");
+            }
+
+            return _current;
+        }
+    }
+
+    public bool IsOpen => _summary == null;
+
+    public void Cancel()
+    {
+        _resultStream.Cancel();
+    }
+
+    public async ValueTask<bool> VFetchAsync()
     {
         if (_peeked != null)
         {
@@ -122,26 +167,6 @@ internal class ResultCursor : IInternalResultCursor, IAsyncEnumerator<IRecord>
         }
 
         return _current != null;
-    }
-
-    public IRecord Current
-    {
-        get
-        {
-            if (!_atEnd && _current == null && _peeked == null)
-            {
-                throw new InvalidOperationException("Tried to access Current without calling FetchAsync.");
-            }
-
-            return _current;
-        }
-    }
-
-    public bool IsOpen => _summary == null;
-
-    public void Cancel()
-    {
-        _resultStream.Cancel();
     }
 
     public IAsyncEnumerator<IRecord> GetAsyncEnumerator(CancellationToken cancellationToken = default)

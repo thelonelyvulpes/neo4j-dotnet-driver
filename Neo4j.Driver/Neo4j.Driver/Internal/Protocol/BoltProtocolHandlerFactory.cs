@@ -30,7 +30,7 @@ internal interface IBoltProtocolHandlerFactory
     IResultCursorBuilder NewResultCursorBuilder(
         SummaryBuilder summaryBuilder,
         IConnection connection,
-        Func<IConnection, SummaryBuilder, IBookmarksTracker, Func<IResultStreamBuilder, long, long, Task>> requestMore,
+        Func<IConnection, SummaryBuilder, IBookmarksTracker, Func<IResultStreamBuilder, long, long, ValueTask>> requestMore,
         Func<IConnection, SummaryBuilder, IBookmarksTracker, Func<IResultStreamBuilder, long, Task>> cancelRequest,
         IBookmarksTracker bookmarksTracker,
         IResultResourceHandler resultResourceHandler,
@@ -65,7 +65,7 @@ internal class BoltProtocolHandlerFactory : IBoltProtocolHandlerFactory
     public IResultCursorBuilder NewResultCursorBuilder(
         SummaryBuilder summaryBuilder,
         IConnection connection,
-        Func<IConnection, SummaryBuilder, IBookmarksTracker, Func<IResultStreamBuilder, long, long, Task>> requestMore,
+        Func<IConnection, SummaryBuilder, IBookmarksTracker, Func<IResultStreamBuilder, long, long, ValueTask>> requestMore,
         Func<IConnection, SummaryBuilder, IBookmarksTracker, Func<IResultStreamBuilder, long, Task>> cancelRequest,
         IBookmarksTracker bookmarksTracker,
         IResultResourceHandler resultResourceHandler,

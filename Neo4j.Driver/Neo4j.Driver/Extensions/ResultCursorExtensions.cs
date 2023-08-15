@@ -32,9 +32,24 @@ public static class ResultCursorExtensions
     /// Throws <exception cref="InvalidOperationException"></exception> if the result contains more than one record or
     /// the result is empty.
     /// </remarks>
-    public static Task<IRecord> SingleAsync(this IResultCursor result)
+    public static async Task<IRecord> SingleAsync(this IResultCursor result)
     {
-        return SingleAsync(result, record => record);
+        result = result ?? throw new ArgumentNullException(nameof(result));
+
+        var iter = result.GetAsyncEnumerator();
+        if (!await iter.MoveNextAsync().ConfigureAwait(false))
+        {
+            throw new InvalidOperationException("The result is empty.");
+        }
+
+        var record = result.Current;
+        if (!await iter.MoveNextAsync().ConfigureAwait(false))
+        {
+            return record;
+        }
+
+        throw new InvalidOperationException("The result contains more than one element.");
+
     }
 
     /// <summary>Return the only record in the result stream.</summary>
@@ -50,18 +65,20 @@ public static class ResultCursorExtensions
     {
         result = result ?? throw new ArgumentNullException(nameof(result));
 
-        if (await result.FetchAsync().ConfigureAwait(false))
+        var iter = result.GetAsyncEnumerator();
+        if (!await iter.MoveNextAsync().ConfigureAwait(false))
         {
-            var record = result.Current;
-            if (!await result.FetchAsync().ConfigureAwait(false))
-            {
-                return operation(record);
-            }
-
-            throw new InvalidOperationException("The result contains more than one element.");
+            throw new InvalidOperationException("The result is empty.");
         }
 
-        throw new InvalidOperationException("The result is empty.");
+        var record = result.Current;
+        if (!await iter.MoveNextAsync().ConfigureAwait(false))
+        {
+            return operation(record);
+        }
+
+        throw new InvalidOperationException("The result contains more than one element.");
+
     }
 
     /// <summary>Pull all records in the result stream into memory and return in a list.</summary>
@@ -71,13 +88,15 @@ public static class ResultCursorExtensions
     {
         result = result ?? throw new ArgumentNullException(nameof(result));
         var list = new List<IRecord>();
-        while (await result.FetchAsync().ConfigureAwait(false))
+        var iter = result.GetAsyncEnumerator();
+        while (await iter.MoveNextAsync().ConfigureAwait(false))
         {
             list.Add(result.Current);
         }
 
         return list;
     }
+    
 
     /// <summary>Pull all records in the result stream into memory and return in a list.</summary>
     /// <param name="result"> The result stream.</param>
@@ -87,14 +106,15 @@ public static class ResultCursorExtensions
     {
         result = result ?? throw new ArgumentNullException(nameof(result));
         var list = new List<IRecord>();
-        while (await result.FetchAsync().ConfigureAwait(false))
+        var iter = result.GetAsyncEnumerator(cancellationToken);
+        while (await iter.MoveNextAsync().ConfigureAwait(false))
         {
-            cancellationToken.ThrowIfCancellationRequested();
             list.Add(result.Current);
         }
 
         return list;
     }
+
 
     /// <summary>Apply the operation on each record in the result stream and return the operation results in a list.</summary>
     /// <typeparam name="T">The return type of the list</typeparam>
@@ -105,7 +125,8 @@ public static class ResultCursorExtensions
     {
         result = result ?? throw new ArgumentNullException(nameof(result));
         var list = new List<T>();
-        while (await result.FetchAsync().ConfigureAwait(false))
+        var iter = result.GetAsyncEnumerator();
+        while (await iter.MoveNextAsync().ConfigureAwait(false))
         {
             var record = result.Current;
             list.Add(operation(record));
@@ -123,7 +144,8 @@ public static class ResultCursorExtensions
         Action<IRecord> operation)
     {
         result = result ?? throw new ArgumentNullException(nameof(result));
-        while (await result.FetchAsync().ConfigureAwait(false))
+        var iter = result.GetAsyncEnumerator();
+        while (await iter.MoveNextAsync().ConfigureAwait(false))
         {
             var record = result.Current;
             operation(record);

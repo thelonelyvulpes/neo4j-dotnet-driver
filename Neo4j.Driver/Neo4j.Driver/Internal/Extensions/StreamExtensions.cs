@@ -34,7 +34,7 @@ internal static class StreamExtensions
     /// <param name="count">The maximum number of bytes to read</param>
     /// <param name="timeoutMs">The timeout in milliseconds that the stream will close after if there is no activity.</param>
     /// <returns>The number of bytes read</returns>
-    public static async Task<int> ReadWithTimeoutAsync(
+    public static async ValueTask<int> ReadWithTimeoutAsync(
         this Stream stream,
         byte[] buffer,
         int offset,
@@ -77,14 +77,14 @@ internal static class StreamExtensions
         }
     }
 
-    private static Task<int> ReadWithoutTimeoutAsync(Stream stream, byte[] buffer, int offset, int count)
+    private static ValueTask<int> ReadWithoutTimeoutAsync(Stream stream, byte[] buffer, int offset, int count)
     {
 #if NET6_0_OR_GREATER
         // .netcore 3.0+ network streams support cancellation tokens.
-        return stream.ReadAsync(buffer.AsMemory(offset, count)).AsTask();
+        return stream.ReadAsync(buffer.AsMemory(offset, count));
 #else
         // .net standard implementation relies on closing stream
-        return stream.ReadAsync(buffer, offset, count);
+        return new ValueTask<int>(stream.ReadAsync(buffer, offset, count));
 #endif
     }
 

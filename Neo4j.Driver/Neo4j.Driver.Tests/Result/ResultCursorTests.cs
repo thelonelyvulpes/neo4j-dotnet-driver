@@ -31,14 +31,14 @@ namespace Neo4j.Driver.Tests
 {
     public class ResultCursorTests
     {
-        private static Task<IRecord> NextRecordFromEnum(IEnumerator<IRecord> resultEnum)
+        private static ValueTask<IRecord> NextRecordFromEnum(IEnumerator<IRecord> resultEnum)
         {
             if (resultEnum.MoveNext())
             {
-                return Task.FromResult(resultEnum.Current);
+                return new ValueTask<IRecord>(resultEnum.Current);
             }
 
-            return Task.FromResult((IRecord)null);
+            return new ValueTask<IRecord>(null as IRecord);
         }
 
         public class Constructor

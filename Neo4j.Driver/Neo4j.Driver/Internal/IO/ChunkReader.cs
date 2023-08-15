@@ -38,7 +38,7 @@ internal sealed class ChunkReader : IChunkReader
     private MemoryStream ChunkBuffer { get; set; }
     private long ChunkBufferRemaining => ChunkBuffer.Length - ChunkBuffer.Position;
 
-    public async Task<int> ReadMessageChunksToBufferStreamAsync(Stream bufferStream)
+    public async ValueTask<int> ReadMessageChunksToBufferStreamAsync(Stream bufferStream)
     {
         var messageCount = 0;
         //store output streams state, and ensure we add to the end of it.
@@ -81,7 +81,7 @@ internal sealed class ChunkReader : IChunkReader
         ChunkBuffer.Position = 0;
     }
 
-    private async Task PopulateChunkBufferAsync(int requiredSize = Constants.ChunkBufferSize)
+    private async ValueTask PopulateChunkBufferAsync(int requiredSize = Constants.ChunkBufferSize)
     {
         if (ChunkBufferRemaining >= requiredSize)
         {
@@ -122,7 +122,7 @@ internal sealed class ChunkReader : IChunkReader
         }
     }
 
-    private async Task<byte[]> ReadDataOfSizeAsync(int requiredSize)
+    private async ValueTask<byte[]> ReadDataOfSizeAsync(int requiredSize)
     {
         await PopulateChunkBufferAsync(requiredSize).ConfigureAwait(false);
 
@@ -137,7 +137,7 @@ internal sealed class ChunkReader : IChunkReader
         return data;
     }
 
-    private async Task<bool> ConstructMessageAsync(Stream outputMessageStream)
+    private async ValueTask<bool> ConstructMessageAsync(Stream outputMessageStream)
     {
         var dataRead = false;
 
@@ -163,7 +163,11 @@ internal sealed class ChunkReader : IChunkReader
             var rawChunkData = await ReadDataOfSizeAsync(chunkSize).ConfigureAwait(false);
             dataRead = true;
             //Put the raw chunk data into the output stream
-            outputMessageStream.Write(rawChunkData, 0, chunkSize);
+            #if NET6_0_OR_GREATER
+            await outputMessageStream.WriteAsync(rawChunkData.AsMemory(0, chunkSize)).ConfigureAwait(false);
+            #else
+            await outputMessageStream.WriteAsync(rawChunkData, 0, chunkSize).ConfigureAwait(false);
+            #endif
         }
 
         //Return if a message was constructed

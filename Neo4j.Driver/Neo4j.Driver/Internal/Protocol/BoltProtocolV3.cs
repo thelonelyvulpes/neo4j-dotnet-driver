@@ -75,7 +75,7 @@ internal sealed class BoltProtocolV3 : IBoltProtocol
         await connection.SendAsync().ConfigureAwait(false);
     }
 
-    public Task ResetAsync(IConnection connection)
+    public ValueTask ResetAsync(IConnection connection)
     {
         return connection.EnqueueAsync(ResetMessage.Instance, NoOpResponseHandler.Instance);
     }

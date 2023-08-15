@@ -92,7 +92,7 @@ internal sealed class SocketClient : ISocketClient
 
     public BoltProtocolVersion Version { get; private set; }
 
-    public async Task SendAsync(IEnumerable<IRequestMessage> messages)
+    public async ValueTask SendAsync(IEnumerable<IRequestMessage> messages)
     {
         try
         {
@@ -113,7 +113,7 @@ internal sealed class SocketClient : ISocketClient
         }
     }
 
-    public async Task ReceiveAsync(IResponsePipeline responsePipeline)
+    public async ValueTask ReceiveAsync(IResponsePipeline responsePipeline)
     {
         while (!responsePipeline.HasNoPendingMessages)
         {
@@ -121,7 +121,7 @@ internal sealed class SocketClient : ISocketClient
         }
     }
 
-    public async Task ReceiveOneAsync(IResponsePipeline responsePipeline)
+    public async ValueTask ReceiveOneAsync(IResponsePipeline responsePipeline)
     {
         try
         {

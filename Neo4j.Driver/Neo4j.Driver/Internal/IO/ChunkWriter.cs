@@ -29,7 +29,7 @@ internal interface IChunkWriter
     void OpenChunk();
     void Write(byte[] buffer, int offset, int count);
     void CloseChunk();
-    Task SendAsync();
+    ValueTask SendAsync();
 }
 
 internal sealed class ChunkWriter : Stream, IChunkWriter
@@ -96,7 +96,7 @@ internal sealed class ChunkWriter : Stream, IChunkWriter
         while (leftToChunk > 0)
         {
             var thisChunkSize = (int)Math.Min(leftToChunk, _chunkSize - currentLength);
-
+            
             _chunkStream.Write(buffer, thisChunkIndex, thisChunkSize);
 
             thisChunkIndex += thisChunkSize;
@@ -137,14 +137,18 @@ internal sealed class ChunkWriter : Stream, IChunkWriter
         }
     }
 
-    public async Task SendAsync()
+    public async ValueTask SendAsync()
     {
         LogStream(_chunkStream);
 
         _chunkStream.Position = 0;
         try
         {
+#if NET6_0_OR_GREATER
+            await _downStream.WriteAsync(_chunkStream.GetBuffer().AsMemory()).ConfigureAwait(false);
+#else
             await _chunkStream.CopyToAsync(_downStream).ConfigureAwait(false);
+#endif
         }
         finally
         {

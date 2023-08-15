@@ -31,7 +31,7 @@ internal interface IBoltProtocol
         INotificationsConfig notificationsConfig);
 
     Task LogoutAsync(IConnection connection);
-    Task ResetAsync(IConnection connection);
+    ValueTask ResetAsync(IConnection connection);
     Task ReAuthAsync(IConnection connection, IAuthToken newAuthToken);
 
     Task<IReadOnlyDictionary<string, object>> GetRoutingTableAsync(

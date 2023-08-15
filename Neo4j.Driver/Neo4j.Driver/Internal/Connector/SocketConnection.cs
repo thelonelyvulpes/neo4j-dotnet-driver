@@ -210,7 +210,7 @@ internal sealed class SocketConnection : IConnection
         await ReceiveAsync().ConfigureAwait(false);
     }
 
-    public async Task SendAsync()
+    public async ValueTask SendAsync()
     {
         if (_messages.Count == 0)
             // nothing to send
@@ -232,7 +232,7 @@ internal sealed class SocketConnection : IConnection
         }
     }
 
-    public async Task ReceiveOneAsync()
+    public async ValueTask ReceiveOneAsync()
     {
         await _recvLock.WaitAsync().ConfigureAwait(false);
         try
@@ -253,7 +253,7 @@ internal sealed class SocketConnection : IConnection
         }
     }
 
-    public Task ResetAsync()
+    public ValueTask ResetAsync()
     {
         return BoltProtocol.ResetAsync(this);
     }
@@ -318,7 +318,7 @@ internal sealed class SocketConnection : IConnection
         }
     }
 
-    public async Task EnqueueAsync(IRequestMessage message, IResponseHandler handler)
+    public async ValueTask EnqueueAsync(IRequestMessage message, IResponseHandler handler)
     {
         await _sendLock.WaitAsync().ConfigureAwait(false);
 

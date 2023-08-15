@@ -58,7 +58,7 @@ internal abstract class DelegatedConnection : IConnection
         }
     }
 
-    public async Task SendAsync()
+    public async ValueTask SendAsync()
     {
         try
         {
@@ -70,7 +70,7 @@ internal abstract class DelegatedConnection : IConnection
         }
     }
 
-    public async Task ReceiveOneAsync()
+    public async ValueTask ReceiveOneAsync()
     {
         try
         {
@@ -126,7 +126,7 @@ internal abstract class DelegatedConnection : IConnection
         }
     }
 
-    public async Task EnqueueAsync(IRequestMessage message, IResponseHandler handler)
+    public async ValueTask EnqueueAsync(IRequestMessage message, IResponseHandler handler)
     {
         try
         {
@@ -204,7 +204,7 @@ internal abstract class DelegatedConnection : IConnection
         return BoltProtocol.LogoutAsync(this);
     }
 
-    public Task ResetAsync()
+    public ValueTask ResetAsync()
     {
         return BoltProtocol.ResetAsync(this);
     }

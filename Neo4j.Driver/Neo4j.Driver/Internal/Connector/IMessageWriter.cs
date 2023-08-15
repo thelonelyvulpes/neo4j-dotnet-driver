@@ -24,5 +24,5 @@ namespace Neo4j.Driver.Internal.Connector;
 internal interface IMessageWriter
 {
     void Write(IRequestMessage message, PackStreamWriter writer);
-    Task FlushAsync();
+    ValueTask FlushAsync();
 }
