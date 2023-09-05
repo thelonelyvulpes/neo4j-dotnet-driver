@@ -16,6 +16,8 @@
 // limitations under the License.
 
 using System;
+using System.Buffers;
+using System.Buffers.Binary;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -27,18 +29,20 @@ internal sealed class ChunkReader : IChunkReader
 {
     private const int ChunkHeaderSize = 2;
     private int _readTimeoutMs = -1;
+    private readonly Memory<byte> _buffer;
 
     internal ChunkReader(Stream downStream)
     {
         InputStream = downStream ?? throw new ArgumentNullException(nameof(downStream));
         Throw.ArgumentOutOfRangeException.IfFalse(downStream.CanRead, nameof(downStream.CanRead));
+        _buffer = new Memory<byte>(new byte[Constants.ChunkBufferSize * 4]);
     }
 
     private Stream InputStream { get; }
     private MemoryStream ChunkBuffer { get; set; }
     private long ChunkBufferRemaining => ChunkBuffer.Length - ChunkBuffer.Position;
 
-    public async Task<int> ReadMessageChunksToBufferStreamAsync(Stream bufferStream)
+    public async ValueTask<int> ReadMessageChunksToBufferStreamAsync(Stream bufferStream)
     {
         var messageCount = 0;
         //store output streams state, and ensure we add to the end of it.
@@ -81,7 +85,7 @@ internal sealed class ChunkReader : IChunkReader
         ChunkBuffer.Position = 0;
     }
 
-    private async Task PopulateChunkBufferAsync(int requiredSize = Constants.ChunkBufferSize)
+    private async ValueTask PopulateChunkBufferAsync(int requiredSize = Constants.ChunkBufferSize)
     {
         if (ChunkBufferRemaining >= requiredSize)
         {
@@ -92,15 +96,12 @@ internal sealed class ChunkReader : IChunkReader
 
         var storedPosition = ChunkBuffer.Position;
         requiredSize -= (int)ChunkBufferRemaining;
-        var bufferSize = Math.Max(Constants.ChunkBufferSize, requiredSize);
-        var data = new byte[bufferSize];
-
         ChunkBuffer.Position = ChunkBuffer.Length;
 
         while (requiredSize > 0)
         {
             var numBytesRead = await InputStream
-                .ReadWithTimeoutAsync(data, 0, bufferSize, _readTimeoutMs)
+                .ReadWithTimeoutAsync(_buffer, _readTimeoutMs)
                 .ConfigureAwait(false);
 
             if (numBytesRead <= 0)
@@ -108,7 +109,11 @@ internal sealed class ChunkReader : IChunkReader
                 break;
             }
 
-            ChunkBuffer.Write(data, 0, numBytesRead);
+#if NET6_0_OR_GREATER
+            ChunkBuffer.Write(_buffer.Span.Slice(0, numBytesRead));
+#else
+            ChunkBuffer.Write(_buffer.ToArray(), 0, numBytesRead);
+#endif
             requiredSize -= numBytesRead;
         }
 
@@ -122,29 +127,27 @@ internal sealed class ChunkReader : IChunkReader
         }
     }
 
-    private async Task<byte[]> ReadDataOfSizeAsync(int requiredSize)
+    private async ValueTask ReadDataOfSizeAsync(int requiredSize, Memory<byte> data)
     {
         await PopulateChunkBufferAsync(requiredSize).ConfigureAwait(false);
-
-        var data = new byte[requiredSize];
-        var readSize = ChunkBuffer.Read(data, 0, requiredSize);
+        var readSize = ChunkBuffer.Read(data.Span);
 
         if (readSize != requiredSize)
         {
             throw new IOException("Unexpected end of stream, unable to read required data size");
         }
-
-        return data;
     }
 
-    private async Task<bool> ConstructMessageAsync(Stream outputMessageStream)
+    private async ValueTask<bool> ConstructMessageAsync(Stream outputMessageStream)
     {
         var dataRead = false;
-
+        using var borrow = MemoryPool<byte>.Shared.Rent(Constants.ChunkBufferSize * 4);
+        var headerBuffer = borrow.Memory.Slice(0, 2);
+        
         while (true)
         {
-            var chunkHeader = await ReadDataOfSizeAsync(ChunkHeaderSize).ConfigureAwait(false);
-            var chunkSize = PackStreamBitConverter.ToUInt16(chunkHeader);
+            await ReadDataOfSizeAsync(ChunkHeaderSize, headerBuffer).ConfigureAwait(false);
+            var chunkSize = BinaryPrimitives.ReadUInt16BigEndian(headerBuffer.Span);
 
             //NOOP or end of message
             if (chunkSize == 0)
@@ -155,15 +158,16 @@ internal sealed class ChunkReader : IChunkReader
                 {
                     break;
                 }
-
                 //Its a NOOP so skip it
                 continue;
             }
 
-            var rawChunkData = await ReadDataOfSizeAsync(chunkSize).ConfigureAwait(false);
+            var memory = borrow.Memory.Slice(0, chunkSize);
+            await ReadDataOfSizeAsync(chunkSize, memory).ConfigureAwait(false);
             dataRead = true;
             //Put the raw chunk data into the output stream
-            outputMessageStream.Write(rawChunkData, 0, chunkSize);
+            // outputMessageStream.Write(memory);
+            outputMessageStream.Write(memory.Span.ToArray(), 0, chunkSize);
         }
 
         //Return if a message was constructed
