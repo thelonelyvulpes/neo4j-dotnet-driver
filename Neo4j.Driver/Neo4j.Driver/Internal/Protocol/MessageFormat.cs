@@ -63,10 +63,10 @@ internal sealed class MessageFormat
     {
         Version = version;
         // Response Message Types
-        AddMessageHandler(FailureMessageSerializer.Instance);
-        AddMessageHandler(IgnoredMessageSerializer.Instance);
-        AddMessageHandler(RecordMessageSerializer.Instance);
-        AddMessageHandler(SuccessMessageSerializer.Instance);
+        AddHandler(FailureMessageSerializer.Instance);
+        AddHandler(IgnoredMessageSerializer.Instance);
+        AddHandler(RecordMessageSerializer.Instance);
+        AddHandler(SuccessMessageSerializer.Instance);
 
         // Add V2 Spatial Types
         AddHandler(PointSerializer.Instance);

@@ -34,17 +34,15 @@ internal static class StreamExtensions
     /// <param name="count">The maximum number of bytes to read</param>
     /// <param name="timeoutMs">The timeout in milliseconds that the stream will close after if there is no activity.</param>
     /// <returns>The number of bytes read</returns>
-    public static async Task<int> ReadWithTimeoutAsync(
+    public static async ValueTask<int> ReadWithTimeoutAsync(
         this Stream stream,
-        byte[] buffer,
-        int offset,
-        int count,
+        Memory<byte> buffer,
         int timeoutMs)
     {
         if (timeoutMs <= 0)
         {
             // no timeout and high traffic code, so avoid allocation Cancellation token source.
-            return await ReadWithoutTimeoutAsync(stream, buffer, offset, count).ConfigureAwait(false);
+            return await ReadWithoutTimeoutAsync(stream, buffer).ConfigureAwait(false);
         }
 
         using var source = new CancellationTokenSource(TimeSpan.FromMilliseconds(timeoutMs));
@@ -53,11 +51,11 @@ internal static class StreamExtensions
         {
 #if NET6_0_OR_GREATER
             // .netcore 3.0+ network streams support cancellation tokens.
-            return await stream.ReadAsync(buffer.AsMemory(offset, count), source.Token).ConfigureAwait(false);
+            return await stream.ReadAsync(buffer, source.Token).ConfigureAwait(false);
 #else
             // .net standard implementation relies on closing stream
             using var _ = source.Token.Register(stream.Close);
-            return await stream.ReadAsync(buffer, offset, count, source.Token).ConfigureAwait(false);
+            return await stream.ReadAsync(buffer.ToArray(), 0, buffer.Length, source.Token).ConfigureAwait(false);
 #endif
         }
         catch (Exception ex)
@@ -77,14 +75,14 @@ internal static class StreamExtensions
         }
     }
 
-    private static Task<int> ReadWithoutTimeoutAsync(Stream stream, byte[] buffer, int offset, int count)
+    private static ValueTask<int> ReadWithoutTimeoutAsync(Stream stream, Memory<byte> buffer)
     {
 #if NET6_0_OR_GREATER
         // .netcore 3.0+ network streams support cancellation tokens.
-        return stream.ReadAsync(buffer.AsMemory(offset, count)).AsTask();
+        return stream.ReadAsync(buffer);
 #else
         // .net standard implementation relies on closing stream
-        return stream.ReadAsync(buffer, offset, count);
+        return new ValueTask<int>(stream.ReadAsync(buffer.ToArray(), 0, buffer.Length));
 #endif
     }
 
@@ -111,6 +109,29 @@ internal static class StreamExtensions
         do
         {
             hasRead = stream.Read(bytes, offset, toRead);
+            offset += hasRead;
+            toRead -= hasRead;
+        } while (toRead > 0 && hasRead > 0);
+
+        if (hasRead <= 0)
+        {
+            throw new IOException(
+                $"Failed to read more from input stream. Expected {bytes.Length} bytes, received {offset}.");
+        }
+
+        return offset;
+    }
+
+
+    public static int Read(this Stream stream, Span<byte> bytes)
+    {
+        var hasRead = 0;
+        var offset = 0;
+        var toRead = bytes.Length;
+
+        do
+        {
+            hasRead = stream.Read(bytes);
             offset += hasRead;
             toRead -= hasRead;
         } while (toRead > 0 && hasRead > 0);

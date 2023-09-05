@@ -16,6 +16,7 @@
 // limitations under the License.
 
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using Neo4j.Driver.Internal.Connector;
@@ -528,29 +529,27 @@ internal sealed class PackStreamReader : IPackStreamReader
     public short NextShort()
     {
         Stream.Read(_buffers.ShortBuffer);
-
-        return PackStreamBitConverter.ToInt16(_buffers.ShortBuffer);
+        return BinaryPrimitives.ReadInt16BigEndian(_buffers.ShortBuffer);
     }
 
     public int NextInt()
     {
         Stream.Read(_buffers.IntBuffer);
-
-        return PackStreamBitConverter.ToInt32(_buffers.IntBuffer);
+        return BinaryPrimitives.ReadInt32BigEndian(_buffers.IntBuffer);
     }
 
     public long NextLong()
     {
         Stream.Read(_buffers.LongBuffer);
 
-        return PackStreamBitConverter.ToInt64(_buffers.LongBuffer);
+        return BinaryPrimitives.ReadInt64BigEndian(_buffers.LongBuffer);
     }
 
     public double NextDouble()
     {
         Stream.Read(_buffers.LongBuffer);
-
-        return PackStreamBitConverter.ToDouble(_buffers.LongBuffer);
+        var val = BinaryPrimitives.ReadInt64BigEndian(_buffers.LongBuffer);
+        return BitConverter.Int64BitsToDouble(val);
     }
 
     public byte PeekByte()
