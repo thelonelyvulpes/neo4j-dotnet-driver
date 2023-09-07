@@ -170,7 +170,7 @@ internal sealed class SocketConnection : IConnection
 
     public IAuthTokenManager AuthTokenManager { get; }
 
-    public Task ReAuthAsync(
+    public async ValueTask ReAuthAsync(
         IAuthToken newAuthToken,
         bool force,
         CancellationToken cancellationToken = default)
@@ -179,7 +179,7 @@ internal sealed class SocketConnection : IConnection
         {
             // if the token is the same, we don't need to reauthenticate.
             AuthorizationStatus = AuthorizationStatus.FreshlyAuthenticated;
-            return Task.CompletedTask;
+            return;
         }
 
         if (!this.SupportsReAuth())
@@ -191,7 +191,7 @@ internal sealed class SocketConnection : IConnection
         // Assume success, if Reauth fails we destroy the connection.
         AuthToken = newAuthToken;
         AuthorizationStatus = AuthorizationStatus.FreshlyAuthenticated;
-        return BoltProtocol.ReAuthAsync(this, newAuthToken);
+        await BoltProtocol.ReAuthAsync(this, newAuthToken).ConfigureAwait(false);
     }
 
     public ValueTask<bool> NotifySecurityExceptionAsync(SecurityException exception)
@@ -204,13 +204,13 @@ internal sealed class SocketConnection : IConnection
         return AuthTokenManager.HandleSecurityExceptionAsync(AuthToken, exception);
     }
 
-    public async Task SyncAsync()
+    public async ValueTask SyncAsync()
     {
         await SendAsync().ConfigureAwait(false);
         await ReceiveAsync().ConfigureAwait(false);
     }
 
-    public async Task SendAsync()
+    public async ValueTask SendAsync()
     {
         if (_messages.Count == 0)
             // nothing to send
@@ -232,7 +232,7 @@ internal sealed class SocketConnection : IConnection
         }
     }
 
-    public async Task ReceiveOneAsync()
+    public async ValueTask ReceiveOneAsync()
     {
         await _recvLock.WaitAsync().ConfigureAwait(false);
         try
@@ -253,7 +253,7 @@ internal sealed class SocketConnection : IConnection
         }
     }
 
-    public Task ResetAsync()
+    public ValueTask ResetAsync()
     {
         return BoltProtocol.ResetAsync(this);
     }
@@ -280,12 +280,12 @@ internal sealed class SocketConnection : IConnection
         _serverInfo.Update(Version, newVersion.Agent);
     }
 
-    public Task DestroyAsync()
+    public ValueTask DestroyAsync()
     {
         return CloseAsync();
     }
 
-    public async Task CloseAsync()
+    public async ValueTask CloseAsync()
     {
         try
         {
@@ -318,7 +318,7 @@ internal sealed class SocketConnection : IConnection
         }
     }
 
-    public async Task EnqueueAsync(IRequestMessage message, IResponseHandler handler)
+    public async ValueTask EnqueueAsync(IRequestMessage message, IResponseHandler handler)
     {
         await _sendLock.WaitAsync().ConfigureAwait(false);
 
@@ -392,17 +392,17 @@ internal sealed class SocketConnection : IConnection
         }
     }
 
-    public Task LoginAsync(string userAgent, IAuthToken authToken, INotificationsConfig notificationsConfig)
+    public ValueTask LoginAsync(string userAgent, IAuthToken authToken, INotificationsConfig notificationsConfig)
     {
         return BoltProtocol.AuthenticateAsync(this, userAgent, authToken, notificationsConfig);
     }
 
-    public Task LogoutAsync()
+    public ValueTask LogoutAsync()
     {
         return BoltProtocol.LogoutAsync(this);
     }
 
-    public Task<IReadOnlyDictionary<string, object>> GetRoutingTableAsync(
+    public ValueTask<IReadOnlyDictionary<string, object>> GetRoutingTableAsync(
         string database,
         SessionConfig sessionConfig,
         Bookmarks bookmarks)
@@ -410,29 +410,29 @@ internal sealed class SocketConnection : IConnection
         return BoltProtocol.GetRoutingTableAsync(this, database, sessionConfig, bookmarks);
     }
 
-    public Task<IResultCursor> RunInAutoCommitTransactionAsync(
+    public ValueTask<IResultCursor> RunInAutoCommitTransactionAsync(
         AutoCommitParams autoCommitParams,
         INotificationsConfig notificationsConfig)
     {
         return BoltProtocol.RunInAutoCommitTransactionAsync(this, autoCommitParams, notificationsConfig);
     }
 
-    public Task BeginTransactionAsync(BeginProtocolParams beginParams)
+    public ValueTask BeginTransactionAsync(BeginProtocolParams beginParams)
     {
         return BoltProtocol.BeginTransactionAsync(this, beginParams);
     }
 
-    public Task<IResultCursor> RunInExplicitTransactionAsync(Query query, bool reactive, long fetchSize)
+    public ValueTask<IResultCursor> RunInExplicitTransactionAsync(Query query, bool reactive, long fetchSize)
     {
         return BoltProtocol.RunInExplicitTransactionAsync(this, query, reactive, fetchSize);
     }
 
-    public Task CommitTransactionAsync(IBookmarksTracker bookmarksTracker)
+    public ValueTask CommitTransactionAsync(IBookmarksTracker bookmarksTracker)
     {
         return BoltProtocol.CommitTransactionAsync(this, bookmarksTracker);
     }
 
-    public Task RollbackTransactionAsync()
+    public ValueTask RollbackTransactionAsync()
     {
         return BoltProtocol.RollbackTransactionAsync(this);
     }

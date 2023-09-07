@@ -24,6 +24,6 @@ internal interface IConnectionPool : IConnectionProvider, IConnectionReleaseMana
     int NumberOfInUseConnections { get; }
     int NumberOfIdleConnections { get; }
     ConnectionPoolStatus Status { get; }
-    Task DeactivateAsync();
+    ValueTask DeactivateAsync();
     void Activate();
 }

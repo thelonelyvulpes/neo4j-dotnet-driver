@@ -29,8 +29,8 @@ internal sealed class ConnectionResourceHandler : IResultResourceHandler
 
     private IConnection Connection { get; }
 
-    public Task OnResultConsumedAsync()
+    public ValueTask OnResultConsumedAsync()
     {
-        return Task.CompletedTask;
+        return new ValueTask(Task.CompletedTask);
     }
 }

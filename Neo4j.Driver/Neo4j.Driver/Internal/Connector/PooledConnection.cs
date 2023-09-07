@@ -53,7 +53,7 @@ internal class PooledConnection : DelegatedConnection, IPooledConnection
 
     public override bool IsOpen => Delegate.IsOpen && !HasUnrecoverableError;
 
-    public override Task DestroyAsync()
+    public override ValueTask DestroyAsync()
     {
         // stops the timer
         IdleTimer.Reset();
@@ -62,11 +62,11 @@ internal class PooledConnection : DelegatedConnection, IPooledConnection
         return base.DestroyAsync();
     }
 
-    public override Task CloseAsync()
+    public override ValueTask CloseAsync()
     {
         if (_releaseManager == null)
         {
-            return Task.CompletedTask;
+            return new ValueTask(Task.CompletedTask);
         }
 
         return _releaseManager.ReleaseAsync(this);

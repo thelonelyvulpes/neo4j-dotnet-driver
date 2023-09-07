@@ -47,4 +47,30 @@ internal static class DriverLoggerUtil
             throw;
         }
     }
+
+    public static async ValueTask TryExecuteValueTaskAsync(ILogger logger, Func<ValueTask> func, string message = null)
+    {
+        try
+        {
+            await func().ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            logger?.Error(ex, message);
+            throw;
+        }
+    }
+
+    public static async ValueTask<T> TryExecuteValueTaskAsync<T>(ILogger logger, Func<ValueTask<T>> func, string message = null)
+    {
+        try
+        {
+            return await func().ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            logger?.Error(ex, message);
+            throw;
+        }
+    }
 }

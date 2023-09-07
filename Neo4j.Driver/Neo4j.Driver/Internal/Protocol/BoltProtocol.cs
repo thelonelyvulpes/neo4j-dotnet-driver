@@ -42,7 +42,7 @@ internal sealed class BoltProtocol : IBoltProtocol
         _boltProtocolV3 = boltProtocolV3 ?? BoltProtocolV3.Instance;
     }
 
-    public Task AuthenticateAsync(
+    public ValueTask AuthenticateAsync(
         IConnection connection,
         string userAgent,
         IAuthToken authToken,
@@ -55,22 +55,22 @@ internal sealed class BoltProtocol : IBoltProtocol
             : _boltProtocolV3.AuthenticateAsync(connection, userAgent, authToken, notificationsConfig);
     }
 
-    public Task LogoutAsync(IConnection connection)
+    public ValueTask LogoutAsync(IConnection connection)
     {
         return _boltProtocolV3.LogoutAsync(connection);
     }
 
-    public Task ResetAsync(IConnection connection)
+    public ValueTask ResetAsync(IConnection connection)
     {
         return _boltProtocolV3.ResetAsync(connection);
     }
 
-    public Task ReAuthAsync(IConnection connection, IAuthToken newAuthToken)
+    public ValueTask ReAuthAsync(IConnection connection, IAuthToken newAuthToken)
     {
         return _boltProtocolV3.ReAuthAsync(connection, newAuthToken);
     }
 
-    public Task<IReadOnlyDictionary<string, object>> GetRoutingTableAsync(
+    public ValueTask<IReadOnlyDictionary<string, object>> GetRoutingTableAsync(
         IConnection connection,
         string database,
         SessionConfig sessionConfig,
@@ -87,7 +87,7 @@ internal sealed class BoltProtocol : IBoltProtocol
             : GetRoutingTableWithQueryAsync(connection, database, bookmarks);
     }
 
-    public async Task<IResultCursor> RunInAutoCommitTransactionAsync(
+    public async ValueTask<IResultCursor> RunInAutoCommitTransactionAsync(
         IConnection connection,
         AutoCommitParams autoCommitParams,
         INotificationsConfig notificationsConfig)
@@ -132,7 +132,7 @@ internal sealed class BoltProtocol : IBoltProtocol
         return streamBuilder.CreateCursor();
     }
 
-    public Task BeginTransactionAsync(IConnection connection, BeginProtocolParams beginParams)
+    public ValueTask BeginTransactionAsync(IConnection connection, BeginProtocolParams beginParams)
     {
         connection.SessionConfig = beginParams.SessionConfig;
         BoltProtocolV3.ValidateImpersonatedUserForVersion(connection);
@@ -140,7 +140,7 @@ internal sealed class BoltProtocol : IBoltProtocol
         return _boltProtocolV3.BeginTransactionAsync(connection, beginParams);
     }
 
-    public async Task<IResultCursor> RunInExplicitTransactionAsync(
+    public async ValueTask<IResultCursor> RunInExplicitTransactionAsync(
         IConnection connection,
         Query query,
         bool reactive,
@@ -174,17 +174,17 @@ internal sealed class BoltProtocol : IBoltProtocol
         return streamBuilder.CreateCursor();
     }
 
-    public Task CommitTransactionAsync(IConnection connection, IBookmarksTracker bookmarksTracker)
+    public ValueTask CommitTransactionAsync(IConnection connection, IBookmarksTracker bookmarksTracker)
     {
         return _boltProtocolV3.CommitTransactionAsync(connection, bookmarksTracker);
     }
 
-    public Task RollbackTransactionAsync(IConnection connection)
+    public ValueTask RollbackTransactionAsync(IConnection connection)
     {
         return _boltProtocolV3.RollbackTransactionAsync(connection);
     }
 
-    private async Task AuthenticateWithLogonAsync(
+    private async ValueTask AuthenticateWithLogonAsync(
         IConnection connection,
         string userAgent,
         IAuthToken authToken,
@@ -199,7 +199,7 @@ internal sealed class BoltProtocol : IBoltProtocol
         await connection.SyncAsync().ConfigureAwait(false);
     }
 
-    private async Task<IReadOnlyDictionary<string, object>> GetRoutingTableWithQueryAsync(
+    private async ValueTask<IReadOnlyDictionary<string, object>> GetRoutingTableWithQueryAsync(
         IConnection connection,
         string database,
         Bookmarks bookmarks)
@@ -235,7 +235,7 @@ internal sealed class BoltProtocol : IBoltProtocol
         return (IReadOnlyDictionary<string, object>)finalDictionary;
     }
 
-    private async Task<IReadOnlyDictionary<string, object>> GetRoutingTableWithRouteMessageAsync(
+    private async ValueTask<IReadOnlyDictionary<string, object>> GetRoutingTableWithRouteMessageAsync(
         IConnection connection,
         string database,
         string impersonatedUser,
@@ -271,7 +271,7 @@ internal sealed class BoltProtocol : IBoltProtocol
 
     // Internal for tests.
 
-    internal Func<IResultStreamBuilder, long, long, Task> RequestMore(
+    internal Func<IResultStreamBuilder, long, long, ValueTask> RequestMore(
         IConnection connection,
         SummaryBuilder summaryBuilder,
         IBookmarksTracker bookmarksTracker)
@@ -291,7 +291,7 @@ internal sealed class BoltProtocol : IBoltProtocol
 
     // Internal for tests.
 
-    internal Func<IResultStreamBuilder, long, Task> CancelRequest(
+    internal Func<IResultStreamBuilder, long, ValueTask> CancelRequest(
         IConnection connection,
         SummaryBuilder summaryBuilder,
         IBookmarksTracker bookmarksTracker)

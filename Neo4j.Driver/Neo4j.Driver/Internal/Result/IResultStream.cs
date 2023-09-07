@@ -21,8 +21,8 @@ namespace Neo4j.Driver.Internal.Result;
 
 internal interface IResultStream
 {
-    Task<string[]> GetKeysAsync();
-    Task<IRecord> NextRecordAsync();
+    ValueTask<string[]> GetKeysAsync();
+    ValueTask<IRecord> NextRecordAsync();
     void Cancel();
-    Task<IResultSummary> ConsumeAsync();
+    ValueTask<IResultSummary> ConsumeAsync();
 }

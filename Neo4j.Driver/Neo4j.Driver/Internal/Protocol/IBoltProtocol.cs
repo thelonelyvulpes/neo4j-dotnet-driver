@@ -24,35 +24,35 @@ namespace Neo4j.Driver.Internal;
 
 internal interface IBoltProtocol
 {
-    Task AuthenticateAsync(
+    ValueTask AuthenticateAsync(
         IConnection connection,
         string userAgent,
         IAuthToken authToken,
         INotificationsConfig notificationsConfig);
 
-    Task LogoutAsync(IConnection connection);
-    Task ResetAsync(IConnection connection);
-    Task ReAuthAsync(IConnection connection, IAuthToken newAuthToken);
+    ValueTask LogoutAsync(IConnection connection);
+    ValueTask ResetAsync(IConnection connection);
+    ValueTask ReAuthAsync(IConnection connection, IAuthToken newAuthToken);
 
-    Task<IReadOnlyDictionary<string, object>> GetRoutingTableAsync(
+    ValueTask<IReadOnlyDictionary<string, object>> GetRoutingTableAsync(
         IConnection connection,
         string database,
         SessionConfig sessionConfig,
         Bookmarks bookmarks);
 
-    Task<IResultCursor> RunInAutoCommitTransactionAsync(
+    ValueTask<IResultCursor> RunInAutoCommitTransactionAsync(
         IConnection connection,
         AutoCommitParams autoCommitParams,
         INotificationsConfig notificationsConfig);
 
-    Task BeginTransactionAsync(IConnection connection, BeginProtocolParams beginParams);
+    ValueTask BeginTransactionAsync(IConnection connection, BeginProtocolParams beginParams);
 
-    Task<IResultCursor> RunInExplicitTransactionAsync(
+    ValueTask<IResultCursor> RunInExplicitTransactionAsync(
         IConnection connection,
         Query query,
         bool reactive,
         long fetchSize = Config.Infinite);
 
-    Task CommitTransactionAsync(IConnection connection, IBookmarksTracker bookmarksTracker);
-    Task RollbackTransactionAsync(IConnection connection);
+    ValueTask CommitTransactionAsync(IConnection connection, IBookmarksTracker bookmarksTracker);
+    ValueTask RollbackTransactionAsync(IConnection connection);
 }

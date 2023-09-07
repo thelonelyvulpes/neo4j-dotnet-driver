@@ -82,24 +82,24 @@ internal class LoadBalancer : IConnectionProvider, IErrorHandler, IClusterConnec
 
     private bool IsClosed => _closedMarker > 0;
 
-    public Task AddConnectionPoolAsync(IEnumerable<Uri> uris)
+    public ValueTask AddConnectionPoolAsync(IEnumerable<Uri> uris)
     {
         return _clusterConnectionPool.AddAsync(uris);
     }
 
-    public Task UpdateConnectionPoolAsync(IEnumerable<Uri> added, IEnumerable<Uri> removed)
+    public ValueTask UpdateConnectionPoolAsync(IEnumerable<Uri> added, IEnumerable<Uri> removed)
     {
         return _clusterConnectionPool.UpdateAsync(added, removed);
     }
 
-    public Task<IConnection> CreateClusterConnectionAsync(Uri uri, SessionConfig sessionConfig)
+    public ValueTask<IConnection> CreateClusterConnectionAsync(Uri uri, SessionConfig sessionConfig)
     {
         return CreateClusterConnectionAsync(uri, AccessMode.Write, null, sessionConfig, Bookmarks.Empty);
     }
 
     public IDictionary<string, string> RoutingContext { get; set; }
 
-    public async Task<IConnection> AcquireAsync(
+    public async ValueTask<IConnection> AcquireAsync(
         AccessMode mode,
         string database,
         SessionConfig sessionConfig,
@@ -122,7 +122,7 @@ internal class LoadBalancer : IConnectionProvider, IErrorHandler, IClusterConnec
         return conn;
     }
 
-    public async Task<IServerInfo> VerifyConnectivityAndGetInfoAsync()
+    public async ValueTask<IServerInfo> VerifyConnectivityAndGetInfoAsync()
     {
         try
         {
@@ -148,12 +148,12 @@ internal class LoadBalancer : IConnectionProvider, IErrorHandler, IClusterConnec
 
     public ConnectionSettings ConnectionSettings { get; }
 
-    public Task<bool> SupportsMultiDbAsync()
+    public ValueTask<bool> SupportsMultiDbAsync()
     {
         return CheckConnectionSupport(c => c.SupportsMultiDatabase());
     }
 
-    public Task<bool> SupportsReAuthAsync()
+    public ValueTask<bool> SupportsReAuthAsync()
     {
         return CheckConnectionSupport(c => c.SupportsReAuth());
     }
@@ -174,7 +174,7 @@ internal class LoadBalancer : IConnectionProvider, IErrorHandler, IClusterConnec
         return default;
     }
 
-    public Task OnConnectionErrorAsync(Uri uri, string database, Exception e)
+    public ValueTask OnConnectionErrorAsync(Uri uri, string database, Exception e)
     {
         _logger?.Info($"Server at {uri} is no longer available due to error: {e.Message}.");
         _routingTableManager.ForgetServer(uri, database);
@@ -186,7 +186,7 @@ internal class LoadBalancer : IConnectionProvider, IErrorHandler, IClusterConnec
         _routingTableManager.ForgetWriter(uri, database);
     }
 
-    private async Task<T> CheckConnectionSupport<T>(Func<IConnection, T> check)
+    private async ValueTask<T> CheckConnectionSupport<T>(Func<IConnection, T> check)
     {
         var uris = _initialServerAddressProvider.Get();
         await AddConnectionPoolAsync(uris).ConfigureAwait(false);
@@ -277,7 +277,7 @@ internal class LoadBalancer : IConnectionProvider, IErrorHandler, IClusterConnec
         throw new SessionExpiredException($"Failed to connect to any {mode.ToString().ToLower()} server.");
     }
 
-    private async Task<IConnection> CreateClusterConnectionAsync(
+    private async ValueTask<IConnection> CreateClusterConnectionAsync(
         Uri uri,
         AccessMode mode,
         string database,

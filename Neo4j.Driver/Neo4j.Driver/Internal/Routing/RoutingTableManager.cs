@@ -209,7 +209,7 @@ internal class RoutingTableManager : IRoutingTableManager
         }
     }
 
-    private Task PrependRoutersAsync(IRoutingTable routingTable, ISet<Uri> uris)
+    private ValueTask PrependRoutersAsync(IRoutingTable routingTable, ISet<Uri> uris)
     {
         routingTable.PrependRouters(uris);
         return _poolManager.AddConnectionPoolAsync(uris);

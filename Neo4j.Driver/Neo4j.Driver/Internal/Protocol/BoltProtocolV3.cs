@@ -39,7 +39,7 @@ internal sealed class BoltProtocolV3 : IBoltProtocol
         _protocolHandlerFactory = protocolHandlerFactory ?? BoltProtocolHandlerFactory.Instance;
     }
 
-    public async Task AuthenticateAsync(
+    public async ValueTask AuthenticateAsync(
         IConnection connection,
         string userAgent,
         IAuthToken authToken,
@@ -53,7 +53,7 @@ internal sealed class BoltProtocolV3 : IBoltProtocol
         await connection.SyncAsync().ConfigureAwait(false);
     }
 
-    public async Task ReAuthAsync(IConnection connection, IAuthToken newAuthToken)
+    public async ValueTask ReAuthAsync(IConnection connection, IAuthToken newAuthToken)
     {
         if (connection.Version < BoltProtocolVersion.V5_1)
         {
@@ -69,18 +69,18 @@ internal sealed class BoltProtocolV3 : IBoltProtocol
         // comes next from the driver
     }
 
-    public async Task LogoutAsync(IConnection connection)
+    public async ValueTask LogoutAsync(IConnection connection)
     {
         await connection.EnqueueAsync(GoodbyeMessage.Instance, NoOpResponseHandler.Instance).ConfigureAwait(false);
         await connection.SendAsync().ConfigureAwait(false);
     }
 
-    public Task ResetAsync(IConnection connection)
+    public ValueTask ResetAsync(IConnection connection)
     {
         return connection.EnqueueAsync(ResetMessage.Instance, NoOpResponseHandler.Instance);
     }
 
-    public async Task<IReadOnlyDictionary<string, object>> GetRoutingTableAsync(
+    public async ValueTask<IReadOnlyDictionary<string, object>> GetRoutingTableAsync(
         IConnection connection,
         string database,
         SessionConfig sessionConfig,
@@ -120,7 +120,7 @@ internal sealed class BoltProtocolV3 : IBoltProtocol
         return (IReadOnlyDictionary<string, object>)finalDictionary;
     }
 
-    public async Task<IResultCursor> RunInAutoCommitTransactionAsync(
+    public async ValueTask<IResultCursor> RunInAutoCommitTransactionAsync(
         IConnection connection,
         AutoCommitParams autoCommitParams,
         INotificationsConfig notificationsConfig)
@@ -159,7 +159,7 @@ internal sealed class BoltProtocolV3 : IBoltProtocol
         return streamBuilder.CreateCursor();
     }
 
-    public async Task BeginTransactionAsync(IConnection connection, BeginProtocolParams beginParams)
+    public async ValueTask BeginTransactionAsync(IConnection connection, BeginProtocolParams beginParams)
     {
         connection.SessionConfig = beginParams.SessionConfig;
         ValidateImpersonatedUserForVersion(connection);
@@ -184,7 +184,7 @@ internal sealed class BoltProtocolV3 : IBoltProtocol
         }
     }
 
-    public async Task<IResultCursor> RunInExplicitTransactionAsync(
+    public async ValueTask<IResultCursor> RunInExplicitTransactionAsync(
         IConnection connection,
         Query query,
         bool reactive,
@@ -213,7 +213,7 @@ internal sealed class BoltProtocolV3 : IBoltProtocol
         return streamBuilder.CreateCursor();
     }
 
-    public async Task CommitTransactionAsync(IConnection connection, IBookmarksTracker bookmarksTracker)
+    public async ValueTask CommitTransactionAsync(IConnection connection, IBookmarksTracker bookmarksTracker)
     {
         var handler = _protocolHandlerFactory.NewCommitResponseHandler(bookmarksTracker);
 
@@ -221,7 +221,7 @@ internal sealed class BoltProtocolV3 : IBoltProtocol
         await connection.SyncAsync().ConfigureAwait(false);
     }
 
-    public async Task RollbackTransactionAsync(IConnection connection)
+    public async ValueTask RollbackTransactionAsync(IConnection connection)
     {
         await connection.EnqueueAsync(RollbackMessage.Instance, NoOpResponseHandler.Instance).ConfigureAwait(false);
         await connection.SyncAsync().ConfigureAwait(false);

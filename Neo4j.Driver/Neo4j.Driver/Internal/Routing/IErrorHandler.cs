@@ -22,6 +22,6 @@ namespace Neo4j.Driver.Internal.Routing;
 
 internal interface IErrorHandler
 {
-    Task OnConnectionErrorAsync(Uri uri, string database, Exception e);
+    ValueTask OnConnectionErrorAsync(Uri uri, string database, Exception e);
     void OnWriteError(Uri uri, string database);
 }

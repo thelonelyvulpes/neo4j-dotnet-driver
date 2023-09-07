@@ -28,15 +28,15 @@ internal interface IConnectionProvider : IAsyncDisposable
     IDictionary<string, string> RoutingContext { get; set; }
     ConnectionSettings ConnectionSettings { get; }
 
-    Task<IConnection> AcquireAsync(
+    ValueTask<IConnection> AcquireAsync(
         AccessMode mode,
         string database,
         SessionConfig sessionConfig,
         Bookmarks bookmarks,
         bool forceAuth);
 
-    Task<bool> SupportsMultiDbAsync();
-    Task<bool> SupportsReAuthAsync();
+    ValueTask<bool> SupportsMultiDbAsync();
+    ValueTask<bool> SupportsReAuthAsync();
     IRoutingTable GetRoutingTable(string database);
-    Task<IServerInfo> VerifyConnectivityAndGetInfoAsync();
+    ValueTask<IServerInfo> VerifyConnectivityAndGetInfoAsync();
 }

@@ -70,7 +70,7 @@ internal partial class AsyncSession : IResultResourceHandler, ITransactionResour
     }
 
     /// <summary>This method will be called back by <see cref="ResultCursorBuilder"/> after it consumed result</summary>
-    public Task OnResultConsumedAsync()
+    public ValueTask OnResultConsumedAsync()
     {
         if (_connection == null)
         {
@@ -81,7 +81,7 @@ internal partial class AsyncSession : IResultResourceHandler, ITransactionResour
     }
 
     /// <summary>Called back when transaction is closed</summary>
-    public Task OnTransactionDisposeAsync(Bookmarks bookmarks, string database)
+    public ValueTask OnTransactionDisposeAsync(Bookmarks bookmarks, string database)
     {
         UpdateBookmarks(bookmarks, new DatabaseInfo(database));
         _transaction = null;
@@ -110,7 +110,7 @@ internal partial class AsyncSession : IResultResourceHandler, ITransactionResour
         }
     }
 
-    private async Task DisposeSessionResultAsync()
+    private async ValueTask DisposeSessionResultAsync()
     {
         try
         {
@@ -122,7 +122,7 @@ internal partial class AsyncSession : IResultResourceHandler, ITransactionResour
         }
     }
 
-    private async Task DiscardUnconsumedResultAsync()
+    private async ValueTask DiscardUnconsumedResultAsync()
     {
         if (_result != null)
         {
@@ -143,18 +143,19 @@ internal partial class AsyncSession : IResultResourceHandler, ITransactionResour
         }
     }
 
-    private async Task DisposeConnectionAsync()
+    private ValueTask DisposeConnectionAsync()
     {
         // always try to close connection used by the result too
         if (_connection != null)
-        {
-            await _connection.CloseAsync().ConfigureAwait(false);
+        { 
+            return _connection.CloseAsync();
         }
 
         _connection = null;
+        return new ValueTask(Task.CompletedTask);
     }
 
-    private async Task EnsureCanRunMoreQuerysAsync(bool disposeUnconsumedSessionResult)
+    private async ValueTask EnsureCanRunMoreQuerysAsync(bool disposeUnconsumedSessionResult)
     {
         EnsureSessionIsOpen();
         EnsureNoOpenTransaction();

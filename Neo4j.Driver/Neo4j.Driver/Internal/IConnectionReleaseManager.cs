@@ -22,6 +22,6 @@ namespace Neo4j.Driver.Internal;
 
 internal interface IConnectionReleaseManager
 {
-    Task ReleaseAsync(IPooledConnection connection);
+    ValueTask ReleaseAsync(IPooledConnection connection);
     void OnPoolMemberException(IPooledConnection connection, Exception exception);
 }

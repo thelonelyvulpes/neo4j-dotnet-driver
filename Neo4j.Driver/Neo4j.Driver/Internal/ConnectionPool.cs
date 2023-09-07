@@ -135,7 +135,7 @@ internal sealed class ConnectionPool : IConnectionPool
         internal set => Interlocked.Exchange(ref _poolStatus, value);
     }
 
-    public async Task<IConnection> AcquireAsync(
+    public async ValueTask<IConnection> AcquireAsync(
         AccessMode mode,
         string database,
         SessionConfig sessionConfig,
@@ -148,7 +148,7 @@ internal sealed class ConnectionPool : IConnectionPool
         {
             do
             {
-                var connection = await TryExecuteAsync(
+                var connection = await TryExecuteValueTaskAsync(
                         _logger,
                         () => AcquireOrTimeoutAsync(database, sessionConfig, mode, _connectionAcquisitionTimeout),
                         "Failed to acquire a connection from connection pool asynchronously.")
@@ -194,9 +194,9 @@ internal sealed class ConnectionPool : IConnectionPool
         }
     }
 
-    public async Task ReleaseAsync(IPooledConnection connection)
+    public async ValueTask ReleaseAsync(IPooledConnection connection)
     {
-        await TryExecuteAsync(
+        await TryExecuteValueTaskAsync(
                 _logger,
                 async () =>
                 {
@@ -236,7 +236,7 @@ internal sealed class ConnectionPool : IConnectionPool
             .ConfigureAwait(false);
     }
 
-    public async Task<IServerInfo> VerifyConnectivityAndGetInfoAsync()
+    public async ValueTask<IServerInfo> VerifyConnectivityAndGetInfoAsync()
     {
         var connection = await AcquireAsync(AccessMode.Read, null, null, CancellationToken.None)
             .ConfigureAwait(false);
@@ -260,12 +260,12 @@ internal sealed class ConnectionPool : IConnectionPool
 
     public ConnectionSettings ConnectionSettings { get; }
 
-    public Task<bool> SupportsMultiDbAsync()
+    public ValueTask<bool> SupportsMultiDbAsync()
     {
         return CheckConnectionSupport(c => c.SupportsMultiDatabase());
     }
 
-    public Task<bool> SupportsReAuthAsync()
+    public ValueTask<bool> SupportsReAuthAsync()
     {
         return CheckConnectionSupport(c => c.SupportsReAuth());
     }
@@ -276,14 +276,14 @@ internal sealed class ConnectionPool : IConnectionPool
             "Should not be getting a routing table on a connection pool when it is the connection provider to the driver. Only Loadbalancer should do that.");
     }
 
-    public Task DeactivateAsync()
+    public ValueTask DeactivateAsync()
     {
         if (Interlocked.CompareExchange(ref _poolStatus, Inactive, Active) == Active)
         {
-            return Task.WhenAll(TerminateIdleConnectionsAsync());
+            return new ValueTask(Task.WhenAll(TerminateIdleConnectionsAsync()));
         }
 
-        return Task.CompletedTask;
+        return new ValueTask(Task.CompletedTask);
     }
 
     public void Activate()
@@ -317,7 +317,7 @@ internal sealed class ConnectionPool : IConnectionPool
         }
     }
 
-    private async Task<T> CheckConnectionSupport<T>(Func<IConnection, T> check)
+    private async ValueTask<T> CheckConnectionSupport<T>(Func<IConnection, T> check)
     {
         // Establish a connection with the server and immediately close it.
         var connection = await AcquireAsync(Simple.Mode, Simple.Database, null, Simple.Bookmarks)
@@ -383,7 +383,7 @@ internal sealed class ConnectionPool : IConnectionPool
             RoutingContext);
     }
 
-    private async Task DestroyConnectionAsync(IPooledConnection conn)
+    private async ValueTask DestroyConnectionAsync(IPooledConnection conn)
     {
         DecrementPoolSize();
 
@@ -438,7 +438,7 @@ internal sealed class ConnectionPool : IConnectionPool
         Interlocked.Decrement(ref _poolSize);
     }
 
-    private async Task<IPooledConnection> AcquireOrTimeoutAsync(
+    private async ValueTask<IPooledConnection> AcquireOrTimeoutAsync(
         string database,
         SessionConfig sessionConfig,
         AccessMode mode,
@@ -449,7 +449,6 @@ internal sealed class ConnectionPool : IConnectionPool
         try
         {
             return await AcquireAsync(mode, database, sessionConfig, cts.Token)
-                .Timeout(timeout, cts.Token)
                 .ConfigureAwait(false);
         }
         catch (Exception ex) when (ex is OperationCanceledException or TimeoutException)
@@ -465,7 +464,7 @@ internal sealed class ConnectionPool : IConnectionPool
         }
     }
 
-    private async Task<IPooledConnection> AcquireAsync(
+    private async ValueTask<IPooledConnection> AcquireAsync(
         AccessMode mode,
         string database,
         SessionConfig sessionConfig,
@@ -593,7 +592,7 @@ internal sealed class ConnectionPool : IConnectionPool
         while (_idleConnections.TryTake(out var connection))
         {
             _logger?.Debug($"Disposing Available Connection {connection}");
-            allCloseTasks.Add(DestroyConnectionAsync(connection));
+            allCloseTasks.Add(DestroyConnectionAsync(connection).AsTask());
         }
 
         return allCloseTasks;
@@ -629,7 +628,7 @@ internal sealed class ConnectionPool : IConnectionPool
 
             if (_inUseConnections.TryRemove(inUseConnection))
             {
-                allCloseTasks.Add(DestroyConnectionAsync(inUseConnection));
+                allCloseTasks.Add(DestroyConnectionAsync(inUseConnection).AsTask());
             }
         }
 

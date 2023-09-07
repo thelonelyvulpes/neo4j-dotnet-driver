@@ -26,12 +26,12 @@ namespace Neo4j.Driver.Internal.Result;
 
 internal class ResultCursorBuilder : IResultCursorBuilder
 {
-    private readonly Func<Task> _advanceFunction;
+    private readonly Func<ValueTask> _advanceFunction;
     private readonly IAutoPullHandler _autoPullHandler;
-    private readonly Func<IResultStreamBuilder, long, Task> _cancelFunction;
+    private readonly Func<IResultStreamBuilder, long, ValueTask> _cancelFunction;
     private readonly CancellationTokenSource _cancellationSource;
     private readonly long _fetchSize;
-    private readonly Func<IResultStreamBuilder, long, long, Task> _moreFunction;
+    private readonly Func<IResultStreamBuilder, long, long, ValueTask> _moreFunction;
 
     private readonly ConcurrentQueue<IRecord> _records;
     private readonly IResultResourceHandler _resourceHandler;
@@ -45,9 +45,9 @@ internal class ResultCursorBuilder : IResultCursorBuilder
 
     public ResultCursorBuilder(
         SummaryBuilder summaryBuilder,
-        Func<Task> advanceFunction,
-        Func<IResultStreamBuilder, long, long, Task> moreFunction,
-        Func<IResultStreamBuilder, long, Task> cancelFunction,
+        Func<ValueTask> advanceFunction,
+        Func<IResultStreamBuilder, long, long, ValueTask> moreFunction,
+        Func<IResultStreamBuilder, long, ValueTask> cancelFunction,
         IResultResourceHandler resourceHandler,
         long fetchSize = Config.Infinite,
         bool reactive = false)
@@ -56,8 +56,8 @@ internal class ResultCursorBuilder : IResultCursorBuilder
         _advanceFunction =
             WrapAdvanceFunc(advanceFunction ?? throw new ArgumentNullException(nameof(advanceFunction)));
 
-        _moreFunction = moreFunction ?? ((s, id, n) => Task.CompletedTask);
-        _cancelFunction = cancelFunction ?? ((s, id) => Task.CompletedTask);
+        _moreFunction = moreFunction ?? ((s, id, n) => new ValueTask(Task.CompletedTask));
+        _cancelFunction = cancelFunction ?? ((s, id) => new ValueTask(Task.CompletedTask));
         _cancellationSource = new CancellationTokenSource();
         _resourceHandler = resourceHandler;
 
@@ -76,17 +76,17 @@ internal class ResultCursorBuilder : IResultCursorBuilder
         set => _state = (int)value;
     }
 
-    public async Task<string[]> GetKeysAsync()
+    public async ValueTask<string[]> GetKeysAsync()
     {
         while (CurrentState < State.RunCompleted)
         {
             await _advanceFunction().ConfigureAwait(false);
         }
 
-        return _fields ?? new string[0];
+        return _fields ?? Array.Empty<string>();
     }
 
-    public async Task<IRecord> NextRecordAsync()
+    public async ValueTask<IRecord> NextRecordAsync()
     {
         if (_cancellationSource.IsCancellationRequested)
         {
@@ -125,7 +125,7 @@ internal class ResultCursorBuilder : IResultCursorBuilder
         _cancellationSource.Cancel();
     }
 
-    public async Task<IResultSummary> ConsumeAsync()
+    public async ValueTask<IResultSummary> ConsumeAsync()
     {
         while (CurrentState < State.Completed)
         {
@@ -169,7 +169,7 @@ internal class ResultCursorBuilder : IResultCursorBuilder
         }
     }
 
-    private Func<Task> WrapAdvanceFunc(Func<Task> advanceFunc)
+    private Func<ValueTask> WrapAdvanceFunc(Func<ValueTask> advanceFunc)
     {
         return async () =>
         {

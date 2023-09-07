@@ -52,7 +52,7 @@ internal class ResultCursor : IInternalResultCursor, IAsyncEnumerator<IRecord>
     {
         if (_keys == null)
         {
-            _keys = _resultStream.GetKeysAsync();
+            _keys = _resultStream.GetKeysAsync().AsTask();
         }
 
         return _keys;
@@ -63,13 +63,13 @@ internal class ResultCursor : IInternalResultCursor, IAsyncEnumerator<IRecord>
         if (_summary == null)
         {
             Cancel();
-            _summary = _resultStream.ConsumeAsync();
+            _summary = _resultStream.ConsumeAsync().AsTask();
         }
         else
         {
             if (_summary.IsFaulted)
             {
-                _summary = _resultStream.ConsumeAsync();
+                _summary = _resultStream.ConsumeAsync().AsTask();
             }
         }
 

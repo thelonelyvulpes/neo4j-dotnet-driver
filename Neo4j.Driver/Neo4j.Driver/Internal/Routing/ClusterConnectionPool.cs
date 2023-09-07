@@ -78,7 +78,7 @@ internal class ClusterConnectionPool : IClusterConnectionPool
 
     private bool IsClosed => _closedMarker > 0;
 
-    public Task<IConnection> AcquireAsync(
+    public ValueTask<IConnection> AcquireAsync(
         Uri uri,
         AccessMode mode,
         string database,
@@ -88,13 +88,13 @@ internal class ClusterConnectionPool : IClusterConnectionPool
     {
         if (!_pools.TryGetValue(uri, out var pool))
         {
-            return Task.FromResult((IConnection)null);
+            return new ValueTask<IConnection>(default(IConnection));
         }
 
         return pool.AcquireAsync(mode, database, sessionConfig, bookmarks, forceAuth);
     }
 
-    public async Task AddAsync(IEnumerable<Uri> servers)
+    public async ValueTask AddAsync(IEnumerable<Uri> servers)
     {
         foreach (var uri in servers)
         {
@@ -111,7 +111,7 @@ internal class ClusterConnectionPool : IClusterConnectionPool
         }
     }
 
-    public async Task UpdateAsync(IEnumerable<Uri> added, IEnumerable<Uri> removed)
+    public async ValueTask UpdateAsync(IEnumerable<Uri> added, IEnumerable<Uri> removed)
     {
         await AddAsync(added).ConfigureAwait(false);
         foreach (var uri in removed)
@@ -127,14 +127,14 @@ internal class ClusterConnectionPool : IClusterConnectionPool
         }
     }
 
-    public Task DeactivateAsync(Uri uri)
+    public ValueTask DeactivateAsync(Uri uri)
     {
         if (_pools.TryGetValue(uri, out var pool))
         {
             return pool.DeactivateAsync();
         }
 
-        return Task.CompletedTask;
+        return new ValueTask(Task.CompletedTask);
     }
 
     public int NumberOfInUseConnections(Uri uri)
@@ -149,7 +149,7 @@ internal class ClusterConnectionPool : IClusterConnectionPool
 
     public ValueTask DisposeAsync()
     {
-        return new ValueTask(CloseAsync());
+        return CloseAsync();
     }
 
     private void Add(IEnumerable<Uri> servers)
@@ -160,14 +160,12 @@ internal class ClusterConnectionPool : IClusterConnectionPool
         }
     }
 
-    internal Task CloseAsync()
+    internal async ValueTask CloseAsync()
     {
         if (Interlocked.CompareExchange(ref _closedMarker, 1, 0) == 0)
         {
-            return ClearAsync();
+            await ClearAsync().ConfigureAwait(false);
         }
-
-        return Task.CompletedTask;
     }
 
     private Task ClearAsync()
@@ -177,21 +175,21 @@ internal class ClusterConnectionPool : IClusterConnectionPool
         var uris = _pools.Keys;
         foreach (var uri in uris)
         {
-            clearTasks.Add(PurgeAsync(uri));
+            clearTasks.Add(PurgeAsync(uri).AsTask());
         }
 
         return Task.WhenAll(clearTasks);
     }
 
-    private Task PurgeAsync(Uri uri)
+    private ValueTask PurgeAsync(Uri uri)
     {
         var removed = _pools.TryRemove(uri, out var toRemove);
         if (removed)
         {
-            return toRemove.DisposeAsync().AsTask();
+            return toRemove.DisposeAsync();
         }
 
-        return Task.CompletedTask;
+        return new ValueTask(Task.CompletedTask);
     }
 
     public override string ToString()

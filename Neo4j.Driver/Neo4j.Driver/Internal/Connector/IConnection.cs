@@ -71,29 +71,29 @@ internal interface IConnection : IConnectionDetails, IConnectionRunner
         SessionConfig sessionConfig = null,
         CancellationToken cancellationToken = default);
 
-    Task ReAuthAsync(IAuthToken newAuthToken, bool force, CancellationToken cancellationToken = default);
+    ValueTask ReAuthAsync(IAuthToken newAuthToken, bool force, CancellationToken cancellationToken = default);
 
     ValueTask<bool> NotifySecurityExceptionAsync(SecurityException exception);
 
     // send all and receive all
-    Task SyncAsync();
+    ValueTask SyncAsync();
 
     // send all
-    Task SendAsync();
+    ValueTask SendAsync();
 
     // receive one
-    Task ReceiveOneAsync();
+    ValueTask ReceiveOneAsync();
 
-    Task EnqueueAsync(IRequestMessage message, IResponseHandler handler);
+    ValueTask EnqueueAsync(IRequestMessage message, IResponseHandler handler);
 
     // Enqueue a reset message
-    Task ResetAsync();
+    ValueTask ResetAsync();
 
     /// <summary>Close and release related resources</summary>
-    Task DestroyAsync();
+    ValueTask DestroyAsync();
 
     /// <summary>Close connection</summary>
-    Task CloseAsync();
+    ValueTask CloseAsync();
 
     void UpdateId(string newConnId);
 
@@ -107,27 +107,27 @@ internal interface IConnection : IConnectionDetails, IConnectionRunner
 
 internal interface IConnectionRunner
 {
-    Task LoginAsync(
+    ValueTask LoginAsync(
         string userAgent,
         IAuthToken authToken,
         INotificationsConfig notificationsConfig);
 
-    Task LogoutAsync();
+    ValueTask LogoutAsync();
 
-    Task<IReadOnlyDictionary<string, object>> GetRoutingTableAsync(
+    ValueTask<IReadOnlyDictionary<string, object>> GetRoutingTableAsync(
         string database,
         SessionConfig sessionConfig,
         Bookmarks bookmarks);
 
-    Task<IResultCursor> RunInAutoCommitTransactionAsync(
+    ValueTask<IResultCursor> RunInAutoCommitTransactionAsync(
         AutoCommitParams autoCommitParams,
         INotificationsConfig notificationsConfig);
 
-    Task BeginTransactionAsync(BeginProtocolParams beginParams);
+    ValueTask BeginTransactionAsync(BeginProtocolParams beginParams);
 
-    Task<IResultCursor> RunInExplicitTransactionAsync(Query query, bool reactive, long fetchSize);
-    Task CommitTransactionAsync(IBookmarksTracker bookmarksTracker);
-    Task RollbackTransactionAsync();
+    ValueTask<IResultCursor> RunInExplicitTransactionAsync(Query query, bool reactive, long fetchSize);
+    ValueTask CommitTransactionAsync(IBookmarksTracker bookmarksTracker);
+    ValueTask RollbackTransactionAsync();
 }
 
 internal interface IConnectionDetails

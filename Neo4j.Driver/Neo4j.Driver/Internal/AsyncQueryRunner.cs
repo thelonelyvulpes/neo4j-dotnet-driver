@@ -87,10 +87,10 @@ internal abstract class AsyncQueryRunner : IAsyncQueryRunner
 
 internal interface IResultResourceHandler
 {
-    Task OnResultConsumedAsync();
+    ValueTask OnResultConsumedAsync();
 }
 
 internal interface ITransactionResourceHandler
 {
-    Task OnTransactionDisposeAsync(Bookmarks bookmarks, string database);
+    ValueTask OnTransactionDisposeAsync(Bookmarks bookmarks, string database);
 }

@@ -114,7 +114,7 @@ internal sealed class Driver : IInternalDriver
 
     public Task<IServerInfo> GetServerInfoAsync()
     {
-        return _connectionProvider.VerifyConnectivityAndGetInfoAsync();
+        return _connectionProvider.VerifyConnectivityAndGetInfoAsync().AsTask();
     }
 
     public async Task<bool> TryVerifyConnectivityAsync()
@@ -130,19 +130,19 @@ internal sealed class Driver : IInternalDriver
         }
     }
 
-    public Task VerifyConnectivityAsync()
+    public async Task VerifyConnectivityAsync()
     {
-        return GetServerInfoAsync();
+        await GetServerInfoAsync();
     }
 
     public Task<bool> SupportsMultiDbAsync()
     {
-        return _connectionProvider.SupportsMultiDbAsync();
+        return _connectionProvider.SupportsMultiDbAsync().AsTask();
     }
 
     public Task<bool> SupportsSessionAuthAsync()
     {
-        return _connectionProvider.SupportsReAuthAsync();
+        return _connectionProvider.SupportsReAuthAsync().AsTask();
     }
 
     public void Dispose()

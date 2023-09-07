@@ -46,7 +46,7 @@ internal abstract class DelegatedConnection : IConnection
         return Delegate.NotifySecurityExceptionAsync(exception);
     }
 
-    public async Task SyncAsync()
+    public async ValueTask SyncAsync()
     {
         try
         {
@@ -58,7 +58,7 @@ internal abstract class DelegatedConnection : IConnection
         }
     }
 
-    public async Task SendAsync()
+    public async ValueTask SendAsync()
     {
         try
         {
@@ -70,7 +70,7 @@ internal abstract class DelegatedConnection : IConnection
         }
     }
 
-    public async Task ReceiveOneAsync()
+    public async ValueTask ReceiveOneAsync()
     {
         try
         {
@@ -111,7 +111,7 @@ internal abstract class DelegatedConnection : IConnection
         }
     }
 
-    public async Task ReAuthAsync(
+    public async ValueTask ReAuthAsync(
         IAuthToken newAuthToken,
         bool force,
         CancellationToken cancellationToken = default)
@@ -126,7 +126,7 @@ internal abstract class DelegatedConnection : IConnection
         }
     }
 
-    public async Task EnqueueAsync(IRequestMessage message, IResponseHandler handler)
+    public async ValueTask EnqueueAsync(IRequestMessage message, IResponseHandler handler)
     {
         try
         {
@@ -163,12 +163,12 @@ internal abstract class DelegatedConnection : IConnection
         Delegate.UpdateVersion(newVersion);
     }
 
-    public virtual Task DestroyAsync()
+    public virtual ValueTask DestroyAsync()
     {
         return Delegate.DestroyAsync();
     }
 
-    public virtual Task CloseAsync()
+    public virtual ValueTask CloseAsync()
     {
         return Delegate.CloseAsync();
     }
@@ -194,22 +194,22 @@ internal abstract class DelegatedConnection : IConnection
         return Delegate.ValidateCredsAsync();
     }
 
-    public Task LoginAsync(string userAgent, IAuthToken authToken, INotificationsConfig notificationsConfig)
+    public ValueTask LoginAsync(string userAgent, IAuthToken authToken, INotificationsConfig notificationsConfig)
     {
         return BoltProtocol.AuthenticateAsync(this, userAgent, authToken, notificationsConfig);
     }
 
-    public Task LogoutAsync()
+    public ValueTask LogoutAsync()
     {
         return BoltProtocol.LogoutAsync(this);
     }
 
-    public Task ResetAsync()
+    public ValueTask ResetAsync()
     {
         return BoltProtocol.ResetAsync(this);
     }
 
-    public Task<IReadOnlyDictionary<string, object>> GetRoutingTableAsync(
+    public ValueTask<IReadOnlyDictionary<string, object>> GetRoutingTableAsync(
         string database,
         SessionConfig sessionConfig,
         Bookmarks bookmarks)
@@ -217,29 +217,29 @@ internal abstract class DelegatedConnection : IConnection
         return BoltProtocol.GetRoutingTableAsync(this, database, sessionConfig, bookmarks);
     }
 
-    public Task<IResultCursor> RunInAutoCommitTransactionAsync(
+    public ValueTask<IResultCursor> RunInAutoCommitTransactionAsync(
         AutoCommitParams autoCommitParams,
         INotificationsConfig notificationsConfig)
     {
         return BoltProtocol.RunInAutoCommitTransactionAsync(this, autoCommitParams, notificationsConfig);
     }
 
-    public Task BeginTransactionAsync(BeginProtocolParams beginProtocolParams)
+    public ValueTask BeginTransactionAsync(BeginProtocolParams beginProtocolParams)
     {
         return BoltProtocol.BeginTransactionAsync(this, beginProtocolParams);
     }
 
-    public Task<IResultCursor> RunInExplicitTransactionAsync(Query query, bool reactive, long fetchSize)
+    public ValueTask<IResultCursor> RunInExplicitTransactionAsync(Query query, bool reactive, long fetchSize)
     {
         return BoltProtocol.RunInExplicitTransactionAsync(this, query, reactive, fetchSize);
     }
 
-    public Task CommitTransactionAsync(IBookmarksTracker bookmarksTracker)
+    public ValueTask CommitTransactionAsync(IBookmarksTracker bookmarksTracker)
     {
         return BoltProtocol.CommitTransactionAsync(this, bookmarksTracker);
     }
 
-    public Task RollbackTransactionAsync()
+    public ValueTask RollbackTransactionAsync()
     {
         return BoltProtocol.RollbackTransactionAsync(this);
     }

@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Neo4j.Driver.Internal.Result;
 
 namespace Neo4j.Driver;
 
@@ -71,9 +72,9 @@ public static class ResultCursorExtensions
     {
         result = result ?? throw new ArgumentNullException(nameof(result));
         var list = new List<IRecord>();
-        while (await result.FetchAsync().ConfigureAwait(false))
+        await foreach (var record in result.ConfigureAwait(false))
         {
-            list.Add(result.Current);
+            list.Add(record);
         }
 
         return list;
@@ -87,10 +88,9 @@ public static class ResultCursorExtensions
     {
         result = result ?? throw new ArgumentNullException(nameof(result));
         var list = new List<IRecord>();
-        while (await result.FetchAsync().ConfigureAwait(false))
+        await foreach (var record in result.WithCancellation(cancellationToken).ConfigureAwait(false))
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            list.Add(result.Current);
+            list.Add(record);
         }
 
         return list;
