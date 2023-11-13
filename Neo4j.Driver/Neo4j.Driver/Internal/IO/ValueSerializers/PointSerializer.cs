@@ -32,7 +32,7 @@ internal sealed class PointSerializer : IPackStreamSerializer
     public byte[] ReadableStructs => new[] { Point2DStructType, Point3DStructType };
     public IEnumerable<Type> WritableTypes => new[] { typeof(Point) };
 
-    public object Deserialize(BoltProtocolVersion _, PackStreamReader reader, byte signature, long size)
+    public object Deserialize(BoltProtocolVersion _, IPackStreamReader reader, byte signature, long size)
     {
         switch (signature)
         {

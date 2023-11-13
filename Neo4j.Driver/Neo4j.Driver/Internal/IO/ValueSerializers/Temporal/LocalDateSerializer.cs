@@ -35,7 +35,7 @@ internal sealed class LocalDateSerializer : IPackStreamSerializer
     public IEnumerable<Type> WritableTypes => new[] { typeof(LocalDate) };
 #endif
 
-    public object Deserialize(BoltProtocolVersion _, PackStreamReader reader, byte signature, long size)
+    public object Deserialize(BoltProtocolVersion _, IPackStreamReader reader, byte signature, long size)
     {
         PackStream.EnsureStructSize("Date", StructSize, size);
 

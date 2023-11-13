@@ -26,7 +26,7 @@ internal sealed class ElementUnboundRelationshipSerializer : ReadOnlySerializer
     internal static readonly ElementUnboundRelationshipSerializer Instance = new();
     public override byte[] ReadableStructs => new[] { UnboundRelationship };
 
-    public override object Deserialize(PackStreamReader reader)
+    public override object Deserialize(IPackStreamReader reader)
     {
         var relId = reader.ReadLong();
 

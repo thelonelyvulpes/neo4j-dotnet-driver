@@ -34,7 +34,7 @@ internal sealed class LocalTimeSerializer : IPackStreamSerializer
     public IEnumerable<Type> WritableTypes => new[] { typeof(LocalTime) };
 #endif
 
-    public object Deserialize(BoltProtocolVersion _, PackStreamReader reader, byte signature, long size)
+    public object Deserialize(BoltProtocolVersion _, IPackStreamReader reader, byte signature, long size)
     {
         PackStream.EnsureStructSize("LocalTime", StructSize, size);
 

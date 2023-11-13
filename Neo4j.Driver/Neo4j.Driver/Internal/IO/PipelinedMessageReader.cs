@@ -195,9 +195,9 @@ internal sealed class PipelinedMessageReader : IMessageReader
         int size,
         ReadOnlySequence<byte> buffer)
     {
-        var packStreamReader = new SpanPackStreamReader(
+        var packStreamReader = new MemoryPackStreamReader(
             format,
-            buffer.First.Span.Slice(0, size));
+            buffer.First.Slice(0, size));
 
         var message = packStreamReader.ReadMessage();
         // Advance to end of message by create a buffer slice from the end of the chunk.
@@ -218,7 +218,7 @@ internal sealed class PipelinedMessageReader : IMessageReader
         // Copy all chunks into span removing chunk headers.
         CopyToMemory(sizes, readResult, span, pipeReader);
         // allocate SpanReader over the span and parse the message.
-        var packStreamReader = new SpanPackStreamReader(format, span);
+        var packStreamReader = new MemoryPackStreamReader(format, memory.Memory.Slice(0, totalSize));
         return packStreamReader.ReadMessage();
     }
 

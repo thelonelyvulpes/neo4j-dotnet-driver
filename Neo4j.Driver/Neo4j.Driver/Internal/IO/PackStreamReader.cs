@@ -23,7 +23,33 @@ using Neo4j.Driver.Internal.Messaging;
 
 namespace Neo4j.Driver.Internal.IO;
 
-internal sealed class PackStreamReader
+internal interface IPackStreamReader
+{
+    object Read();
+    IResponseMessage ReadMessage();
+    Dictionary<string, object> ReadMap();
+    IList<object> ReadList();
+    object ReadStruct();
+    object ReadNull();
+    bool ReadBoolean();
+    int ReadInteger();
+    long ReadLong();
+    double ReadDouble();
+    string ReadString();
+    byte[] ReadBytes();
+    int ReadMapHeader();
+    int ReadListHeader();
+    byte ReadStructSignature();
+    int ReadStructHeader();
+    byte NextByte();
+    short NextShort();
+    int NextInt();
+    long NextLong();
+    double NextDouble();
+    byte PeekByte();
+}
+
+internal sealed class PackStreamReader : IPackStreamReader
 {
     public ByteBuffers Buffers { get; }
     public MessageFormat Format { get; }
@@ -317,7 +343,7 @@ internal sealed class PackStreamReader
         }
     }
 
-    public long ReadMapHeader()
+    public int ReadMapHeader()
     {
         var markerByte = Stream.ReadByte();
         var markerHighNibble = (byte)(markerByte & 0xF0);
@@ -344,7 +370,7 @@ internal sealed class PackStreamReader
         }
     }
 
-    public long ReadListHeader()
+    public int ReadListHeader()
     {
         var markerByte = Stream.ReadByte();
         var markerHighNibble = (byte)(markerByte & 0xF0);
@@ -376,7 +402,7 @@ internal sealed class PackStreamReader
         return NextByte();
     }
 
-    public long ReadStructHeader()
+    public int ReadStructHeader()
     {
         var markerByte = Stream.ReadByte();
         var markerHighNibble = (byte)(markerByte & 0xF0);
@@ -482,9 +508,9 @@ internal sealed class PackStreamReader
         return NextShort() & 0xFFFF;
     }
 
-    private long ReadUint32()
+    private int ReadUint32()
     {
-        return NextInt() & 0xFFFFFFFFL;
+        return (int)(NextInt() & 0xFFFFFFFFL);
     }
 
     internal sbyte NextSByte()

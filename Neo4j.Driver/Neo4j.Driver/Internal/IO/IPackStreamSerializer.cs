@@ -26,7 +26,7 @@ internal interface IPackStreamSerializer
 
     IEnumerable<Type> WritableTypes { get; }
 
-    object Deserialize(BoltProtocolVersion version, PackStreamReader reader, byte signature, long size);
+    object Deserialize(BoltProtocolVersion version, IPackStreamReader reader, byte signature, long size);
     void Serialize(BoltProtocolVersion version, PackStreamWriter writer, object value);
     (object, int) DeserializeSpan(BoltProtocolVersion version, SpanPackStreamReader reader, byte signature, int size);
 }

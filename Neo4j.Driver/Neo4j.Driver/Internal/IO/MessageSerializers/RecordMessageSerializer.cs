@@ -29,9 +29,9 @@ internal sealed class RecordMessageSerializer : ReadOnlySerializer, IPackStreamM
     private static readonly byte[] StructTags = { MessageFormat.MsgRecord };
     public override byte[] ReadableStructs => StructTags;
 
-    public override object Deserialize(PackStreamReader reader)
+    public override object Deserialize(IPackStreamReader reader)
     {
-        var fieldCount = (int)reader.ReadListHeader();
+        var fieldCount = reader.ReadListHeader();
         var fields = new object[fieldCount];
         for (var i = 0; i < fieldCount; i++)
         {

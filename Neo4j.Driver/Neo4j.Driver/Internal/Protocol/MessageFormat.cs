@@ -65,20 +65,20 @@ internal sealed class MessageFormat
     {
         Version = version;
         // Response Message Types
-        if (context.Config.MessageReaderConfig.DisablePipelinedMessageReader)
-        {
+        // if (context.Config.MessageReaderConfig.DisablePipelinedMessageReader)
+        // {
             AddHandler(FailureMessageSerializer.Instance);
             AddHandler(IgnoredMessageSerializer.Instance);
             AddHandler(RecordMessageSerializer.Instance);
             AddHandler(SuccessMessageSerializer.Instance);
-        }
-        else
-        {
-            AddMessageHandler(FailureMessageSerializer.Instance);
-            AddMessageHandler(IgnoredMessageSerializer.Instance);
-            AddMessageHandler(RecordMessageSerializer.Instance);
-            AddMessageHandler(SuccessMessageSerializer.Instance);
-        }
+        // }
+        // else
+        // {
+        //     AddMessageHandler(FailureMessageSerializer.Instance);
+        //     AddMessageHandler(IgnoredMessageSerializer.Instance);
+        //     AddMessageHandler(RecordMessageSerializer.Instance);
+        //     AddMessageHandler(SuccessMessageSerializer.Instance);
+        // }
 
         // Add V2 Spatial Types
         AddHandler(PointSerializer.Instance);

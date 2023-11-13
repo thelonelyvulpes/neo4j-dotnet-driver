@@ -31,7 +31,7 @@ internal sealed class ZonedDateTimeSerializer : IPackStreamSerializer
 
     public IEnumerable<Type> WritableTypes => new[] { typeof(ZonedDateTime) };
 
-    public object Deserialize(BoltProtocolVersion _, PackStreamReader reader, byte signature, long size)
+    public object Deserialize(BoltProtocolVersion _, IPackStreamReader reader, byte signature, long size)
     {
         PackStream.EnsureStructSize($"ZonedDateTime[{(char)signature}]", StructSize, size);
 

@@ -30,7 +30,7 @@ internal sealed class DurationSerializer : IPackStreamSerializer
 
     public IEnumerable<Type> WritableTypes => new[] { typeof(Duration) };
 
-    public object Deserialize(BoltProtocolVersion _, PackStreamReader reader, byte signature, long size)
+    public object Deserialize(BoltProtocolVersion _, IPackStreamReader reader, byte signature, long size)
     {
         PackStream.EnsureStructSize("Duration", StructSize, size);
 

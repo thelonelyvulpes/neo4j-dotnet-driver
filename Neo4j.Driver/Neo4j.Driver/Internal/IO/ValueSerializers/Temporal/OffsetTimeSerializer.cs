@@ -30,7 +30,7 @@ internal sealed class OffsetTimeSerializer : IPackStreamSerializer
 
     public IEnumerable<Type> WritableTypes => new[] { typeof(OffsetTime) };
 
-    public object Deserialize(BoltProtocolVersion _, PackStreamReader reader, byte signature, long size)
+    public object Deserialize(BoltProtocolVersion _, IPackStreamReader reader, byte signature, long size)
     {
         PackStream.EnsureStructSize("Time", StructSize, size);
 

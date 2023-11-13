@@ -30,7 +30,7 @@ internal sealed class FailureMessageSerializer : ReadOnlySerializer, IPackStream
 
     public override object Deserialize(
         BoltProtocolVersion boltProtocolVersion,
-        PackStreamReader reader,
+        IPackStreamReader reader,
         byte _,
         long __)
     {

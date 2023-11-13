@@ -133,7 +133,7 @@ namespace Neo4j.Driver.Internal.IO
 
             public IEnumerable<Type> WritableTypes => new[] { typeof(StructType) };
 
-            public object Deserialize(BoltProtocolVersion _, PackStreamReader reader, byte signature, long size)
+            public object Deserialize(BoltProtocolVersion _, IPackStreamReader reader, byte signature, long size)
             {
                 var values = new List<object>();
                 for (var i = 0; i < size; i++)

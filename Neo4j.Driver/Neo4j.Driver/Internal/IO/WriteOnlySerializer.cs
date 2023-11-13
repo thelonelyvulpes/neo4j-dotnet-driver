@@ -24,7 +24,7 @@ internal abstract class WriteOnlySerializer : IPackStreamSerializer
 {
     public byte[] ReadableStructs => Array.Empty<byte>();
 
-    public object Deserialize(BoltProtocolVersion _, PackStreamReader reader, byte signature, long size)
+    public object Deserialize(BoltProtocolVersion _, IPackStreamReader reader, byte signature, long size)
     {
         throw new ProtocolException(
             $"{GetType().Name}: It is not expected to receive a struct of signature {signature:X2} from the server.");

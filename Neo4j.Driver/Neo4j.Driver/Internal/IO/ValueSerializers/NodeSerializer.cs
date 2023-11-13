@@ -26,7 +26,7 @@ internal sealed class NodeSerializer : ReadOnlySerializer
     internal static readonly NodeSerializer Instance = new();
     public override byte[] ReadableStructs => new[] { Node };
 
-    public override object Deserialize(PackStreamReader reader)
+    public override object Deserialize(IPackStreamReader reader)
     {
         var urn = reader.ReadLong();
 

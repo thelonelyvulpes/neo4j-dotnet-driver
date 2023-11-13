@@ -32,12 +32,12 @@ internal abstract class ReadOnlySerializer : IPackStreamSerializer
             $"{GetType().Name}: It is not allowed to send a value of type {value?.GetType().Name} to the server.");
     }
 
-    public virtual object Deserialize(BoltProtocolVersion _, PackStreamReader reader, byte __, long ___)
+    public virtual object Deserialize(BoltProtocolVersion _, IPackStreamReader reader, byte __, long ___)
     {
         return Deserialize(reader);
     }
 
-    public virtual object Deserialize(PackStreamReader reader)
+    public virtual object Deserialize(IPackStreamReader reader)
     {
         throw new NotImplementedException();
     }

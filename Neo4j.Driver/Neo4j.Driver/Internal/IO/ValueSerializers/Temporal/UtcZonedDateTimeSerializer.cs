@@ -32,7 +32,7 @@ internal sealed class UtcZonedDateTimeSerializer : IPackStreamSerializer
 
     //TODO: Support Non-utc
 
-    public object Deserialize(BoltProtocolVersion _, PackStreamReader reader, byte signature, long size)
+    public object Deserialize(BoltProtocolVersion _, IPackStreamReader reader, byte signature, long size)
     {
         PackStream.EnsureStructSize($"ZonedDateTime[{(char)signature}]", StructSize, size);
 
