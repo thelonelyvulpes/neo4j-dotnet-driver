@@ -16,84 +16,70 @@
 // limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Net;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Neo4j.Driver.Tests.TestBackend;
 
 public class Program
 {
-    private static IPAddress Address;
-    private static uint Port;
-
-    private static void Main(string[] args)
+    private static async Task Main(string[] args)
     {
-        var consoleTraceListener = new TextWriterTraceListener(Console.Out);
-        Trace.Listeners.Add(consoleTraceListener);
+        await using var driver = GraphDatabase.Driver("bolt://localhost:7687", AuthTokens.Basic("neo4j", "password"));
+        await using var session = driver.AsyncSession(x => x.WithDatabase("neo4j").WithFetchSize(-1));
 
+        const int collected = 1000;
+        const int records = 1000;
+        
+        var tx = await session.BeginTransactionAsync();
+        var timers = new List<long>(collected + records);
+        var sw = Stopwatch.StartNew();
+        var fullSw = Stopwatch.StartNew();
         try
         {
-            ArgumentsValidation(args);
-
-            using (var connection = new Connection(Address.ToString(), Port))
+            for (var i = 0; i < collected; i++)
             {
-                var controller = new Controller(connection);
+                var cursor = await tx.RunAsync("UNWIND(RANGE(1, 10000)) AS x RETURN collect(toString(x)) as y");
+                var rows = await cursor.ToListAsync();
 
-                try
+                timers.Add(sw.ElapsedMilliseconds);
+                sw.Restart();
+                
+                if (rows.Count != 1)
                 {
-                    controller.Process(true, e => { return true; }).Wait();
-                }
-                catch (Exception ex)
-                {
-                    Trace.WriteLine(
-                        $"It looks like the ExceptionExtensions system has failed in an unexpected way. \n{ex}");
-                }
-                finally
-                {
-                    connection.StopServer();
+                    throw new Exception("Invalid number of rows");
                 }
             }
+
+            for (var i = 0; i < records; i++)
+            {
+                var cursor = await tx.RunAsync("UNWIND(RANGE(1, 10000)) AS x RETURN x");
+                var rows = await cursor.ToListAsync();
+                timers.Add(sw.ElapsedMilliseconds);
+                sw.Restart();
+                if (rows.Count != 10_000)
+                {
+                    throw new Exception("Invalid number of rows");
+                }
+            }
+
+            await tx.CommitAsync();
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
-            Trace.WriteLine(ex.Message);
-            Trace.WriteLine($"Exception Details: \n {ex.StackTrace}");
+            Console.WriteLine(e);
+            await tx.RollbackAsync();
+            throw;
         }
         finally
         {
-            Trace.Flush();
-            Trace.Listeners.Remove(consoleTraceListener);
-            consoleTraceListener.Close();
-            Trace.Close();
+            fullSw.Stop();
         }
-    }
-
-    private static void ArgumentsValidation(string[] args)
-    {
-        if (args.Length < 2)
-        {
-            throw new IOException(
-                $"Incorrect number of arguments passed in. Expecting Address Port, but got {args.Length} arguments");
-        }
-
-        if (!uint.TryParse(args[1], out Port))
-        {
-            throw new IOException(
-                $"Invalid port passed in parameter 2.  Should be unsigned integer but was: {args[1]}.");
-        }
-
-        if (!IPAddress.TryParse(args[0], out Address))
-        {
-            throw new IOException($"Invalid IPAddress passed in parameter 1. {args[0]}");
-        }
-
-        if (args.Length > 2)
-        {
-            Trace.Listeners.Add(new TextWriterTraceListener(args[2]));
-            Trace.WriteLine("Logging to file: " + args[2]);
-        }
-
-        Trace.WriteLine($"Starting TestBackend on {Address}:{Port}");
+        
+        Console.WriteLine($"Total time: {fullSw.ElapsedMilliseconds}ms");
+        Console.WriteLine($"Average collect time: {timers.Take(collected).Average()}ms");
+        Console.WriteLine($"Average record time: {timers.Skip(collected).Take(records).Average()}ms");
     }
 }
