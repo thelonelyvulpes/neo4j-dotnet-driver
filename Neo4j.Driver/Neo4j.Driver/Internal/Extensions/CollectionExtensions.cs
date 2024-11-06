@@ -267,4 +267,38 @@ internal static class CollectionExtensions
 
         return true;
     }
+
+    public static void FillMissingFrom<TKey, TValue>(
+        this IDictionary<TKey, TValue> dict,
+        IDictionary<TKey, TValue> other)
+    {
+        foreach (var key in other.Keys)
+        {
+            if (!dict.ContainsKey(key))
+            {
+                dict[key] = other[key];
+            }
+        }
+    }
+
+    public static void OverwriteFrom<TKey, TValue>(
+        this IDictionary<TKey, TValue> dict,
+        params (TKey key, TValue value)[] pairs)
+    {
+        OverwriteFrom(dict, default, pairs);
+    }
+
+    public static void OverwriteFrom<TKey, TValue>(
+        this IDictionary<TKey, TValue> dict,
+        TValue ignoreValue,
+        params (TKey key, TValue value)[] pairs)
+    {
+        foreach (var (key, value) in pairs)
+        {
+            if (!Equals(value, ignoreValue))
+            {
+                dict[key] = value;
+            }
+        }
+    }
 }
