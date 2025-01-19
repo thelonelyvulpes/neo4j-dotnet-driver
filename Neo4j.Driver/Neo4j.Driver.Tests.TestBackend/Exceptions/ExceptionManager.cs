@@ -14,10 +14,14 @@
 // limitations under the License.
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Neo4j.Driver.Internal;
 using Neo4j.Driver.Internal.Connector;
+using Neo4j.Driver.Preview.GqlErrors;
 using Neo4j.Driver.Tests.TestBackend.Protocol;
+using Neo4j.Driver.Tests.TestBackend.Types;
 
 namespace Neo4j.Driver.Tests.TestBackend.Exceptions;
 //TransientException = DriverError
@@ -50,7 +54,7 @@ internal static class ExceptionManager
         { typeof(DatabaseException), "DatabaseError" },
         { typeof(ServiceUnavailableException), "ServiceUnavailableError" },
         { typeof(SessionExpiredException), "SessionExpiredError" },
-        { typeof(Driver.ProtocolException), "ProtocolError" },
+        { typeof(ProtocolException), "ProtocolError" },
         { typeof(SecurityException), "SecurityError" },
         { typeof(AuthenticationException), "AuthenticationError" },
         { typeof(AuthorizationException), "AuthorizationExpired" },
@@ -70,32 +74,23 @@ internal static class ExceptionManager
         { typeof(TypeException), "TypeError" },
         { typeof(ForbiddenException), "ForbiddenError" },
         { typeof(UnknownSecurityException), "OtherSecurityException" },
-        { typeof(ReauthException), "UnsupportedFeatureException"},
+        { typeof(ReauthException), "UnsupportedFeatureException" },
         { typeof(TransactionTerminatedException), "TransactionTerminatedError" }
     };
 
     internal static ProtocolResponse GenerateExceptionResponse(Exception ex)
     {
-        var outerExceptionMessage = ex.Message;
-        var exceptionMessage = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
-
         var type = TypeMap.GetValueOrDefault(ex.GetType());
+        //var exceptionMessage = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
 
-        //if (ex is Neo4jException || ex is NotSupportedException)
         if (type is not null)
         {
             var newError = ProtocolObjectFactory.CreateObject<Protocol.ProtocolException>();
             newError.ExceptionObj = ex;
-            var errorCode = ex is Neo4jException ? ((Neo4jException)ex).Code : type;
-            return new ProtocolResponse(
-                "DriverError",
-                new
-                {
-                    id = newError.uniqueId,
-                    errorType = type,
-                    msg = exceptionMessage,
-                    code = errorCode
-                });
+            var data = CreateExceptionDictionary(ex, type, ex.Message);
+            data["id"] = newError.uniqueId;
+
+            return new ProtocolResponse("DriverError", data);
         }
 
         if (ex is DriverExceptionWrapper)
@@ -107,7 +102,8 @@ internal static class ExceptionManager
                 {
                     id = newError.uniqueId,
                     errorType = ex.InnerException?.GetType().Name ?? ex.GetType().Name,
-                    msg = exceptionMessage
+                    msg = ex.InnerException != null ? ex.InnerException.Message : ex.Message,
+                    retryable = false
                 });
         }
 
@@ -120,9 +116,51 @@ internal static class ExceptionManager
                     msg = ex.Message
                 });
         }
-        
+
         Trace.WriteLine($"Unhandled exception thrown {ex}");
 
-        return new ProtocolResponse("BackendError", new { msg = exceptionMessage });
+        return new ProtocolResponse("BackendError", new { msg = ex.Message });
+    }
+
+    private static Dictionary<string, object> CreateExceptionDictionary(
+        Exception ex,
+        string type,
+        string exceptionMessage,
+        bool isCause = false)
+    {
+        var ne = ex as Neo4jException;
+        var gqlError = ne?.GetGqlErrorPreview();
+        var diagnosticRecord = gqlError?.GqlDiagnosticRecord?.ToDictionary(y => y.Key, y => NativeToCypher.Convert(y.Value));
+        var data = new Dictionary<string, object>();
+
+        if (!isCause)
+        {
+            data.OverwriteFrom(
+                ("errorType", type),
+                ("code", ne?.Code ?? type),
+                ("retryable", ne?.IsRetriable ?? false));
+        }
+
+        data.OverwriteFrom(
+            null,
+            ("msg", exceptionMessage),
+            ("gqlStatus", gqlError?.GqlStatus),
+            ("statusDescription", gqlError?.GqlStatusDescription),
+            ("diagnosticRecord", diagnosticRecord),
+            ("rawClassification", gqlError?.GqlRawClassification),
+            ("classification", gqlError?.GqlClassification));
+
+        if (ne?.InnerException != null)
+        {
+            var exceptionDictionary = CreateExceptionDictionary(
+                ne.InnerException,
+                "GqlError",
+                ne.InnerException.Message,
+                true);
+
+            data["cause"] = new { name = "GqlError", data = exceptionDictionary };
+        }
+
+        return data;
     }
 }

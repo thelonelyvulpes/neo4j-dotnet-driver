@@ -39,7 +39,7 @@ public class SessionConfigBuilderTests
     {
         var configBuilder = new SessionConfigBuilder(new SessionConfig());
 
-        configBuilder.WithNotifications(null, [classification]);
+        configBuilder.WithNotifications(null, disabledClassifications: [classification]);
 
         var config = configBuilder.Build()
             .NotificationsConfig.Should()
@@ -116,7 +116,7 @@ public class SessionConfigBuilderTests
     {
         var configBuilder = new SessionConfigBuilder(new SessionConfig());
 
-        configBuilder.WithNotifications(null, [Classification.Deprecation, Classification.Hint]);
+        configBuilder.WithNotifications(null, disabledClassifications: [Classification.Deprecation, Classification.Hint]);
 
         var config = configBuilder.Build()
             .NotificationsConfig.Should()
@@ -147,7 +147,7 @@ public class SessionConfigBuilderTests
         config
             .Which
             .DisabledCategories.Should()
-            .BeEquivalentTo(new HashSet<Category>());
+            .BeEmpty();
 
         config
             .Which
@@ -160,7 +160,7 @@ public class SessionConfigBuilderTests
     {
         var configBuilder = new SessionConfigBuilder(new SessionConfig());
 
-        configBuilder.WithNotifications(Severity.Warning, Array.Empty<Classification>());
+        configBuilder.WithNotifications(Severity.Warning, disabledClassifications: Array.Empty<Classification>());
 
         var config = configBuilder.Build()
             .NotificationsConfig.Should()
@@ -169,7 +169,7 @@ public class SessionConfigBuilderTests
         config
             .Which
             .DisabledCategories.Should()
-            .BeEquivalentTo(new HashSet<Category>());
+            .BeEmpty();
 
         config
             .Which

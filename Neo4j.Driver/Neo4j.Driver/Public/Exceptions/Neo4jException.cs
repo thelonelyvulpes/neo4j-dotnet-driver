@@ -16,7 +16,10 @@
 // limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
+using Neo4j.Driver.Internal.Messaging;
+using Neo4j.Driver.Preview.GqlErrors;
 
 namespace Neo4j.Driver;
 
@@ -24,13 +27,71 @@ namespace Neo4j.Driver;
 /// The base class for all Neo4j exceptions.
 /// </summary>
 [DataContract]
-public class Neo4jException : Exception
+public class Neo4jException : Exception, IGqlErrorPreview
 {
+    private readonly string _gqlStatus;
+    private readonly string _gqlStatusDescription;
+    private readonly string _gqlClassification;
+    private readonly string _gqlRawClassification;
+    private readonly Dictionary<string, object> _gqlDiagnosticRecord;
+
+    /// <inheritdoc />
+    string IGqlErrorPreview.GqlStatus => _gqlStatus;
+
+    /// <inheritdoc />
+    string IGqlErrorPreview.GqlStatusDescription => _gqlStatusDescription;
+
+    /// <inheritdoc />
+    string IGqlErrorPreview.GqlClassification => _gqlClassification;
+
+    /// <inheritdoc />
+    string IGqlErrorPreview.GqlRawClassification => _gqlRawClassification;
+
+    /// <inheritdoc />
+    Dictionary<string, object> IGqlErrorPreview.GqlDiagnosticRecord => _gqlDiagnosticRecord;
+
+    /// <summary>
+    /// Gets whether the exception retriable or not.
+    /// </summary>
+    public virtual bool IsRetriable => false;
+
+    /// <summary>
+    /// Gets or sets the code of a Neo4j exception.
+    /// </summary>
+    public string Code { get; set; }
+
     /// <summary>
     /// Create a new <see cref="Neo4jException"/>
     /// </summary>
     public Neo4jException()
     {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Neo4jException"/> class using the specified <see cref="FailureMessage"/>.
+    /// </summary>
+    /// <param name="failureMessage">The failure message containing error details.</param>
+    /// <param name="innerException">The inner exception.</param>
+    internal Neo4jException(FailureMessage failureMessage, Exception innerException = null)
+        : base(failureMessage.Message, innerException)
+    {
+        Code = failureMessage.Code;
+        _gqlStatus = failureMessage.GqlStatus;
+        _gqlStatusDescription = failureMessage.GqlStatusDescription;
+        _gqlClassification = failureMessage.GqlClassification;
+        _gqlRawClassification = failureMessage.GqlRawClassification;
+        _gqlDiagnosticRecord = failureMessage.GqlDiagnosticRecord;
+    }
+
+    internal static Neo4jException Create(FailureMessage failureMessage)
+    {
+        Exception innerException = null;
+        if (failureMessage.GqlCause is not null)
+        {
+            innerException = Create(failureMessage.GqlCause);
+        }
+
+        return new Neo4jException(failureMessage, innerException);
     }
 
     /// <summary>
@@ -73,14 +134,4 @@ public class Neo4jException : Exception
     {
         Code = code;
     }
-
-    /// <summary>
-    /// Gets whether the exception retriable or not.
-    /// </summary>
-    public virtual bool IsRetriable => false;
-
-    /// <summary>
-    /// Gets or sets the code of a Neo4j exception.
-    /// </summary>
-    public string Code { get; set; }
 }

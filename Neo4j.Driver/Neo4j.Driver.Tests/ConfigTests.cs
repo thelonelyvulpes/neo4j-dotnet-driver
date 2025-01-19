@@ -24,7 +24,6 @@ using Neo4j.Driver.Internal.Auth;
 using Neo4j.Driver.Internal.Connector.Trust;
 using Neo4j.Driver.Internal.Logging;
 using Neo4j.Driver.Internal.Types;
-using Neo4j.Driver.Preview.Auth;
 using Xunit;
 
 namespace Neo4j.Driver.Tests;
@@ -258,7 +257,7 @@ public class ConfigTests
         {
             var configBuilder = new ConfigBuilder(new Config());
 
-            configBuilder.WithNotifications(null, [classification]);
+            configBuilder.WithNotifications(null, disabledClassifications: [classification]);
 
             var config = configBuilder.Build()
                 .NotificationsConfig.Should()
@@ -296,10 +295,12 @@ public class ConfigTests
             var config = configBuilder.Build()
                 .NotificationsConfig.Should()
                 .BeOfType<NotificationsConfig>();
+
             config
                 .Which
                 .DisabledCategories.Should()
                 .BeEquivalentTo([outCat]);
+
             config
                 .Which
                 .MinimumSeverity.Should()
@@ -333,7 +334,9 @@ public class ConfigTests
         {
             var configBuilder = new ConfigBuilder(new Config());
 
-            configBuilder.WithNotifications(null, [Classification.Deprecation, Classification.Hint]);
+            configBuilder.WithNotifications(
+                null,
+                disabledClassifications: [Classification.Deprecation, Classification.Hint]);
 
             var config = configBuilder.Build()
                 .NotificationsConfig.Should()
@@ -376,7 +379,79 @@ public class ConfigTests
         {
             var configBuilder = new ConfigBuilder(new Config());
 
-            configBuilder.WithNotifications(Severity.Warning, Array.Empty<Classification>());
+            configBuilder.WithNotifications(Severity.Warning, disabledClassifications: Array.Empty<Classification>());
+
+            var config = configBuilder.Build()
+                .NotificationsConfig.Should()
+                .BeOfType<NotificationsConfig>();
+
+            config
+                .Which
+                .DisabledCategories.Should()
+                .BeEmpty();
+
+            config
+                .Which
+                .MinimumSeverity.Should()
+                .Be(Severity.Warning);
+        }
+
+        [Fact]
+        public void WithNotifications_ShouldWorkWithSecondParameterNull()
+        {
+            var configBuilder = new ConfigBuilder(new Config());
+
+            // this line would fail to compile before the fix
+            configBuilder.WithNotifications(Severity.Warning, null);
+
+            var config = configBuilder.Build()
+                .NotificationsConfig.Should()
+                .BeOfType<NotificationsConfig>();
+
+            config
+                .Which
+                .DisabledCategories.Should()
+                .BeNull();
+
+            config
+                .Which
+                .MinimumSeverity.Should()
+                .Be(Severity.Warning);
+        }
+
+        [Fact]
+        public void WithNotifications_ShouldSetMultipleCategoriesAndClassifications()
+        {
+            var configBuilder = new ConfigBuilder(new Config());
+
+            // specify both categories and classifications
+            configBuilder.WithNotifications(
+                Severity.Warning,
+                [Category.Deprecation, Category.Hint],
+                [Classification.Deprecation, Classification.Topology]);
+
+            var config = configBuilder.Build()
+                .NotificationsConfig.Should()
+                .BeOfType<NotificationsConfig>();
+
+            config
+                .Which
+                .DisabledCategories.Should()
+                .BeEquivalentTo([Category.Deprecation, Category.Hint, Category.Topology]);
+
+            config
+                .Which
+                .MinimumSeverity.Should()
+                .Be(Severity.Warning);
+        }
+
+        [Fact]
+        public void WithNotifications_ShouldHaveNullExclusions()
+        {
+            var configBuilder = new ConfigBuilder(new Config());
+
+            // this line would fail to compile before the fix
+            configBuilder.WithNotifications(Severity.Warning, null);
 
             var config = configBuilder.Build()
                 .NotificationsConfig.Should()
@@ -391,7 +466,7 @@ public class ConfigTests
                 .MinimumSeverity.Should()
                 .Be(Severity.Warning);
         }
-        
+
         private class MockTlsNegotiator : ITlsNegotiator
         {
             /// <inheritdoc/>

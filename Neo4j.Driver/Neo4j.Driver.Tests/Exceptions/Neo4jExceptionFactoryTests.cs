@@ -17,37 +17,40 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using FluentAssertions;
 using Neo4j.Driver.Internal.ExceptionHandling;
+using Neo4j.Driver.Internal.Messaging;
 using Xunit;
 
 namespace Neo4j.Driver.Tests.Exceptions;
 
 public class Neo4jExceptionFactoryTests
 {
-    public static IEnumerable<object[]> CodeToTypeMapping = new[]
-    {
-        new object[] { "Neo.ClientError.Statement.ArgumentError", typeof(StatementArgumentException) },
-        new object[] { "Neo.ClientError.Security.Unauthorized", typeof(AuthenticationException) },
-        new object[] { "Neo.ClientError.Security.AuthorizationExpired", typeof(AuthorizationException) },
-        new object[] { "Neo.ClientError.Database.DatabaseNotFound", typeof(FatalDiscoveryException) },
-        new object[] { "Neo.ClientError.Security.Forbidden", typeof(ForbiddenException) },
-        new object[] { "Neo.ClientError.Transaction.InvalidBookmark", typeof(InvalidBookmarkException) },
-        new object[] { "Neo.ClientError.Transaction.InvalidBookmarkMixture", typeof(InvalidBookmarkMixtureException) },
-        new object[] { "Neo.ClientError.Request.Invalid", typeof(ProtocolException) },
-        new object[] { "Neo.ClientError.Request.InvalidFormat", typeof(ProtocolException) },
-        new object[] { "Neo.ClientError.Security.TokenExpired", typeof(TokenExpiredException) },
-        new object[] { "Neo.ClientError.Statement.TypeError", typeof(TypeException) },
-        new object[] { "Neo.ClientError.Security.##unknown##", typeof(UnknownSecurityException) },
-        new object[] { "Neo.DatabaseError.blah", typeof(DatabaseException) },
-        new object[] { "Neo.TransientError.TemporaryDisabled", typeof(TransientException) },
-    };
+    [SuppressMessage("Usage", "CA2211:Non-constant fields should not be visible")]
+    public static object[][] CodeToTypeMapping =
+    [
+        ["Neo.ClientError.Statement.ArgumentError", typeof(StatementArgumentException)],
+        ["Neo.ClientError.Security.Unauthorized", typeof(AuthenticationException)],
+        ["Neo.ClientError.Security.AuthorizationExpired", typeof(AuthorizationException)],
+        ["Neo.ClientError.Database.DatabaseNotFound", typeof(FatalDiscoveryException)],
+        ["Neo.ClientError.Security.Forbidden", typeof(ForbiddenException)],
+        ["Neo.ClientError.Transaction.InvalidBookmark", typeof(InvalidBookmarkException)],
+        ["Neo.ClientError.Transaction.InvalidBookmarkMixture", typeof(InvalidBookmarkMixtureException)],
+        ["Neo.ClientError.Request.Invalid", typeof(ProtocolException)],
+        ["Neo.ClientError.Request.InvalidFormat", typeof(ProtocolException)],
+        ["Neo.ClientError.Security.TokenExpired", typeof(TokenExpiredException)],
+        ["Neo.ClientError.Statement.TypeError", typeof(TypeException)],
+        ["Neo.ClientError.Security.##unknown##", typeof(UnknownSecurityException)],
+        ["Neo.DatabaseError.blah", typeof(DatabaseException)],
+        ["Neo.TransientError.TemporaryDisabled", typeof(TransientException)]
+    ];
 
     [Theory, MemberData(nameof(CodeToTypeMapping))]
     public void ShouldCreateCorrectExceptionType(string code, Type exceptionType)
     {
         var subject = new Neo4jExceptionFactory();
-        var exception = subject.GetException(code, "test message");
+        var exception = subject.GetException(new FailureMessage(code, "test message"));
         exception.Should().BeOfType(exceptionType);
         exception.Code.Should().Be(code);
         exception.Message.Should().Be("test message");
