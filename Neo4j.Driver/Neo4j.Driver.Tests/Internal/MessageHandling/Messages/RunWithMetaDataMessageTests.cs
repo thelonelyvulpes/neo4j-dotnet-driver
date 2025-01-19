@@ -54,7 +54,7 @@ public class RunWithMetaDataMessageTests
             null,
             sessionConfig: new SessionConfig("jeff"));
         rm.Query.Should().BeNull();
-        rm.Metadata.Should().ContainKey("imp_user").WhichValue.Should().Be("jeff");
+        rm.Metadata.Should().ContainKey("imp_user").WhoseValue.Should().Be("jeff");
 
         rm.ToString().Should().Be("RUN  [{imp_user, jeff}]");
     }
@@ -78,16 +78,16 @@ public class RunWithMetaDataMessageTests
             "neo4j",
             new SessionConfig("jeff"));
 
-        rm.Metadata.Should().ContainKey("bookmarks").WhichValue.Should().BeEquivalentTo(new[] { "bm:a" });
-        rm.Metadata.Should().ContainKey("tx_timeout").WhichValue.Should().Be(1000L);
+        rm.Metadata.Should().ContainKey("bookmarks").WhoseValue.Should().BeEquivalentTo(new[] { "bm:a" });
+        rm.Metadata.Should().ContainKey("tx_timeout").WhoseValue.Should().Be(1000L);
         rm.Metadata.Should()
-            .ContainKey("tx_metadata")
-            .WhichValue.Should()
+            .ContainKey("tx_metadata").WhoseValue
+            .Should()
             .BeEquivalentTo(new Dictionary<string, object> { ["a"] = "b" });
 
-        rm.Metadata.Should().ContainKey("mode").WhichValue.Should().BeEquivalentTo("r");
-        rm.Metadata.Should().ContainKey("db").WhichValue.Should().BeEquivalentTo("neo4j");
-        rm.Metadata.Should().ContainKey("imp_user").WhichValue.Should().BeEquivalentTo("jeff");
+        rm.Metadata.Should().ContainKey("mode").WhoseValue.Should().BeEquivalentTo("r");
+        rm.Metadata.Should().ContainKey("db").WhoseValue.Should().BeEquivalentTo("neo4j");
+        rm.Metadata.Should().ContainKey("imp_user").WhoseValue.Should().BeEquivalentTo("jeff");
 
         rm.ToString()
             .Should()
@@ -109,13 +109,13 @@ public class RunWithMetaDataMessageTests
             notificationsConfig: cfg);
 
         runMessage.Metadata.Should()
-            .ContainKey("notifications_disabled_categories")
-            .WhichValue.Should()
+            .ContainKey("notifications_disabled_categories").WhoseValue
+            .Should()
             .BeEquivalentTo(new[] { "HINT" });
 
         runMessage.Metadata.Should()
-            .ContainKey("notifications_minimum_severity")
-            .WhichValue.Should()
+            .ContainKey("notifications_minimum_severity").WhoseValue
+            .Should()
             .Be("INFORMATION");
     }
 
@@ -132,13 +132,13 @@ public class RunWithMetaDataMessageTests
             notificationsConfig: cfg);
 
         runMessage.Metadata.Should()
-            .ContainKey("notifications_disabled_classifications")
-            .WhichValue.Should()
+            .ContainKey("notifications_disabled_classifications").WhoseValue
+            .Should()
             .BeEquivalentTo(new[] { "HINT" });
 
         runMessage.Metadata.Should()
-            .ContainKey("notifications_minimum_severity")
-            .WhichValue.Should()
+            .ContainKey("notifications_minimum_severity").WhoseValue
+            .Should()
             .Be("INFORMATION");
     }
 }

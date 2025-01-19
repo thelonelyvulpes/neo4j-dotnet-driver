@@ -14,6 +14,7 @@
 // limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using FluentAssertions;
 using Neo4j.Driver.Internal.Types;
 using Xunit;
@@ -146,7 +147,7 @@ public class SessionConfigBuilderTests
         config
             .Which
             .DisabledCategories.Should()
-            .BeEquivalentTo([]);
+            .BeEquivalentTo(new HashSet<Category>());
 
         config
             .Which
@@ -168,7 +169,7 @@ public class SessionConfigBuilderTests
         config
             .Which
             .DisabledCategories.Should()
-            .BeEquivalentTo([]);
+            .BeEquivalentTo(new HashSet<Category>());
 
         config
             .Which

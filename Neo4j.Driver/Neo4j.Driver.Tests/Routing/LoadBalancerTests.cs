@@ -201,7 +201,7 @@ public class LoadBalancerTests
             // When & Then
             balancer.Awaiting(b => b.AcquireAsync(mode, It.IsAny<string>(), It.IsAny<SessionConfig>(), Bookmarks.Empty))
                 .Should()
-                .Throw<SessionExpiredException>()
+                .ThrowAsync<SessionExpiredException>()
                 .WithMessage("Failed to connect to any*");
 
             // should be removed
@@ -271,7 +271,7 @@ public class LoadBalancerTests
             // When
             balancer.Awaiting(b => b.AcquireAsync(mode, null, null, Bookmarks.Empty))
                 .Should()
-                .Throw<ProtocolException>()
+                .ThrowAsync<ProtocolException>()
                 .WithMessage("*do not understand struct 0x01*");
 
             // while the server is not removed

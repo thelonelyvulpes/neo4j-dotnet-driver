@@ -63,12 +63,12 @@ public class BeginMessageTests
             new SessionConfig("Douglas Fir"),
             null);
 
-        message.Metadata.Should().ContainKey("bookmarks").WhichValue.Should().BeEquivalentTo(new[] { "bm:a" });
-        message.Metadata.Should().ContainKey("imp_user").WhichValue.Should().BeEquivalentTo("Douglas Fir");
-        message.Metadata.Should().ContainKey("tx_timeout").WhichValue.Should().BeEquivalentTo(1000L);
-        message.Metadata.Should().ContainKey("tx_metadata").WhichValue.Should().BeEquivalentTo(txMeta);
-        message.Metadata.Should().ContainKey("mode").WhichValue.Should().BeEquivalentTo("r");
-        message.Metadata.Should().ContainKey("db").WhichValue.Should().BeEquivalentTo("neo4j");
+        message.Metadata.Should().ContainKey("bookmarks").WhoseValue.Should().BeEquivalentTo(new[] { "bm:a" });
+        message.Metadata.Should().ContainKey("imp_user").WhoseValue.Should().BeEquivalentTo("Douglas Fir");
+        message.Metadata.Should().ContainKey("tx_timeout").WhoseValue.Should().BeEquivalentTo(1000L);
+        message.Metadata.Should().ContainKey("tx_metadata").WhoseValue.Should().BeEquivalentTo(txMeta);
+        message.Metadata.Should().ContainKey("mode").WhoseValue.Should().BeEquivalentTo("r");
+        message.Metadata.Should().ContainKey("db").WhoseValue.Should().BeEquivalentTo("neo4j");
 
         message.ToString()
             .Should()
@@ -97,12 +97,12 @@ public class BeginMessageTests
             new SessionConfig("Douglas Fir"),
             new NotificationsDisabledConfig());
 
-        message.Metadata.Should().ContainKey("bookmarks").WhichValue.Should().BeEquivalentTo(new[] { "bm:a" });
-        message.Metadata.Should().ContainKey("imp_user").WhichValue.Should().BeEquivalentTo("Douglas Fir");
-        message.Metadata.Should().ContainKey("tx_timeout").WhichValue.Should().BeEquivalentTo(1000L);
-        message.Metadata.Should().ContainKey("tx_metadata").WhichValue.Should().BeEquivalentTo(txMeta);
-        message.Metadata.Should().ContainKey("mode").WhichValue.Should().BeEquivalentTo("r");
-        message.Metadata.Should().ContainKey("db").WhichValue.Should().BeEquivalentTo("neo4j");
+        message.Metadata.Should().ContainKey("bookmarks").WhoseValue.Should().BeEquivalentTo(new[] { "bm:a" });
+        message.Metadata.Should().ContainKey("imp_user").WhoseValue.Should().BeEquivalentTo("Douglas Fir");
+        message.Metadata.Should().ContainKey("tx_timeout").WhoseValue.Should().BeEquivalentTo(1000L);
+        message.Metadata.Should().ContainKey("tx_metadata").WhoseValue.Should().BeEquivalentTo(txMeta);
+        message.Metadata.Should().ContainKey("mode").WhoseValue.Should().BeEquivalentTo("r");
+        message.Metadata.Should().ContainKey("db").WhoseValue.Should().BeEquivalentTo("neo4j");
 
         message.ToString()
             .Should()
@@ -130,16 +130,16 @@ public class BeginMessageTests
             new SessionConfig("Douglas Fir"),
             new NotificationsConfig(Severity.Warning, new[] { Category.Generic }));
 
-        message.Metadata.Should().ContainKey("bookmarks").WhichValue.Should().BeEquivalentTo(new[] { "bm:a" });
-        message.Metadata.Should().ContainKey("imp_user").WhichValue.Should().BeEquivalentTo("Douglas Fir");
-        message.Metadata.Should().ContainKey("tx_timeout").WhichValue.Should().BeEquivalentTo(1000L);
-        message.Metadata.Should().ContainKey("tx_metadata").WhichValue.Should().BeEquivalentTo(txMeta);
-        message.Metadata.Should().ContainKey("mode").WhichValue.Should().BeEquivalentTo("r");
-        message.Metadata.Should().ContainKey("db").WhichValue.Should().BeEquivalentTo("neo4j");
-        message.Metadata.Should().ContainKey("notifications_minimum_severity").WhichValue.Should().BeEquivalentTo("WARNING");
+        message.Metadata.Should().ContainKey("bookmarks").WhoseValue.Should().BeEquivalentTo(new[] { "bm:a" });
+        message.Metadata.Should().ContainKey("imp_user").WhoseValue.Should().BeEquivalentTo("Douglas Fir");
+        message.Metadata.Should().ContainKey("tx_timeout").WhoseValue.Should().BeEquivalentTo(1000L);
+        message.Metadata.Should().ContainKey("tx_metadata").WhoseValue.Should().BeEquivalentTo(txMeta);
+        message.Metadata.Should().ContainKey("mode").WhoseValue.Should().BeEquivalentTo("r");
+        message.Metadata.Should().ContainKey("db").WhoseValue.Should().BeEquivalentTo("neo4j");
+        message.Metadata.Should().ContainKey("notifications_minimum_severity").WhoseValue.Should().BeEquivalentTo("WARNING");
         message.Metadata.Should()
-            .ContainKey("notifications_disabled_categories")
-            .WhichValue.Should()
+            .ContainKey("notifications_disabled_categories").WhoseValue
+            .Should()
             .BeEquivalentTo(new[] { "GENERIC" });
 
         message.ToString()
@@ -168,20 +168,20 @@ public class BeginMessageTests
             new SessionConfig("Douglas Fir"),
             new NotificationsConfig(Severity.Warning, [Category.Generic]));
 
-        message.Metadata.Should().ContainKey("bookmarks").WhichValue.Should().BeEquivalentTo(new[] { "bm:a" });
-        message.Metadata.Should().ContainKey("imp_user").WhichValue.Should().BeEquivalentTo("Douglas Fir");
-        message.Metadata.Should().ContainKey("tx_timeout").WhichValue.Should().BeEquivalentTo(1000L);
-        message.Metadata.Should().ContainKey("tx_metadata").WhichValue.Should().BeEquivalentTo(txMeta);
-        message.Metadata.Should().ContainKey("mode").WhichValue.Should().BeEquivalentTo("r");
-        message.Metadata.Should().ContainKey("db").WhichValue.Should().BeEquivalentTo("neo4j");
+        message.Metadata.Should().ContainKey("bookmarks").WhoseValue.Should().BeEquivalentTo(new[] { "bm:a" });
+        message.Metadata.Should().ContainKey("imp_user").WhoseValue.Should().BeEquivalentTo("Douglas Fir");
+        message.Metadata.Should().ContainKey("tx_timeout").WhoseValue.Should().BeEquivalentTo(1000L);
+        message.Metadata.Should().ContainKey("tx_metadata").WhoseValue.Should().BeEquivalentTo(txMeta);
+        message.Metadata.Should().ContainKey("mode").WhoseValue.Should().BeEquivalentTo("r");
+        message.Metadata.Should().ContainKey("db").WhoseValue.Should().BeEquivalentTo("neo4j");
         message.Metadata.Should()
-            .ContainKey("notifications_minimum_severity")
-            .WhichValue.Should()
+            .ContainKey("notifications_minimum_severity").WhoseValue
+            .Should()
             .BeEquivalentTo("WARNING");
 
         message.Metadata.Should()
-            .ContainKey("notifications_disabled_classifications")
-            .WhichValue.Should()
+            .ContainKey("notifications_disabled_classifications").WhoseValue
+            .Should()
             .BeEquivalentTo(new[] { "GENERIC" });
 
         message.ToString()
@@ -232,12 +232,12 @@ public class BeginMessageTests
 
         beginMessage.Metadata.Should()
             .ContainKey("notifications_disabled_categories")
-            .WhichValue.Should()
+            .WhoseValue.Should()
             .BeEquivalentTo(new[] { "HINT" });
 
         beginMessage.Metadata.Should()
             .ContainKey("notifications_minimum_severity")
-            .WhichValue.Should()
+            .WhoseValue.Should()
             .Be("INFORMATION");
     }
 
@@ -259,12 +259,14 @@ public class BeginMessageTests
 
         beginMessage.Metadata.Should()
             .ContainKey("notifications_disabled_classifications")
-            .WhichValue.Should()
+            .WhoseValue
+            .Should()
             .BeEquivalentTo(new[] { "HINT" });
 
         beginMessage.Metadata.Should()
             .ContainKey("notifications_minimum_severity")
-            .WhichValue.Should()
+            .WhoseValue
+            .Should()
             .Be("INFORMATION");
     }
 }

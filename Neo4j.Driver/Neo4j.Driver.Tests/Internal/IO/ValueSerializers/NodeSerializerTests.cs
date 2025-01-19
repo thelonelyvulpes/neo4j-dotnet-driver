@@ -56,7 +56,7 @@ public class NodeSerializerTests : PackStreamSerializerTests
         var value = readerMachine.Reader().Read();
 
         value.Should().NotBeNull();
-        value.Should().BeAssignableTo<IList>().Which.Should().HaveCount(1);
+        value.Should().BeAssignableTo<IList<object>>().Which.Should().HaveCount(1);
 
         VerifySerializedNode(value.Should().BeAssignableTo<IList>().Which[0]);
     }
@@ -144,7 +144,7 @@ public class NodeSerializerTests : PackStreamSerializerTests
         var value = readerMachine.Read();
 
         value.Should().NotBeNull();
-        value.Should().BeAssignableTo<IList>().Which.Should().HaveCount(1);
+        value.Should().BeAssignableTo<IList>().Which.Count.Should().Be(1);
 
         VerifySerializedNode(value.Should().BeAssignableTo<IList>().Which[0]);
     }

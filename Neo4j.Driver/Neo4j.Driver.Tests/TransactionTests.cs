@@ -210,7 +210,7 @@ public class TransactionTests
 
             tx.Awaiting(t => t.RunAsync("should not run"))
                 .Should()
-                .Throw<ClientException>();
+                .ThrowAsync<ClientException>();
 
             mockConn.Verify(x => x.RollbackTransactionAsync(), Times.Never);
             mockConn.Verify(x => x.SyncAsync(), Times.Never);
@@ -225,9 +225,9 @@ public class TransactionTests
             mockConn.Invocations.Clear();
             tx.TransactionError = new Exception();
             await tx.MarkToCloseAsync();
-            tx.Awaiting(t => t.CommitAsync())
+            await tx.Awaiting(t => t.CommitAsync())
                 .Should()
-                .Throw<ClientException>();
+                .ThrowAsync<ClientException>();
 
             mockConn.Verify(x => x.CommitTransactionAsync(tx), Times.Never);
             mockConn.Verify(x => x.SyncAsync(), Times.Never);
@@ -242,7 +242,7 @@ public class TransactionTests
             mockConn.Invocations.Clear();
 
             await tx.MarkToCloseAsync();
-            tx.Awaiting(t => t.RollbackAsync()).Should().NotThrow();
+            await tx.Awaiting(t => t.RollbackAsync()).Should().NotThrowAsync();
             mockConn.Verify(x => x.RollbackTransactionAsync(), Times.Never);
             mockConn.Verify(x => x.SyncAsync(), Times.Never);
         }

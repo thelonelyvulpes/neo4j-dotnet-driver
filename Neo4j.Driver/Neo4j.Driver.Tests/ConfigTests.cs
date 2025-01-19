@@ -14,6 +14,7 @@
 // limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Security;
 using System.Security.Authentication;
@@ -362,8 +363,7 @@ public class ConfigTests
 
             config
                 .Which
-                .DisabledCategories.Should()
-                .BeEquivalentTo([]);
+                .DisabledCategories.Should().BeEmpty();
 
             config
                 .Which
@@ -384,8 +384,7 @@ public class ConfigTests
 
             config
                 .Which
-                .DisabledCategories.Should()
-                .BeEquivalentTo([]);
+                .DisabledCategories.Should().BeEmpty();
 
             config
                 .Which

@@ -56,7 +56,7 @@ public class RelationshipSerializerTests : PackStreamSerializerTests
         var value = readerMachine.Reader().Read();
 
         value.Should().NotBeNull();
-        value.Should().BeAssignableTo<IList>().Which.Should().HaveCount(1);
+        value.Should().BeAssignableTo<List<object>>().Subject.Should().HaveCount(1);
 
         VerifySerializedRelationship(value.Should().BeAssignableTo<IList>().Which[0]);
     }
@@ -112,7 +112,7 @@ public class RelationshipSerializerTests : PackStreamSerializerTests
         var value = reader.Read();
 
         value.Should().NotBeNull();
-        value.Should().BeAssignableTo<IList>().Which.Should().HaveCount(1);
+        value.Should().BeAssignableTo<IList>().Which.Count.Should().Be(1);
 
         VerifySerializedRelationship(value.Should().BeAssignableTo<IList>().Which[0]);
     }

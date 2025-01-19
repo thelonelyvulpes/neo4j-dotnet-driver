@@ -310,7 +310,7 @@ public class ResultCursorBuilderTests
 
             var list = await builder.CreateCursor().ToListAsync(r => r[0].As<int>());
 
-            list.Should().BeEquivalentTo(1, 2, 3);
+            list.Should().BeEquivalentTo([1, 2, 3]);
             moreCallCount.Should().Be(1);
             cancelCallCount.Should().Be(0);
         }
@@ -339,7 +339,7 @@ public class ResultCursorBuilderTests
 
             var list = await builder.CreateCursor().ToListAsync(r => r[0].As<int>());
 
-            list.Should().BeEquivalentTo(1, 2, 3);
+            list.Should().BeEquivalentTo([1, 2, 3]);
             moreCallCount.Should().Be(2);
             cancelCallCount.Should().Be(0);
         }
@@ -369,7 +369,7 @@ public class ResultCursorBuilderTests
 
             var list = await builder.CreateCursor().ToListAsync(r => r[0].As<int>());
 
-            list.Should().BeEquivalentTo(1, 2, 3);
+            list.Should().BeEquivalentTo([1, 2, 3]);
             moreCallCount.Should().Be(3);
             cancelCallCount.Should().Be(0);
         }

@@ -44,10 +44,10 @@ public class DelegateExecutableQueryMappingExtensionsTests
         GetRecordsAsync()
             .AsObjectsAsync((string name) => new { name })
             .Result.Should()
-            .BeEquivalentTo(
+            .BeEquivalentTo([
                 new { name = "Bob" },
                 new { name = "Alice" },
-                new { name = "Eve" });
+                new { name = "Eve" }]);
     }
 
     [Fact]
@@ -70,10 +70,10 @@ public class DelegateExecutableQueryMappingExtensionsTests
         GetRecordsAsync()
             .AsObjectsAsync((string name, int age) => new { name, age })
             .Result.Should()
-            .BeEquivalentTo(
+            .BeEquivalentTo([
                 new { name = "Bob", age = 30 },
                 new { name = "Alice", age = 25 },
-                new { name = "Eve", age = 35 });
+                new { name = "Eve", age = 35 }]);
     }
 
     [Fact]
@@ -97,10 +97,10 @@ public class DelegateExecutableQueryMappingExtensionsTests
         GetRecordsAsync()
             .AsObjectsAsync((string name, int age, string city) => new { name, age, city })
             .Result.Should()
-            .BeEquivalentTo(
+            .BeEquivalentTo([
                 new { name = "Bob", age = 30, city = "New York" },
                 new { name = "Alice", age = 25, city = "Los Angeles" },
-                new { name = "Eve", age = 35, city = "Chicago" });
+                new { name = "Eve", age = 35, city = "Chicago" }]);
     }
 
     [Fact]
@@ -140,10 +140,10 @@ public class DelegateExecutableQueryMappingExtensionsTests
         GetRecordsAsync()
             .AsObjectsAsync((string name, int age, string city, string country) => new { name, age, city, country })
             .Result.Should()
-            .BeEquivalentTo(
+            .BeEquivalentTo([
                 new { name = "Bob", age = 30, city = "New York", country = "USA" },
                 new { name = "Alice", age = 25, city = "Los Angeles", country = "USA" },
-                new { name = "Eve", age = 35, city = "Chicago", country = "USA" });
+                new { name = "Eve", age = 35, city = "Chicago", country = "USA" }]);
     }
 
     [Fact]
@@ -182,10 +182,10 @@ public class DelegateExecutableQueryMappingExtensionsTests
                 (string name, int age, string city, string country, string job) =>
                     new { name, age, city, country, job })
             .Result.Should()
-            .BeEquivalentTo(
+            .BeEquivalentTo([
                 new { name = "Bob", age = 30, city = "New York", country = "USA", job = "Engineer" },
                 new { name = "Alice", age = 25, city = "Los Angeles", country = "USA", job = "Doctor" },
-                new { name = "Eve", age = 35, city = "Chicago", country = "USA", job = "Teacher" });
+                new { name = "Eve", age = 35, city = "Chicago", country = "USA", job = "Teacher" }]);
     }
 
     [Fact]
@@ -224,13 +224,13 @@ public class DelegateExecutableQueryMappingExtensionsTests
                 (string name, int age, string city, string country, string job, string gender) =>
                     new { name, age, city, country, job, gender })
             .Result.Should()
-            .BeEquivalentTo(
+            .BeEquivalentTo([
                 new { name = "Bob", age = 30, city = "New York", country = "USA", job = "Engineer", gender = "Male" },
                 new
                 {
                     name = "Alice", age = 25, city = "Los Angeles", country = "USA", job = "Doctor", gender = "Female"
                 },
-                new { name = "Eve", age = 35, city = "Chicago", country = "USA", job = "Teacher", gender = "Female" });
+                new { name = "Eve", age = 35, city = "Chicago", country = "USA", job = "Teacher", gender = "Female" }]);
     }
 
     [Fact]
@@ -272,7 +272,7 @@ public class DelegateExecutableQueryMappingExtensionsTests
                 (string name, int age, string city, string country, string job, string gender, string maritalStatus) =>
                     new { name, age, city, country, job, gender, maritalStatus })
             .Result.Should()
-            .BeEquivalentTo(
+            .BeEquivalentTo([
                 new
                 {
                     name = "Bob", age = 30, city = "New York", country = "USA", job = "Engineer", gender = "Male",
@@ -287,7 +287,8 @@ public class DelegateExecutableQueryMappingExtensionsTests
                 {
                     name = "Eve", age = 35, city = "Chicago", country = "USA", job = "Teacher", gender = "Female",
                     maritalStatus = "Divorced"
-                });
+                }
+                ]);
     }
 
     [Fact]
@@ -336,7 +337,7 @@ public class DelegateExecutableQueryMappingExtensionsTests
                     string maritalStatus,
                     int children) => new { name, age, city, country, job, gender, maritalStatus, children })
             .Result.Should()
-            .BeEquivalentTo(
+            .BeEquivalentTo([
                 new
                 {
                     name = "Bob", age = 30, city = "New York", country = "USA", job = "Engineer", gender = "Male",
@@ -351,7 +352,9 @@ public class DelegateExecutableQueryMappingExtensionsTests
                 {
                     name = "Eve", age = 35, city = "Chicago", country = "USA", job = "Teacher", gender = "Female",
                     maritalStatus = "Divorced", children = 1
-                });
+                }
+                ]
+                );
     }
 
     [Fact]
@@ -402,7 +405,7 @@ public class DelegateExecutableQueryMappingExtensionsTests
                     string education) => new
                     { name, age, city, country, job, gender, maritalStatus, children, education })
             .Result.Should()
-            .BeEquivalentTo(
+            .BeEquivalentTo([
                 new
                 {
                     name = "Bob", age = 30, city = "New York", country = "USA", job = "Engineer", gender = "Male",
@@ -417,7 +420,7 @@ public class DelegateExecutableQueryMappingExtensionsTests
                 {
                     name = "Eve", age = 35, city = "Chicago", country = "USA", job = "Teacher", gender = "Female",
                     maritalStatus = "Divorced", children = 1, education = "PhD"
-                });
+                }]);
     }
 
     [Fact]
@@ -472,7 +475,7 @@ public class DelegateExecutableQueryMappingExtensionsTests
                     int income) => new
                     { name, age, city, country, job, gender, maritalStatus, children, education, income })
             .Result.Should()
-            .BeEquivalentTo(
+            .BeEquivalentTo([
                 new
                 {
                     name = "Bob", age = 30, city = "New York", country = "USA", job = "Engineer", gender = "Male",
@@ -487,6 +490,6 @@ public class DelegateExecutableQueryMappingExtensionsTests
                 {
                     name = "Eve", age = 35, city = "Chicago", country = "USA", job = "Teacher", gender = "Female",
                     maritalStatus = "Divorced", children = 1, education = "PhD", income = 60000
-                });
+                }]);
     }
 }

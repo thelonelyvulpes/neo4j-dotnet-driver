@@ -89,8 +89,7 @@ public class BasePackStreamTests : PackStreamTestSpecs
 
         var structValue = (StructType)value;
         structValue.Values.Should().NotBeNull();
-        structValue.Values.Should().HaveCount(5);
-        structValue.Values.Should().Equal(1L, 2L, true, 3.0, "something");
+        structValue.Values.Should().BeEquivalentTo(new object[] {1L, 2L, true, 3.0, "something"});
     }
 
     [Fact]

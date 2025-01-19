@@ -64,7 +64,7 @@ public class HelloMessageTests
             null,
             (IDictionary<string, string>)null);
 
-        helloMessage.Metadata.Should().ContainKey("user_agent").WhichValue.Should().Be("jeff");
+        helloMessage.Metadata.Should().ContainKey("user_agent").WhoseValue.Should().Be("jeff");
         helloMessage.ToString().Should().Be("HELLO [{user_agent, jeff}]");
     }
 
@@ -123,9 +123,9 @@ public class HelloMessageTests
             null);
 
         helloMessage.Serializer.Should().BeOfType<HelloMessageSerializer>();
-        helloMessage.Metadata.Should().ContainKey("scheme").WhichValue.Should().Be("basic");
-        helloMessage.Metadata.Should().ContainKey("principal").WhichValue.Should().Be("jeff");
-        helloMessage.Metadata.Should().ContainKey("credentials").WhichValue.Should().Be("hidden");
+        helloMessage.Metadata.Should().ContainKey("scheme").WhoseValue.Should().Be("basic");
+        helloMessage.Metadata.Should().ContainKey("principal").WhoseValue.Should().Be("jeff");
+        helloMessage.Metadata.Should().ContainKey("credentials").WhoseValue.Should().Be("hidden");
         helloMessage.ToString()
             .Should()
             .Be(
@@ -178,13 +178,13 @@ public class HelloMessageTests
             cfg);
 
         helloMessage.Metadata.Should()
-            .ContainKey("notifications_disabled_categories")
-            .WhichValue.Should()
+            .ContainKey("notifications_disabled_categories").WhoseValue
+            .Should()
             .BeEquivalentTo(new[] { "HINT" });
 
         helloMessage.Metadata.Should()
-            .ContainKey("notifications_minimum_severity")
-            .WhichValue.Should()
+            .ContainKey("notifications_minimum_severity").WhoseValue
+            .Should()
             .Be("INFORMATION");
     }
 
@@ -202,13 +202,13 @@ public class HelloMessageTests
             cfg);
 
         helloMessage.Metadata.Should()
-            .ContainKey("notifications_disabled_classifications")
-            .WhichValue.Should()
+            .ContainKey("notifications_disabled_classifications").WhoseValue
+            .Should()
             .BeEquivalentTo(new[] { "HINT" });
 
         helloMessage.Metadata.Should()
-            .ContainKey("notifications_minimum_severity")
-            .WhichValue.Should()
+            .ContainKey("notifications_minimum_severity").WhoseValue
+            .Should()
             .Be("INFORMATION");
     }
 }

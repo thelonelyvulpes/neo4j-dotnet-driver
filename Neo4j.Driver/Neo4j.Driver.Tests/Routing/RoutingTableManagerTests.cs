@@ -150,7 +150,7 @@ public static class RoutingTableManagerTests
                     m =>
                         m.UpdateRoutingTableAsync(AccessMode.Read, "", null, Bookmarks.Empty))
                 .Should()
-                .Throw<ServiceUnavailableException>();
+                .ThrowAsync<ServiceUnavailableException>();
 
             // Then
             poolManagerMock.Verify(x => x.AddConnectionPoolAsync(It.IsAny<IEnumerable<Uri>>()), Times.Once);
@@ -649,17 +649,17 @@ public static class RoutingTableManagerTests
 
             manager.ForgetServer(server05, "foo");
 
-            manager.RoutingTableFor("foo").Routers.Should().BeEquivalentTo(server04);
+            manager.RoutingTableFor("foo").Routers.Should().BeEquivalentTo([server04]);
             manager.RoutingTableFor("foo").Readers.Should().BeEmpty();
-            manager.RoutingTableFor("foo").Writers.Should().BeEquivalentTo(server06);
+            manager.RoutingTableFor("foo").Writers.Should().BeEquivalentTo([server06]);
 
-            manager.RoutingTableFor("").Routers.Should().BeEquivalentTo(server01);
-            manager.RoutingTableFor("").Readers.Should().BeEquivalentTo(server02, server05);
-            manager.RoutingTableFor("").Writers.Should().BeEquivalentTo(server03);
+            manager.RoutingTableFor("").Routers.Should().BeEquivalentTo([server01]);
+            manager.RoutingTableFor("").Readers.Should().BeEquivalentTo([server02, server05]);
+            manager.RoutingTableFor("").Writers.Should().BeEquivalentTo([server03]);
 
-            manager.RoutingTableFor("bar").Routers.Should().BeEquivalentTo(server07);
-            manager.RoutingTableFor("bar").Readers.Should().BeEquivalentTo(server08);
-            manager.RoutingTableFor("bar").Writers.Should().BeEquivalentTo(server09, server05);
+            manager.RoutingTableFor("bar").Routers.Should().BeEquivalentTo([server07]);
+            manager.RoutingTableFor("bar").Readers.Should().BeEquivalentTo([server08]);
+            manager.RoutingTableFor("bar").Writers.Should().BeEquivalentTo([server09, server05]);
         }
 
         [Fact]
@@ -691,17 +691,17 @@ public static class RoutingTableManagerTests
 
             manager.ForgetWriter(server06, "foo");
 
-            manager.RoutingTableFor("foo").Routers.Should().BeEquivalentTo(server04, server06);
-            manager.RoutingTableFor("foo").Readers.Should().BeEquivalentTo(server05);
-            manager.RoutingTableFor("foo").Writers.Should().BeEquivalentTo(server04);
+            manager.RoutingTableFor("foo").Routers.Should().BeEquivalentTo([server04, server06]);
+            manager.RoutingTableFor("foo").Readers.Should().BeEquivalentTo([server05]);
+            manager.RoutingTableFor("foo").Writers.Should().BeEquivalentTo([server04]);
 
-            manager.RoutingTableFor("").Routers.Should().BeEquivalentTo(server01);
-            manager.RoutingTableFor("").Readers.Should().BeEquivalentTo(server02, server05);
-            manager.RoutingTableFor("").Writers.Should().BeEquivalentTo(server03);
+            manager.RoutingTableFor("").Routers.Should().BeEquivalentTo([server01]);
+            manager.RoutingTableFor("").Readers.Should().BeEquivalentTo([server02, server05]);
+            manager.RoutingTableFor("").Writers.Should().BeEquivalentTo([server03]);
 
-            manager.RoutingTableFor("bar").Routers.Should().BeEquivalentTo(server07);
-            manager.RoutingTableFor("bar").Readers.Should().BeEquivalentTo(server08);
-            manager.RoutingTableFor("bar").Writers.Should().BeEquivalentTo(server09, server05);
+            manager.RoutingTableFor("bar").Routers.Should().BeEquivalentTo([server07]);
+            manager.RoutingTableFor("bar").Readers.Should().BeEquivalentTo([server08]);
+            manager.RoutingTableFor("bar").Writers.Should().BeEquivalentTo([server09, server05]);
         }
     }
 
@@ -854,16 +854,16 @@ public static class RoutingTableManagerTests
             routingTable1.Should().Be(defaultRoutingTable);
             routingTable2.Should().Be(fooRoutingTable);
 
-            manager.Awaiting(m => m.EnsureRoutingTableForModeAsync(AccessMode.Write, "bar", null, Bookmarks.Empty))
+            await manager.Awaiting(m => m.EnsureRoutingTableForModeAsync(AccessMode.Write, "bar", null, Bookmarks.Empty))
                 .Should()
-                .Throw<FatalDiscoveryException>();
+                .ThrowAsync<FatalDiscoveryException>();
 
             manager.RoutingTableFor("").Should().Be(defaultRoutingTable);
             manager.RoutingTableFor("foo").Should().Be(fooRoutingTable);
         }
 
         [Fact]
-        public void ShouldThrowOnFatalDiscovery()
+        public async Task ShouldThrowOnFatalDiscovery()
         {
             var error = new FatalDiscoveryException("message");
 
@@ -885,11 +885,11 @@ public static class RoutingTableManagerTests
                 Mock.Of<ILogger>(),
                 TimeSpan.MaxValue);
 
+
             manager.Awaiting(m => m.EnsureRoutingTableForModeAsync(AccessMode.Write, "bar", null, Bookmarks.Empty))
                 .Should()
-                .Throw<FatalDiscoveryException>()
-                .Which.Should()
-                .Be(error);
+                .ThrowAsync<FatalDiscoveryException>()
+                .WithMessage(error.Message);
         }
 
         [Fact]

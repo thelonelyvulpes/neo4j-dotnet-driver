@@ -63,7 +63,7 @@ public class UnboundRelationshipSerializerTests : PackStreamSerializerTests
         var value = readerMachine.Reader().Read();
 
         value.Should().NotBeNull();
-        value.Should().BeAssignableTo<IList>().Which.Should().HaveCount(1);
+        value.Should().BeAssignableTo<IList>().Which.Count.Should().Be(1);
 
         VerifySerializedUnboundRelationship(value.Should().BeAssignableTo<IList>().Which[0]);
     }
@@ -119,7 +119,7 @@ public class UnboundRelationshipSerializerTests : PackStreamSerializerTests
         var value = reader.Read();
 
         value.Should().NotBeNull();
-        value.Should().BeAssignableTo<IList>().Which.Should().HaveCount(1);
+        value.Should().BeAssignableTo<IList>().Which.Count.Should().Be(1);;
 
         VerifySerializedUnboundRelationship(value.Should().BeAssignableTo<IList>().Which[0]);
     }

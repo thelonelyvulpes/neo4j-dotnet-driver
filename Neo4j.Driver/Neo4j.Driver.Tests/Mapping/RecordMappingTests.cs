@@ -209,7 +209,7 @@ public class RecordMappingTests
         mappedObject.MovieTitleIdeas.Should().BeEquivalentTo("A Band Apart", "Amazing Squad", "Ten Men Named Ben");
 
         mappedObject.HistoricalMovies.Should()
-            .BeEquivalentTo(
+            .BeEquivalentTo([
                 new Movie
                 {
                     Title = "Forrest Gump", Released = 1994, Tagline = "Life is like a box of chocolates..."
@@ -218,16 +218,16 @@ public class RecordMappingTests
                 {
                     Title = "Cast Away", Released = 2000, Tagline = "At the edge of the world, his journey begins."
                 },
-                new Movie { Title = "The Green Mile", Released = 1999, Tagline = null });
+                new Movie { Title = "The Green Mile", Released = 1999, Tagline = null }]);
 
         mappedObject.OtherMovies.Should()
-            .BeEquivalentTo(
+            .BeEquivalentTo([
                 new Movie { Title = "The Blind Venetian", Released = 2023, Tagline = "Read between the lines" },
                 new Movie
                 {
                     Title = "When The Night Ends", Released = 2022,
                     Tagline = "Just when you thought it was safe to go to sleep"
-                });
+                }]);
     }
 
     [Fact]
@@ -250,10 +250,10 @@ public class RecordMappingTests
         GetRecordsAsync()
             .AsObjectsAsync<SimpleTestPerson>()
             .Result.Should()
-            .BeEquivalentTo(
+            .BeEquivalentTo([
                 new TestPerson { Name = "Bob" },
                 new TestPerson { Name = "Alice", Born = 1988 },
-                new TestPerson { Name = "Eve", Born = 1999 });
+                new TestPerson { Name = "Eve", Born = 1999 }]);
     }
 
     [Fact]
@@ -276,10 +276,10 @@ public class RecordMappingTests
         GetRecordsAsync()
             .AsObjectsFromBlueprintAsync(new { name = "", born = 0 })
             .Result.Should()
-            .BeEquivalentTo(
+            .BeEquivalentTo([
                 new { name = "Bob", born = 1977 },
                 new { name = "Alice", born = 1988 },
-                new { name = "Eve", born = 1999 });
+                new { name = "Eve", born = 1999 }]);
     }
 
     [Fact]
@@ -302,10 +302,10 @@ public class RecordMappingTests
 
         var result = await GetRecordsAsync().ToListAsync<SimpleTestPerson>();
         result.Should()
-            .BeEquivalentTo(
+            .BeEquivalentTo([
                 new TestPerson { Name = "Bob" },
                 new TestPerson { Name = "Alice", Born = 1988 },
-                new TestPerson { Name = "Eve", Born = 1999 });
+                new TestPerson { Name = "Eve", Born = 1999 }]);
     }
 
     [Fact]
@@ -329,10 +329,10 @@ public class RecordMappingTests
         var blueprint = new { name = "", born = 0 };
         var result = await GetRecordsAsync().ToListFromBlueprintAsync(blueprint);
         result.Should()
-            .BeEquivalentTo(
+            .BeEquivalentTo([
                 new { name = "Bob", born = 1977 },
                 new { name = "Alice", born = 1988 },
-                new { name = "Eve", born = 1999 });
+                new { name = "Eve", born = 1999 }]);
     }
 
     [Fact]
@@ -360,10 +360,10 @@ public class RecordMappingTests
         }
 
         people.Should()
-            .BeEquivalentTo(
+            .BeEquivalentTo([
                 new SimpleTestPerson { Name = "Bob" },
                 new SimpleTestPerson { Name = "Alice", Born = 1988 },
-                new SimpleTestPerson { Name = "Eve", Born = 1999 });
+                new SimpleTestPerson { Name = "Eve", Born = 1999 }]);
     }
 
     private class CarAndPainting
