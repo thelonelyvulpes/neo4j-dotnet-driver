@@ -283,8 +283,10 @@ public static class RoutingTableManagerTests
             // This ensures that uri and uri2 will return in order
             var routingTable = new RoutingTable(null, new List<Uri> { uriA, uriB });
             var poolManagerMock = new Mock<IClusterConnectionPoolManager>();
-            poolManagerMock.SetupSequence(x => x.CreateClusterConnectionAsync(It.IsAny<Uri>(),
-                    It.IsAny<SessionConfig>()))
+            poolManagerMock.SetupSequence(
+                    x => x.CreateClusterConnectionAsync(
+                        It.IsAny<Uri>(),
+                        It.IsAny<SessionConfig>()))
                 .ReturnsAsync(connA)
                 .ReturnsAsync(connB);
 
@@ -380,8 +382,7 @@ public static class RoutingTableManagerTests
                 .ReturnsAsync(new Mock<IConnection>().Object);
 
             var discovery = new Mock<IDiscovery>();
-            discovery.Setup(
-                    x => x.DiscoverAsync(It.IsAny<IConnection>(), "", null, Bookmarks.From("Invalid bookmark")))
+            discovery.Setup(x => x.DiscoverAsync(It.IsAny<IConnection>(), "", null, Bookmarks.From("Invalid bookmark")))
                 .Throws(error);
 
             var logger = new Mock<ILogger>();
@@ -420,8 +421,10 @@ public static class RoutingTableManagerTests
 
             var routingTable = new RoutingTable(null, new List<Uri> { uriA, uriB });
             var poolManagerMock = new Mock<IClusterConnectionPoolManager>();
-            poolManagerMock.SetupSequence(x => x.CreateClusterConnectionAsync(It.IsAny<Uri>(),
-                    It.IsAny<SessionConfig>()))
+            poolManagerMock.SetupSequence(
+                    x => x.CreateClusterConnectionAsync(
+                        It.IsAny<Uri>(),
+                        It.IsAny<SessionConfig>()))
                 .ReturnsAsync(connA)
                 .ReturnsAsync(connB);
 
@@ -854,7 +857,8 @@ public static class RoutingTableManagerTests
             routingTable1.Should().Be(defaultRoutingTable);
             routingTable2.Should().Be(fooRoutingTable);
 
-            await manager.Awaiting(m => m.EnsureRoutingTableForModeAsync(AccessMode.Write, "bar", null, Bookmarks.Empty))
+            await manager.Awaiting(
+                    m => m.EnsureRoutingTableForModeAsync(AccessMode.Write, "bar", null, Bookmarks.Empty))
                 .Should()
                 .ThrowAsync<FatalDiscoveryException>();
 
@@ -884,7 +888,6 @@ public static class RoutingTableManagerTests
                 poolManager.Object,
                 Mock.Of<ILogger>(),
                 TimeSpan.MaxValue);
-
 
             manager.Awaiting(m => m.EnsureRoutingTableForModeAsync(AccessMode.Write, "bar", null, Bookmarks.Empty))
                 .Should()

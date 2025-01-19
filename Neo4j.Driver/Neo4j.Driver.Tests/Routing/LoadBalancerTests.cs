@@ -120,7 +120,14 @@ public class LoadBalancerTests
             mockedConn.Setup(x => x.Mode).Returns(mode);
             var conn = mockedConn.Object;
             clusterPoolMock
-                .Setup(x => x.AcquireAsync(uri, mode, It.IsAny<string>(), It.IsAny<SessionConfig>(), Bookmarks.Empty, false))
+                .Setup(
+                    x => x.AcquireAsync(
+                        uri,
+                        mode,
+                        It.IsAny<string>(),
+                        It.IsAny<SessionConfig>(),
+                        Bookmarks.Empty,
+                        false))
                 .ReturnsAsync(conn);
 
             var balancer = new LoadBalancer(clusterPoolMock.Object, mock.Object);
@@ -192,7 +199,12 @@ public class LoadBalancerTests
 
             var clusterConnPoolMock = new Mock<IClusterConnectionPool>();
             clusterConnPoolMock.Setup(
-                    x => x.AcquireAsync(uri, mode, It.IsAny<string>(), It.IsAny<SessionConfig>(), Bookmarks.Empty,
+                    x => x.AcquireAsync(
+                        uri,
+                        mode,
+                        It.IsAny<string>(),
+                        It.IsAny<SessionConfig>(),
+                        Bookmarks.Empty,
                         false))
                 .Returns(Task.FromException<IConnection>(new ServiceUnavailableException("failed init")));
 
@@ -223,7 +235,12 @@ public class LoadBalancerTests
 
             var clusterConnPoolMock = new Mock<IClusterConnectionPool>();
             clusterConnPoolMock.Setup(
-                    x => x.AcquireAsync(uri, mode, It.IsAny<string>(), It.IsAny<SessionConfig>(), Bookmarks.Empty,
+                    x => x.AcquireAsync(
+                        uri,
+                        mode,
+                        It.IsAny<string>(),
+                        It.IsAny<SessionConfig>(),
+                        Bookmarks.Empty,
                         false))
                 .Returns(
                     Task.FromException<IConnection>(
@@ -262,8 +279,14 @@ public class LoadBalancerTests
 
             var clusterConnPoolMock = new Mock<IClusterConnectionPool>();
             clusterConnPoolMock
-                .Setup(x => x.AcquireAsync(uri, mode, It.IsAny<string>(), It.IsAny<SessionConfig>(), Bookmarks.Empty,
-                    false))
+                .Setup(
+                    x => x.AcquireAsync(
+                        uri,
+                        mode,
+                        It.IsAny<string>(),
+                        It.IsAny<SessionConfig>(),
+                        Bookmarks.Empty,
+                        false))
                 .Returns(Task.FromException<IConnection>(new ProtocolException("do not understand struct 0x01")));
 
             var balancer = new LoadBalancer(clusterConnPoolMock.Object, mock.Object);

@@ -109,14 +109,11 @@ public class NodeSerializerTests : PackStreamSerializerTests
             .Which.Properties.Should()
             .HaveCount(3)
             .And.Contain(
-                new[]
-                {
-                    new KeyValuePair<string, object>("prop1", "something"),
-                    new KeyValuePair<string, object>("prop2", 15L),
-                    new KeyValuePair<string, object>("prop3", true)
-                });
+                new KeyValuePair<string, object>("prop1", "something"),
+                new KeyValuePair<string, object>("prop2", 15L),
+                new KeyValuePair<string, object>("prop3", true));
     }
-        
+
     [Fact]
     public void ShouldDeserializeSpan()
     {

@@ -14,7 +14,6 @@
 // limitations under the License.
 
 using System;
-using System.Collections.Generic;
 using FluentAssertions;
 using Neo4j.Driver.Internal.Types;
 using Xunit;
@@ -116,7 +115,9 @@ public class SessionConfigBuilderTests
     {
         var configBuilder = new SessionConfigBuilder(new SessionConfig());
 
-        configBuilder.WithNotifications(null, disabledClassifications: [Classification.Deprecation, Classification.Hint]);
+        configBuilder.WithNotifications(
+            null,
+            disabledClassifications: [Classification.Deprecation, Classification.Hint]);
 
         var config = configBuilder.Build()
             .NotificationsConfig.Should()

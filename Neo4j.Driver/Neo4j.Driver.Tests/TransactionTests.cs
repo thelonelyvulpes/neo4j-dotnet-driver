@@ -64,7 +64,9 @@ public class TransactionTests
         {
             var protocol = new Mock<IBoltProtocol>();
             var mockConn = NewMockedConnection(protocol);
-            var tx = new AsyncTransaction(mockConn.Object, Mock.Of<ITransactionResourceHandler>(),
+            var tx = new AsyncTransaction(
+                mockConn.Object,
+                Mock.Of<ITransactionResourceHandler>(),
                 NullLogger.Instance);
 
             await tx.BeginTransactionAsync(
@@ -105,8 +107,11 @@ public class TransactionTests
         public async void ShouldThrowExceptionIfPreviousTxFailed()
         {
             var mockConn = new Mock<IConnection>();
-            var tx = new AsyncTransaction(mockConn.Object, Mock.Of<ITransactionResourceHandler>(),
+            var tx = new AsyncTransaction(
+                mockConn.Object,
+                Mock.Of<ITransactionResourceHandler>(),
                 NullLogger.Instance);
+
             tx.TransactionError = new Exception();
             await tx.MarkToCloseAsync();
 
@@ -119,8 +124,11 @@ public class TransactionTests
         {
             var mockProtocol = new Mock<IBoltProtocol>();
             var mockConn = NewMockedConnection(mockProtocol);
-            var tx = new AsyncTransaction(mockConn.Object, Mock.Of<ITransactionResourceHandler>(),
+            var tx = new AsyncTransaction(
+                mockConn.Object,
+                Mock.Of<ITransactionResourceHandler>(),
                 NullLogger.Instance);
+
             var query = new Query("lala");
 
             mockProtocol.Setup(
@@ -188,8 +196,11 @@ public class TransactionTests
         public async Task ShouldNotEnqueueMoreMessagesAfterMarkToClosed()
         {
             var mockConn = NewMockedConnection();
-            var tx = new AsyncTransaction(mockConn.Object, Mock.Of<ITransactionResourceHandler>(),
+            var tx = new AsyncTransaction(
+                mockConn.Object,
+                Mock.Of<ITransactionResourceHandler>(),
                 NullLogger.Instance);
+
             mockConn.Invocations.Clear();
 
             await tx.MarkToCloseAsync();
@@ -202,8 +213,11 @@ public class TransactionTests
         public async Task ShouldThrowExceptionToRunAfterMarkToClosed()
         {
             var mockConn = NewMockedConnection();
-            var tx = new AsyncTransaction(mockConn.Object, Mock.Of<ITransactionResourceHandler>(),
+            var tx = new AsyncTransaction(
+                mockConn.Object,
+                Mock.Of<ITransactionResourceHandler>(),
                 NullLogger.Instance);
+
             mockConn.Invocations.Clear();
             tx.TransactionError = new Exception();
             await tx.MarkToCloseAsync();
@@ -220,8 +234,11 @@ public class TransactionTests
         public async Task ShouldNotEnqueueMoreMessagesAfterMarkToClosedInCommitAsync()
         {
             var mockConn = NewMockedConnection();
-            var tx = new AsyncTransaction(mockConn.Object, Mock.Of<ITransactionResourceHandler>(),
+            var tx = new AsyncTransaction(
+                mockConn.Object,
+                Mock.Of<ITransactionResourceHandler>(),
                 NullLogger.Instance);
+
             mockConn.Invocations.Clear();
             tx.TransactionError = new Exception();
             await tx.MarkToCloseAsync();
@@ -237,8 +254,11 @@ public class TransactionTests
         public async Task ShouldNotEnqueueMoreMessagesAfterMarkToClosedInRollbackAsync()
         {
             var mockConn = NewMockedConnection();
-            var tx = new AsyncTransaction(mockConn.Object, Mock.Of<ITransactionResourceHandler>(),
+            var tx = new AsyncTransaction(
+                mockConn.Object,
+                Mock.Of<ITransactionResourceHandler>(),
                 NullLogger.Instance);
+
             mockConn.Invocations.Clear();
 
             await tx.MarkToCloseAsync();
@@ -267,7 +287,9 @@ public class TransactionTests
         public async Task ShouldBeOpenWhenRun()
         {
             var mockConn = NewMockedConnection();
-            var tx = new AsyncTransaction(mockConn.Object, Mock.Of<ITransactionResourceHandler>(),
+            var tx = new AsyncTransaction(
+                mockConn.Object,
+                Mock.Of<ITransactionResourceHandler>(),
                 NullLogger.Instance);
 
             await tx.BeginTransactionAsync(
@@ -283,7 +305,9 @@ public class TransactionTests
         public async Task ShouldBeClosedWhenFailed()
         {
             var mockConn = NewMockedConnection();
-            var tx = new AsyncTransaction(mockConn.Object, Mock.Of<ITransactionResourceHandler>(),
+            var tx = new AsyncTransaction(
+                mockConn.Object,
+                Mock.Of<ITransactionResourceHandler>(),
                 NullLogger.Instance);
 
             await tx.BeginTransactionAsync(
@@ -299,7 +323,9 @@ public class TransactionTests
         public async Task ShouldBeClosedWhenCommitted()
         {
             var mockConn = NewMockedConnection();
-            var tx = new AsyncTransaction(mockConn.Object, Mock.Of<ITransactionResourceHandler>(),
+            var tx = new AsyncTransaction(
+                mockConn.Object,
+                Mock.Of<ITransactionResourceHandler>(),
                 NullLogger.Instance);
 
             await tx.BeginTransactionAsync(
@@ -315,7 +341,9 @@ public class TransactionTests
         public async Task ShouldBeClosedWhenRollBacked()
         {
             var mockConn = NewMockedConnection();
-            var tx = new AsyncTransaction(mockConn.Object, Mock.Of<ITransactionResourceHandler>(),
+            var tx = new AsyncTransaction(
+                mockConn.Object,
+                Mock.Of<ITransactionResourceHandler>(),
                 NullLogger.Instance);
 
             await tx.BeginTransactionAsync(

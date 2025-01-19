@@ -75,10 +75,11 @@ public class ClusterDiscoveryTests
             table.Readers.Should().BeEquivalentTo([new Uri("neo4j://localhost:7689")]);
             table.Writers.Should().BeEquivalentTo([new Uri("neo4j://anotherServer:7687")]);
             table.Routers.Should()
-                .BeEquivalentTo([
+                .BeEquivalentTo(
+                [
                     new Uri("neo4j://localhost:7689"),
                     new Uri("neo4j://anotherServer:7687")
-                    ]);
+                ]);
 
             table.ExpireAfterSeconds.Should().Be(15000L);
         }

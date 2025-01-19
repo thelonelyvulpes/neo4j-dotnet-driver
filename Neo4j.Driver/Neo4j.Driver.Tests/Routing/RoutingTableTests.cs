@@ -346,19 +346,23 @@ public static class RoutingTableTests
 
             routingTable.Database.Should().Be("foo");
             routingTable.Routers.Should()
-                .BeEquivalentTo([
+                .BeEquivalentTo(
+                [
                     new Uri("bolt://my-server-1"),
                     new Uri("neo4j://my-server-2"),
-                    new Uri("http://my-server-3")]);
+                    new Uri("http://my-server-3")
+                ]);
 
             routingTable.Writers.Should()
                 .BeEquivalentTo([new Uri("bolt://my-server-1"), new Uri("http://my-server-3")]);
 
             routingTable.Readers.Should()
-                .BeEquivalentTo([
+                .BeEquivalentTo(
+                [
                     new Uri("bolt://my-server-1"),
                     new Uri("neo4j://my-server-2"),
-                    new Uri("http://my-server-3")]);
+                    new Uri("http://my-server-3")
+                ]);
 
             routingTable.ExpireAfterSeconds.Should().Be(10);
         }
@@ -406,10 +410,12 @@ public static class RoutingTableTests
 
             routingTable.All()
                 .Should()
-                .BeEquivalentTo([
+                .BeEquivalentTo(
+                [
                     new Uri("bolt://my-server-1"),
                     new Uri("neo4j://my-server-2"),
-                    new Uri("http://my-server-3")]);
+                    new Uri("http://my-server-3")
+                ]);
         }
 
         [Fact]

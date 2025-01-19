@@ -14,7 +14,6 @@
 // limitations under the License.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net.Security;
 using System.Security.Authentication;
@@ -366,7 +365,8 @@ public class ConfigTests
 
             config
                 .Which
-                .DisabledCategories.Should().BeEmpty();
+                .DisabledCategories.Should()
+                .BeEmpty();
 
             config
                 .Which
@@ -402,7 +402,7 @@ public class ConfigTests
             var configBuilder = new ConfigBuilder(new Config());
 
             // this line would fail to compile before the fix
-            configBuilder.WithNotifications(Severity.Warning, null);
+            configBuilder.WithNotifications(Severity.Warning);
 
             var config = configBuilder.Build()
                 .NotificationsConfig.Should()
@@ -451,7 +451,7 @@ public class ConfigTests
             var configBuilder = new ConfigBuilder(new Config());
 
             // this line would fail to compile before the fix
-            configBuilder.WithNotifications(Severity.Warning, null);
+            configBuilder.WithNotifications(Severity.Warning);
 
             var config = configBuilder.Build()
                 .NotificationsConfig.Should()
@@ -459,7 +459,8 @@ public class ConfigTests
 
             config
                 .Which
-                .DisabledCategories.Should().BeEmpty();
+                .DisabledCategories.Should()
+                .BeNull();
 
             config
                 .Which

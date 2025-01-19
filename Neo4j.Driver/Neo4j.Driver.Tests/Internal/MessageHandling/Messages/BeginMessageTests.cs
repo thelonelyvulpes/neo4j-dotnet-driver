@@ -136,9 +136,14 @@ public class BeginMessageTests
         message.Metadata.Should().ContainKey("tx_metadata").WhoseValue.Should().BeEquivalentTo(txMeta);
         message.Metadata.Should().ContainKey("mode").WhoseValue.Should().BeEquivalentTo("r");
         message.Metadata.Should().ContainKey("db").WhoseValue.Should().BeEquivalentTo("neo4j");
-        message.Metadata.Should().ContainKey("notifications_minimum_severity").WhoseValue.Should().BeEquivalentTo("WARNING");
         message.Metadata.Should()
-            .ContainKey("notifications_disabled_categories").WhoseValue
+            .ContainKey("notifications_minimum_severity")
+            .WhoseValue.Should()
+            .BeEquivalentTo("WARNING");
+
+        message.Metadata.Should()
+            .ContainKey("notifications_disabled_categories")
+            .WhoseValue
             .Should()
             .BeEquivalentTo(new[] { "GENERIC" });
 
@@ -175,12 +180,14 @@ public class BeginMessageTests
         message.Metadata.Should().ContainKey("mode").WhoseValue.Should().BeEquivalentTo("r");
         message.Metadata.Should().ContainKey("db").WhoseValue.Should().BeEquivalentTo("neo4j");
         message.Metadata.Should()
-            .ContainKey("notifications_minimum_severity").WhoseValue
+            .ContainKey("notifications_minimum_severity")
+            .WhoseValue
             .Should()
             .BeEquivalentTo("WARNING");
 
         message.Metadata.Should()
-            .ContainKey("notifications_disabled_classifications").WhoseValue
+            .ContainKey("notifications_disabled_classifications")
+            .WhoseValue
             .Should()
             .BeEquivalentTo(new[] { "GENERIC" });
 
@@ -189,7 +196,7 @@ public class BeginMessageTests
             .Be(
                 "BEGIN [{bookmarks, [bm:a]}, {tx_timeout, 1000}, {tx_metadata, [{a, b}]}, {mode, r}, {db, neo4j}, {imp_user, Douglas Fir}, {notifications_minimum_severity, WARNING}, {notifications_disabled_classifications, [GENERIC]}]");
     }
-    
+
     [Fact]
     public void ShouldThrowIfBoltVersionLessThan44()
     {
@@ -212,7 +219,6 @@ public class BeginMessageTests
             .Should()
             .BeOfType<ArgumentOutOfRangeException>();
     }
-
 
     [Theory]
     [InlineData(5, 2)]

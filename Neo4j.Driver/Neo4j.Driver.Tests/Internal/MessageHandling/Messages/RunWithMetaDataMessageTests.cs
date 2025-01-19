@@ -53,6 +53,7 @@ public class RunWithMetaDataMessageTests
             new BoltProtocolVersion(major, minor),
             null,
             sessionConfig: new SessionConfig("jeff"));
+
         rm.Query.Should().BeNull();
         rm.Metadata.Should().ContainKey("imp_user").WhoseValue.Should().Be("jeff");
 
@@ -81,7 +82,8 @@ public class RunWithMetaDataMessageTests
         rm.Metadata.Should().ContainKey("bookmarks").WhoseValue.Should().BeEquivalentTo(new[] { "bm:a" });
         rm.Metadata.Should().ContainKey("tx_timeout").WhoseValue.Should().Be(1000L);
         rm.Metadata.Should()
-            .ContainKey("tx_metadata").WhoseValue
+            .ContainKey("tx_metadata")
+            .WhoseValue
             .Should()
             .BeEquivalentTo(new Dictionary<string, object> { ["a"] = "b" });
 
@@ -94,7 +96,6 @@ public class RunWithMetaDataMessageTests
             .Be(
                 "RUN `...`, [] [{bookmarks, [bm:a]}, {tx_timeout, 1000}, {tx_metadata, [{a, b}]}, {mode, r}, {db, neo4j}, {imp_user, jeff}]");
     }
-
 
     [Theory]
     [InlineData(5, 2)]
@@ -109,12 +110,14 @@ public class RunWithMetaDataMessageTests
             notificationsConfig: cfg);
 
         runMessage.Metadata.Should()
-            .ContainKey("notifications_disabled_categories").WhoseValue
+            .ContainKey("notifications_disabled_categories")
+            .WhoseValue
             .Should()
             .BeEquivalentTo(new[] { "HINT" });
 
         runMessage.Metadata.Should()
-            .ContainKey("notifications_minimum_severity").WhoseValue
+            .ContainKey("notifications_minimum_severity")
+            .WhoseValue
             .Should()
             .Be("INFORMATION");
     }
@@ -132,12 +135,14 @@ public class RunWithMetaDataMessageTests
             notificationsConfig: cfg);
 
         runMessage.Metadata.Should()
-            .ContainKey("notifications_disabled_classifications").WhoseValue
+            .ContainKey("notifications_disabled_classifications")
+            .WhoseValue
             .Should()
             .BeEquivalentTo(new[] { "HINT" });
 
         runMessage.Metadata.Should()
-            .ContainKey("notifications_minimum_severity").WhoseValue
+            .ContainKey("notifications_minimum_severity")
+            .WhoseValue
             .Should()
             .Be("INFORMATION");
     }

@@ -178,12 +178,14 @@ public class HelloMessageTests
             cfg);
 
         helloMessage.Metadata.Should()
-            .ContainKey("notifications_disabled_categories").WhoseValue
+            .ContainKey("notifications_disabled_categories")
+            .WhoseValue
             .Should()
             .BeEquivalentTo(new[] { "HINT" });
 
         helloMessage.Metadata.Should()
-            .ContainKey("notifications_minimum_severity").WhoseValue
+            .ContainKey("notifications_minimum_severity")
+            .WhoseValue
             .Should()
             .Be("INFORMATION");
     }
@@ -202,12 +204,14 @@ public class HelloMessageTests
             cfg);
 
         helloMessage.Metadata.Should()
-            .ContainKey("notifications_disabled_classifications").WhoseValue
+            .ContainKey("notifications_disabled_classifications")
+            .WhoseValue
             .Should()
             .BeEquivalentTo(new[] { "HINT" });
 
         helloMessage.Metadata.Should()
-            .ContainKey("notifications_minimum_severity").WhoseValue
+            .ContainKey("notifications_minimum_severity")
+            .WhoseValue
             .Should()
             .Be("INFORMATION");
     }

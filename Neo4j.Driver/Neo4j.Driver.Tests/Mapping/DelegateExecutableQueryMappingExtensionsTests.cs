@@ -29,9 +29,9 @@ public class DelegateExecutableQueryMappingExtensionsTests
     {
         Task<EagerResult<IReadOnlyList<IRecord>>> GetRecordsAsync()
         {
-            var record1 = TestRecord.Create([("name", "Bob")]);
-            var record2 = TestRecord.Create([("name", "Alice")]);
-            var record3 = TestRecord.Create([("name", "Eve")]);
+            var record1 = TestRecord.Create(("name", "Bob"));
+            var record2 = TestRecord.Create(("name", "Alice"));
+            var record3 = TestRecord.Create(("name", "Eve"));
 
             var result = new EagerResult<IReadOnlyList<IRecord>>(
                 new List<IRecord> { record1, record2, record3 },
@@ -44,10 +44,12 @@ public class DelegateExecutableQueryMappingExtensionsTests
         GetRecordsAsync()
             .AsObjectsAsync((string name) => new { name })
             .Result.Should()
-            .BeEquivalentTo([
+            .BeEquivalentTo(
+            [
                 new { name = "Bob" },
                 new { name = "Alice" },
-                new { name = "Eve" }]);
+                new { name = "Eve" }
+            ]);
     }
 
     [Fact]
@@ -55,9 +57,9 @@ public class DelegateExecutableQueryMappingExtensionsTests
     {
         Task<EagerResult<IReadOnlyList<IRecord>>> GetRecordsAsync()
         {
-            var record1 = TestRecord.Create([("name", "Bob"), ("age", 30)]);
-            var record2 = TestRecord.Create([("name", "Alice"), ("age", 25)]);
-            var record3 = TestRecord.Create([("name", "Eve"), ("age", 35)]);
+            var record1 = TestRecord.Create(("name", "Bob"), ("age", 30));
+            var record2 = TestRecord.Create(("name", "Alice"), ("age", 25));
+            var record3 = TestRecord.Create(("name", "Eve"), ("age", 35));
 
             var result = new EagerResult<IReadOnlyList<IRecord>>(
                 new List<IRecord> { record1, record2, record3 },
@@ -70,10 +72,12 @@ public class DelegateExecutableQueryMappingExtensionsTests
         GetRecordsAsync()
             .AsObjectsAsync((string name, int age) => new { name, age })
             .Result.Should()
-            .BeEquivalentTo([
+            .BeEquivalentTo(
+            [
                 new { name = "Bob", age = 30 },
                 new { name = "Alice", age = 25 },
-                new { name = "Eve", age = 35 }]);
+                new { name = "Eve", age = 35 }
+            ]);
     }
 
     [Fact]
@@ -81,10 +85,10 @@ public class DelegateExecutableQueryMappingExtensionsTests
     {
         Task<EagerResult<IReadOnlyList<IRecord>>> GetRecordsAsync()
         {
-            var record1 = TestRecord.Create([("name", "Bob"), ("age", 30), ("city", "New York")]);
-            var record2 = TestRecord.Create([("name", "Alice"), ("age", 25), ("city", "Los Angeles")]);
+            var record1 = TestRecord.Create(("name", "Bob"), ("age", 30), ("city", "New York"));
+            var record2 = TestRecord.Create(("name", "Alice"), ("age", 25), ("city", "Los Angeles"));
 
-            var record3 = TestRecord.Create([("name", "Eve"), ("age", 35), ("city", "Chicago")]);
+            var record3 = TestRecord.Create(("name", "Eve"), ("age", 35), ("city", "Chicago"));
 
             var result = new EagerResult<IReadOnlyList<IRecord>>(
                 new List<IRecord> { record1, record2, record3 },
@@ -97,10 +101,12 @@ public class DelegateExecutableQueryMappingExtensionsTests
         GetRecordsAsync()
             .AsObjectsAsync((string name, int age, string city) => new { name, age, city })
             .Result.Should()
-            .BeEquivalentTo([
+            .BeEquivalentTo(
+            [
                 new { name = "Bob", age = 30, city = "New York" },
                 new { name = "Alice", age = 25, city = "Los Angeles" },
-                new { name = "Eve", age = 35, city = "Chicago" }]);
+                new { name = "Eve", age = 35, city = "Chicago" }
+            ]);
     }
 
     [Fact]
@@ -109,25 +115,22 @@ public class DelegateExecutableQueryMappingExtensionsTests
         Task<EagerResult<IReadOnlyList<IRecord>>> GetRecordsAsync()
         {
             var record1 = TestRecord.Create(
-                new[]
-                {
-                    ("name", (object)"Bob"), ("age", (object)30), ("city", (object)"New York"),
-                    ("country", (object)"USA")
-                });
+                ("name", "Bob"),
+                ("age", 30),
+                ("city", "New York"),
+                ("country", "USA"));
 
             var record2 = TestRecord.Create(
-                new[]
-                {
-                    ("name", (object)"Alice"), ("age", (object)25), ("city", (object)"Los Angeles"),
-                    ("country", (object)"USA")
-                });
+                ("name", "Alice"),
+                ("age", 25),
+                ("city", "Los Angeles"),
+                ("country", "USA"));
 
             var record3 = TestRecord.Create(
-                new[]
-                {
-                    ("name", (object)"Eve"), ("age", (object)35), ("city", (object)"Chicago"),
-                    ("country", (object)"USA")
-                });
+                ("name", "Eve"),
+                ("age", 35),
+                ("city", "Chicago"),
+                ("country", "USA"));
 
             var result = new EagerResult<IReadOnlyList<IRecord>>(
                 new List<IRecord> { record1, record2, record3 },
@@ -140,10 +143,12 @@ public class DelegateExecutableQueryMappingExtensionsTests
         GetRecordsAsync()
             .AsObjectsAsync((string name, int age, string city, string country) => new { name, age, city, country })
             .Result.Should()
-            .BeEquivalentTo([
+            .BeEquivalentTo(
+            [
                 new { name = "Bob", age = 30, city = "New York", country = "USA" },
                 new { name = "Alice", age = 25, city = "Los Angeles", country = "USA" },
-                new { name = "Eve", age = 35, city = "Chicago", country = "USA" }]);
+                new { name = "Eve", age = 35, city = "Chicago", country = "USA" }
+            ]);
     }
 
     [Fact]
@@ -152,22 +157,25 @@ public class DelegateExecutableQueryMappingExtensionsTests
         Task<EagerResult<IReadOnlyList<IRecord>>> GetRecordsAsync()
         {
             var record1 = TestRecord.Create(
-            [
-                ("name", "Bob"), ("age", 30), ("city", "New York"),
-                ("country", "USA"), ("job", "Engineer")
-            ]);
+                ("name", "Bob"),
+                ("age", 30),
+                ("city", "New York"),
+                ("country", "USA"),
+                ("job", "Engineer"));
 
             var record2 = TestRecord.Create(
-            [
-                ("name", "Alice"), ("age", 25), ("city", "Los Angeles"),
-                ("country", "USA"), ("job", "Doctor")
-            ]);
+                ("name", "Alice"),
+                ("age", 25),
+                ("city", "Los Angeles"),
+                ("country", "USA"),
+                ("job", "Doctor"));
 
             var record3 = TestRecord.Create(
-            [
-                ("name", "Eve"), ("age", 35), ("city", "Chicago"),
-                ("country", "USA"), ("job", "Teacher")
-            ]);
+                ("name", "Eve"),
+                ("age", 35),
+                ("city", "Chicago"),
+                ("country", "USA"),
+                ("job", "Teacher"));
 
             var result = new EagerResult<IReadOnlyList<IRecord>>(
                 new List<IRecord> { record1, record2, record3 },
@@ -182,10 +190,12 @@ public class DelegateExecutableQueryMappingExtensionsTests
                 (string name, int age, string city, string country, string job) =>
                     new { name, age, city, country, job })
             .Result.Should()
-            .BeEquivalentTo([
+            .BeEquivalentTo(
+            [
                 new { name = "Bob", age = 30, city = "New York", country = "USA", job = "Engineer" },
                 new { name = "Alice", age = 25, city = "Los Angeles", country = "USA", job = "Doctor" },
-                new { name = "Eve", age = 35, city = "Chicago", country = "USA", job = "Teacher" }]);
+                new { name = "Eve", age = 35, city = "Chicago", country = "USA", job = "Teacher" }
+            ]);
     }
 
     [Fact]
@@ -194,22 +204,28 @@ public class DelegateExecutableQueryMappingExtensionsTests
         Task<EagerResult<IReadOnlyList<IRecord>>> GetRecordsAsync()
         {
             var record1 = TestRecord.Create(
-            [
-                ("name", "Bob"), ("age", 30), ("city", "New York"),
-                ("country", "USA"), ("job", "Engineer"), ("gender", "Male")
-            ]);
+                ("name", "Bob"),
+                ("age", 30),
+                ("city", "New York"),
+                ("country", "USA"),
+                ("job", "Engineer"),
+                ("gender", "Male"));
 
             var record2 = TestRecord.Create(
-            [
-                ("name", "Alice"), ("age", 25), ("city", "Los Angeles"),
-                ("country", "USA"), ("job", "Doctor"), ("gender", "Female")
-            ]);
+                ("name", "Alice"),
+                ("age", 25),
+                ("city", "Los Angeles"),
+                ("country", "USA"),
+                ("job", "Doctor"),
+                ("gender", "Female"));
 
             var record3 = TestRecord.Create(
-            [
-                ("name", "Eve"), ("age", 35), ("city", "Chicago"),
-                ("country", "USA"), ("job", "Teacher"), ("gender", "Female")
-            ]);
+                ("name", "Eve"),
+                ("age", 35),
+                ("city", "Chicago"),
+                ("country", "USA"),
+                ("job", "Teacher"),
+                ("gender", "Female"));
 
             var result = new EagerResult<IReadOnlyList<IRecord>>(
                 new List<IRecord> { record1, record2, record3 },
@@ -224,13 +240,15 @@ public class DelegateExecutableQueryMappingExtensionsTests
                 (string name, int age, string city, string country, string job, string gender) =>
                     new { name, age, city, country, job, gender })
             .Result.Should()
-            .BeEquivalentTo([
+            .BeEquivalentTo(
+            [
                 new { name = "Bob", age = 30, city = "New York", country = "USA", job = "Engineer", gender = "Male" },
                 new
                 {
                     name = "Alice", age = 25, city = "Los Angeles", country = "USA", job = "Doctor", gender = "Female"
                 },
-                new { name = "Eve", age = 35, city = "Chicago", country = "USA", job = "Teacher", gender = "Female" }]);
+                new { name = "Eve", age = 35, city = "Chicago", country = "USA", job = "Teacher", gender = "Female" }
+            ]);
     }
 
     [Fact]
@@ -239,25 +257,31 @@ public class DelegateExecutableQueryMappingExtensionsTests
         Task<EagerResult<IReadOnlyList<IRecord>>> GetRecordsAsync()
         {
             var record1 = TestRecord.Create(
-            [
-                ("name", "Bob"), ("age", 30), ("city", "New York"),
-                ("country", "USA"), ("job", "Engineer"), ("gender", "Male"),
-                ("maritalStatus", "Single")
-            ]);
+                ("name", "Bob"),
+                ("age", 30),
+                ("city", "New York"),
+                ("country", "USA"),
+                ("job", "Engineer"),
+                ("gender", "Male"),
+                ("maritalStatus", "Single"));
 
             var record2 = TestRecord.Create(
-            [
-                ("name", "Alice"), ("age", 25), ("city", "Los Angeles"),
-                ("country", "USA"), ("job", "Doctor"), ("gender", "Female"),
-                ("maritalStatus", "Married")
-            ]);
+                ("name", "Alice"),
+                ("age", 25),
+                ("city", "Los Angeles"),
+                ("country", "USA"),
+                ("job", "Doctor"),
+                ("gender", "Female"),
+                ("maritalStatus", "Married"));
 
             var record3 = TestRecord.Create(
-            [
-                ("name", "Eve"), ("age", 35), ("city", "Chicago"),
-                ("country", "USA"), ("job", "Teacher"), ("gender", "Female"),
-                ("maritalStatus", "Divorced")
-            ]);
+                ("name", "Eve"),
+                ("age", 35),
+                ("city", "Chicago"),
+                ("country", "USA"),
+                ("job", "Teacher"),
+                ("gender", "Female"),
+                ("maritalStatus", "Divorced"));
 
             var result = new EagerResult<IReadOnlyList<IRecord>>(
                 new List<IRecord> { record1, record2, record3 },
@@ -272,7 +296,8 @@ public class DelegateExecutableQueryMappingExtensionsTests
                 (string name, int age, string city, string country, string job, string gender, string maritalStatus) =>
                     new { name, age, city, country, job, gender, maritalStatus })
             .Result.Should()
-            .BeEquivalentTo([
+            .BeEquivalentTo(
+            [
                 new
                 {
                     name = "Bob", age = 30, city = "New York", country = "USA", job = "Engineer", gender = "Male",
@@ -288,7 +313,7 @@ public class DelegateExecutableQueryMappingExtensionsTests
                     name = "Eve", age = 35, city = "Chicago", country = "USA", job = "Teacher", gender = "Female",
                     maritalStatus = "Divorced"
                 }
-                ]);
+            ]);
     }
 
     [Fact]
@@ -297,25 +322,34 @@ public class DelegateExecutableQueryMappingExtensionsTests
         Task<EagerResult<IReadOnlyList<IRecord>>> GetRecordsAsync()
         {
             var record1 = TestRecord.Create(
-            [
-                ("name", "Bob"), ("age", 30), ("city", "New York"),
-                ("country", "USA"), ("job", "Engineer"), ("gender", "Male"),
-                ("maritalStatus", "Single"), ("children", 2)
-            ]);
+                ("name", "Bob"),
+                ("age", 30),
+                ("city", "New York"),
+                ("country", "USA"),
+                ("job", "Engineer"),
+                ("gender", "Male"),
+                ("maritalStatus", "Single"),
+                ("children", 2));
 
             var record2 = TestRecord.Create(
-            [
-                ("name", "Alice"), ("age", 25), ("city", "Los Angeles"),
-                ("country", "USA"), ("job", "Doctor"), ("gender", "Female"),
-                ("maritalStatus", "Married"), ("children", 0)
-            ]);
+                ("name", "Alice"),
+                ("age", 25),
+                ("city", "Los Angeles"),
+                ("country", "USA"),
+                ("job", "Doctor"),
+                ("gender", "Female"),
+                ("maritalStatus", "Married"),
+                ("children", 0));
 
             var record3 = TestRecord.Create(
-            [
-                ("name", "Eve"), ("age", 35), ("city", "Chicago"),
-                ("country", "USA"), ("job", "Teacher"), ("gender", "Female"),
-                ("maritalStatus", "Divorced"), ("children", 1)
-            ]);
+                ("name", "Eve"),
+                ("age", 35),
+                ("city", "Chicago"),
+                ("country", "USA"),
+                ("job", "Teacher"),
+                ("gender", "Female"),
+                ("maritalStatus", "Divorced"),
+                ("children", 1));
 
             var result = new EagerResult<IReadOnlyList<IRecord>>(
                 new List<IRecord> { record1, record2, record3 },
@@ -337,7 +371,8 @@ public class DelegateExecutableQueryMappingExtensionsTests
                     string maritalStatus,
                     int children) => new { name, age, city, country, job, gender, maritalStatus, children })
             .Result.Should()
-            .BeEquivalentTo([
+            .BeEquivalentTo(
+            [
                 new
                 {
                     name = "Bob", age = 30, city = "New York", country = "USA", job = "Engineer", gender = "Male",
@@ -353,8 +388,7 @@ public class DelegateExecutableQueryMappingExtensionsTests
                     name = "Eve", age = 35, city = "Chicago", country = "USA", job = "Teacher", gender = "Female",
                     maritalStatus = "Divorced", children = 1
                 }
-                ]
-                );
+            ]);
     }
 
     [Fact]
@@ -363,25 +397,37 @@ public class DelegateExecutableQueryMappingExtensionsTests
         Task<EagerResult<IReadOnlyList<IRecord>>> GetRecordsAsync()
         {
             var record1 = TestRecord.Create(
-            [
-                ("name", "Bob"), ("age", 30), ("city", "New York"),
-                ("country", "USA"), ("job", "Engineer"), ("gender", "Male"),
-                ("maritalStatus", "Single"), ("children", 2), ("education", "Bachelor's")
-            ]);
+                ("name", "Bob"),
+                ("age", 30),
+                ("city", "New York"),
+                ("country", "USA"),
+                ("job", "Engineer"),
+                ("gender", "Male"),
+                ("maritalStatus", "Single"),
+                ("children", 2),
+                ("education", "Bachelor's"));
 
             var record2 = TestRecord.Create(
-            [
-                ("name", "Alice"), ("age", 25), ("city", "Los Angeles"),
-                ("country", "USA"), ("job", "Doctor"), ("gender", "Female"),
-                ("maritalStatus", "Married"), ("children", 0), ("education", "Master's")
-            ]);
+                ("name", "Alice"),
+                ("age", 25),
+                ("city", "Los Angeles"),
+                ("country", "USA"),
+                ("job", "Doctor"),
+                ("gender", "Female"),
+                ("maritalStatus", "Married"),
+                ("children", 0),
+                ("education", "Master's"));
 
             var record3 = TestRecord.Create(
-            [
-                ("name", "Eve"), ("age", 35), ("city", "Chicago"),
-                ("country", "USA"), ("job", "Teacher"), ("gender", "Female"),
-                ("maritalStatus", "Divorced"), ("children", 1), ("education", "PhD")
-            ]);
+                ("name", "Eve"),
+                ("age", 35),
+                ("city", "Chicago"),
+                ("country", "USA"),
+                ("job", "Teacher"),
+                ("gender", "Female"),
+                ("maritalStatus", "Divorced"),
+                ("children", 1),
+                ("education", "PhD"));
 
             var result = new EagerResult<IReadOnlyList<IRecord>>(
                 new List<IRecord> { record1, record2, record3 },
@@ -405,7 +451,8 @@ public class DelegateExecutableQueryMappingExtensionsTests
                     string education) => new
                     { name, age, city, country, job, gender, maritalStatus, children, education })
             .Result.Should()
-            .BeEquivalentTo([
+            .BeEquivalentTo(
+            [
                 new
                 {
                     name = "Bob", age = 30, city = "New York", country = "USA", job = "Engineer", gender = "Male",
@@ -420,7 +467,8 @@ public class DelegateExecutableQueryMappingExtensionsTests
                 {
                     name = "Eve", age = 35, city = "Chicago", country = "USA", job = "Teacher", gender = "Female",
                     maritalStatus = "Divorced", children = 1, education = "PhD"
-                }]);
+                }
+            ]);
     }
 
     [Fact]
@@ -429,25 +477,40 @@ public class DelegateExecutableQueryMappingExtensionsTests
         Task<EagerResult<IReadOnlyList<IRecord>>> GetRecordsAsync()
         {
             var record1 = TestRecord.Create(
-            [
-                ("name", "Bob"), ("age", 30), ("city", "New York"),
-                ("country", "USA"), ("job", "Engineer"), ("gender", "Male"),
-                ("maritalStatus", "Single"), ("children", 2), ("education", "Bachelor's"), ("income", 70000)
-            ]);
+                ("name", "Bob"),
+                ("age", 30),
+                ("city", "New York"),
+                ("country", "USA"),
+                ("job", "Engineer"),
+                ("gender", "Male"),
+                ("maritalStatus", "Single"),
+                ("children", 2),
+                ("education", "Bachelor's"),
+                ("income", 70000));
 
             var record2 = TestRecord.Create(
-            [
-                ("name", "Alice"), ("age", 25), ("city", "Los Angeles"),
-                ("country", "USA"), ("job", "Doctor"), ("gender", "Female"),
-                ("maritalStatus", "Married"), ("children", 0), ("education", "Master's"), ("income", 80000)
-            ]);
+                ("name", "Alice"),
+                ("age", 25),
+                ("city", "Los Angeles"),
+                ("country", "USA"),
+                ("job", "Doctor"),
+                ("gender", "Female"),
+                ("maritalStatus", "Married"),
+                ("children", 0),
+                ("education", "Master's"),
+                ("income", 80000));
 
             var record3 = TestRecord.Create(
-            [
-                ("name", "Eve"), ("age", 35), ("city", "Chicago"),
-                ("country", "USA"), ("job", "Teacher"), ("gender", "Female"),
-                ("maritalStatus", "Divorced"), ("children", 1), ("education", "PhD"), ("income", 60000)
-            ]);
+                ("name", "Eve"),
+                ("age", 35),
+                ("city", "Chicago"),
+                ("country", "USA"),
+                ("job", "Teacher"),
+                ("gender", "Female"),
+                ("maritalStatus", "Divorced"),
+                ("children", 1),
+                ("education", "PhD"),
+                ("income", 60000));
 
             var result = new EagerResult<IReadOnlyList<IRecord>>(
                 new List<IRecord> { record1, record2, record3 },
@@ -475,7 +538,8 @@ public class DelegateExecutableQueryMappingExtensionsTests
                     int income) => new
                     { name, age, city, country, job, gender, maritalStatus, children, education, income })
             .Result.Should()
-            .BeEquivalentTo([
+            .BeEquivalentTo(
+            [
                 new
                 {
                     name = "Bob", age = 30, city = "New York", country = "USA", job = "Engineer", gender = "Male",
@@ -490,6 +554,7 @@ public class DelegateExecutableQueryMappingExtensionsTests
                 {
                     name = "Eve", age = 35, city = "Chicago", country = "USA", job = "Teacher", gender = "Female",
                     maritalStatus = "Divorced", children = 1, education = "PhD", income = 60000
-                }]);
+                }
+            ]);
     }
 }
