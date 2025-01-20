@@ -263,7 +263,7 @@ public class DictAsRecordTests
 
         var subject = new DictAsRecord(dict, originalRecord);
 
-        subject.Count.Should().Be(2);
+        subject.Should().HaveCount(2);
     }
 
     [Fact]
