@@ -224,7 +224,7 @@ public class DefaultMapperTests
     private class SimpleClass
     {
         public int Id { get; set; }
-        public string Name { get; } = null!;
+        public string Name { get; set; } = null!;
     }
 
     private class ConstructorClass
